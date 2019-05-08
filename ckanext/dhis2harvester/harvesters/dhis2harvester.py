@@ -6,7 +6,7 @@ from ckan.logic import NotFound
 from ckan import model
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from StringIO import StringIO
-
+import uuid
 
 import json
 
@@ -198,23 +198,25 @@ class DHIS2Harvester(HarvesterBase):
             "owner_org": org["id"],
             "extras": [
                 {"key": "harvest_source_id",
-                 "value": "harvest_object.job.source.id"}]
+                 "value": harvest_object.job.source.id}]
         }
 
         try:
             existing_package = toolkit.get_action('package_show')(context,
-                                                            {
-                                                                "id": package["name"]
-                                                            })
-
+                                                                  {
+                                                                      "id": package["name"]
+                                                                  })
+            # TODO : if the package is in a deleted state we should activate it           
             existing_package.update(package)
             new_package = toolkit.get_action('package_update')(context,
-                                                 existing_package)
+                                                               existing_package)
         except NotFound as e:
             log.info("Creating new package")
+            context = {'model': model, 'session': model.Session,
+                       'user': self._get_user_name()}
+            package["id"] = str(uuid.uuid4()) 
             new_package = toolkit.get_action('package_create')(context,
-                                                 package)
-
+                                                               package)
 
         res_file = StringIO()
 
