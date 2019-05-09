@@ -12,6 +12,8 @@ import json
 
 import logging
 
+from ckanext.dhis2harvester import dhis2
+
 log = logging.getLogger(__name__)
 
 
@@ -114,20 +116,26 @@ class DHIS2Harvester(HarvesterBase):
         :returns: A list of HarvestObject ids
         '''
         log.info("Gather for DHIS2")
-        config = harvest_job.source.config
-        remote_dhis2_base_url = harvest_job.source.url.rstrip('/')
-
-
-        # get DHIS2 data
+        source_config = json.loads(harvest_job.source.config)
 
         dhis2_data = {
             "data": [{"a": 3, "b": 4}, {"a": 1, "b": 2}]
         }
-        
+
         obj = HarvestObject(guid="test",
                             job=harvest_job,
                             content=json.dumps(dhis2_data))
         obj.save()
+
+        # get DHIS2 data
+        dhis2_config = {
+            'url': harvest_job.source.url,
+            "apiResource": source_config['apiResource'],
+            "resourceParams": source_config['resourceParams'],
+            "username": source_config['username'],
+            "password": source_config['password']
+        }
+        dhis2.work(dhis2_config)
         return [obj.id]
         
 
@@ -151,6 +159,7 @@ class DHIS2Harvester(HarvesterBase):
         :returns: True if successful, 'unchanged' if nothing to import after
               all, False if not successful
         '''
+        log.info("DHIS2 harvester fetch stage")
         return True
     
     def import_stage(self, harvest_object):
@@ -179,7 +188,7 @@ class DHIS2Harvester(HarvesterBase):
         :returns: True if the action was done, "unchanged" if the object didn't
               need harvesting after all or False if there were errors.
         '''
-        log.info("DHIS2 harvester stage")
+        log.info("DHIS2 harvester import stage")
 
         context = {'model': model, 'session': model.Session,
                    'user': self._get_user_name()}
@@ -222,36 +231,35 @@ class DHIS2Harvester(HarvesterBase):
 
         res_file.write("a,b\n1,2\n,3,4")
         res_file.seek(0)
+        with open('dhis2.csv', 'rb') as csvfile:
+            resource = {
+                "name": "DHIS2 Test",
+                "description": "Data pulled from DHIS2",
+                "url_type": "upload",
+                "upload": FlaskFileStorage(
+                    stream=csvfile,
+                    filename="dhis2.csv"
+                    ),
+                "package_id": new_package["id"]
+                }
+            found = False
+            for old_resource in new_package["resources"]:
+                if old_resource["name"] == resource["name"]:
+                    existing_resource = toolkit.get_action('resource_show')(context,
+                                                                            {
+                                                                                "id": old_resource["id"]
+                                                                            })
 
-        resource = {
-            "name": "DHIS2 Test",
-            "description": "Data pulled from DHIS2",
-            "url_type": "upload",
-            "upload": FlaskFileStorage(
-                stream=res_file,
-                filename="dhis2.csv"
-                ),
-            "package_id": new_package["id"]
-            }
-        found = False
-        for old_resource in new_package["resources"]:
-            if old_resource["name"] == resource["name"]:
-                existing_resource = toolkit.get_action('resource_show')(context,
-                                                                        {
-                                                                            "id": old_resource["id"]
-                                                                        })
+                    existing_resource.update(resource)
+                    new_resource = toolkit.get_action('resource_update')(context,
+                                                                         existing_resource)
+                    found = True
+            if not found:
+                new_resource = toolkit.get_action('resource_create')(context,
+                                                                     resource)
 
-                existing_resource.update(resource)
-                new_resource = toolkit.get_action('resource_update')(context,
-                                                                     existing_resource)
-                found = True
-        if not found:
-            
-            new_resource = toolkit.get_action('resource_create')(context,
-                                                                 resource)
-        
-        harvest_object.package_id = new_package['id']
-        harvest_object.current = True
-        harvest_object.save()
+            harvest_object.package_id = new_package['id']
+            harvest_object.current = True
+            harvest_object.save()
 
         return True
