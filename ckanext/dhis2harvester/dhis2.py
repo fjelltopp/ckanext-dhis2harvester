@@ -113,7 +113,9 @@ def work(config=None):
     with open('dhis2.csv', 'wb') as csvfile:
         cvs_writer = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        headers = ['latitude', 'longitude', dhis2_items_map[x_dimensions[0]], dhis2_items_map[x_dimensions[1]], 'year', 'facility name']
+        val_col_1 = dhis2_items_map[x_dimensions[0]].replace(u' ', u'-')
+        val_col_2 = dhis2_items_map[x_dimensions[1]].replace(u' ', u'-')
+        headers = ['latitude', 'longitude', val_col_1, val_col_2, 'year', 'facility name']
         cvs_writer.writerow(headers)
         for org_id, result in results.iteritems():
             val1 = result.get(x_dimensions[0], "Unknown")
