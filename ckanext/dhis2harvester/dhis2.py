@@ -113,18 +113,15 @@ def work(config=None):
     with open('dhis2.csv', 'wb') as csvfile:
         cvs_writer = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        val_col_1 = dhis2_items_map[x_dimensions[0]].replace(u' ', u'-')
-        val_col_2 = dhis2_items_map[x_dimensions[1]].replace(u' ', u'-')
-        headers = ['latitude', 'longitude', val_col_1, val_col_2, 'year', 'facility name']
+        value_column_names = [dhis2_items_map[dim_id].replace(u' ', u'-') for dim_id in x_dimensions]
+        headers = ['latitude', 'longitude'] + value_column_names + ['year', 'facility name']
         cvs_writer.writerow(headers)
         for org_id, result in results.iteritems():
-            val1 = result.get(x_dimensions[0], "Unknown")
-            val2 = result.get(x_dimensions[1], "Unknown")
-            row = [result['latitude'], result['longitude'], val1, val2, result['year'], result['facility_name']]
+            row = [result['latitude'], result['longitude']]
+            row += [result.get(x, "Unknown") for x in x_dimensions]
+            row += [result['year'], result['facility_name']]
             # replace problematic \xa0 - non-breaking space
             row = [x.replace(u'\xa0', u' ') for x in row]
             cvs_writer.writerow(row)
     log.info("DHIS2 fetch finished successfully.")
 
-if __name__ == '__main__':
-    work()
