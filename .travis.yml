@@ -37,3 +37,9 @@ matrix:
       env:
         - FLAKE8=true
         - CKANVERSION=master
+notifications:
+  slack:
+    rooms:
+        - secure: BleITOYvW7EOKxAyfPHJrrZ334/HO2wTvWgyh+x0wZb0Xe5rYvpBrNdbbNRW7eUJlZlA9lETFLzfU+EXO4K+VD40pPDIt31/gxElxmRRD+2BBdlbUZd8N1c+puVWnldaIfUQj+1lyK6XBjowJ2XffxknbLpKTNaEyKZBmg3/2AQxBVTEP9VhMLjERNgenv34/NE7TVeu/NYFxOPpzsk5kWAJ2AvuSh+F9M8LBWHregwXyR6pmNqW0cs5u47i1UXU8dSOFxplzR0eCmqEyMliOhE5+18gmWmt5fuxa/h7uDnWxn+WgO4zeKP9odFI3i5RGYSnRvlF9aWnbDpZornBfvfSsayAe+NxE6rro8ZdHtHsV5m3fWS6naSZ/qD/P3z5+0Kcsww5ooRqqkZ9S+iu+++JhqZXWn8poq0poJ+/Wu/zA0r5lsBzyY8Kn8YXEmwMbMfBaogTpFnYOqgmWV3bsyZEVb8T4j17PHsSZJQ5/IjGYTyaVfBgNRR0CZg2F+Ni3TOzlgLoJD9MFOTzYD5ErbAe9y+uYujId7hUgfe8dFvce4KOqu592T1jZ7mwmVOh3htOH9e7wxJ5ir6LeVj9k67g7KT9Fw5oUWfTr0xGtKgzUXGNJoC2T9yRSkvi5uM6T2WUgbKEjThhYDqL5e/zdgBOLr2qIV9nCNeV9m40iEo=
+    on_success: change
+    on_failure: always
