@@ -1,4 +1,3 @@
-from ckan.plugins.core import SingletonPlugin, implements
 from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import HarvestObject
 from ckan.plugins import toolkit
@@ -7,11 +6,8 @@ from ckan import model
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from StringIO import StringIO
 import uuid
-
 import json
-
 import logging
-
 from ckanext.dhis2harvester import dhis2
 
 log = logging.getLogger(__name__)
@@ -27,7 +23,7 @@ class DHIS2Harvester(HarvesterBase):
         Harvesting implementations must provide this method, which will return
         a dictionary containing different descriptors of the harvester. The
         returned dictionary should contain:
-        
+
         * name: machine-readable name. This will be the value stored in the
         database, and the one used by ckanext-harvest to call the appropiate
         harvester.
@@ -35,9 +31,9 @@ class DHIS2Harvester(HarvesterBase):
         in the WUI.
         * description: a small description of what the harvester does. This
         will appear on the form as a guidance to the user.
-        
+
         A complete example may be::
-        
+
         {
             'name': 'csw',
             'title': 'CSW Server',
@@ -53,29 +49,29 @@ class DHIS2Harvester(HarvesterBase):
             'description': 'Harvests data from DHIS2',
             # 'form_config_interface': 'Text'
         }
-    
+
     def validate_config(self, config):
         '''
-        
+
         [optional]
-        
+
         Harvesters can provide this method to validate the configuration
         entered in the form. It should return a single string, which will be
         stored in the database.  Exceptions raised will be shown in the form's
         error messages.
-        
+
         :param harvest_object_id: Config string coming from the form
         :returns: A string with the validated configuration options
         '''
         log.info("VALIDATE CONFIG")
         log.info(config)
         return config
-    
+
     def get_original_url(self, harvest_object_id):
         '''
-        
+
         [optional]
-        
+
         This optional but very recommended method allows harvesters to return
         the URL to the original remote document, given a Harvest Object id.
         Note that getting the harvest object you have access to its guid as
@@ -84,17 +80,17 @@ class DHIS2Harvester(HarvesterBase):
         original document that has the errors. If this method is not provided
         or no URL is returned, only a link to the local copy of the remote
         document will be shown.
-        
+
         Examples:
         * For a CKAN record: http://{ckan-instance}/api/rest/{guid}
         * For a WAF record: http://{waf-root}/{file-name}
         * For a CSW record: http://{csw-server}/?Request=GetElementById&Id={guid}&...
-        
+
         :param harvest_object_id: HarvestObject id
         :returns: A string with the URL to the original document
         '''
         return ''
-    
+
     def gather_stage(self, harvest_job):
         '''
         The gather stage will receive a HarvestJob object and will be
@@ -111,7 +107,7 @@ class DHIS2Harvester(HarvesterBase):
         - returning a list with all the ids of the created HarvestObjects.
         - to abort the harvest, create a HarvestGatherError and raise an
           exception. Any created HarvestObjects will be deleted.
-        
+
         :param harvest_job: HarvestJob object
         :returns: A list of HarvestObject ids
         '''
@@ -137,10 +133,7 @@ class DHIS2Harvester(HarvesterBase):
         }
         dhis2.work(dhis2_config)
         return [obj.id]
-        
 
-
-    
     def fetch_stage(self, harvest_object):
         '''
         The fetch stage will receive a HarvestObject object and will be
@@ -154,14 +147,14 @@ class DHIS2Harvester(HarvesterBase):
           imported), "unchanged" if the object didn't need harvesting after
           all (ie no error, but don't continue to import stage) or False if
           there were errors.
-        
+
         :param harvest_object: HarvestObject object
         :returns: True if successful, 'unchanged' if nothing to import after
               all, False if not successful
         '''
         log.info("DHIS2 harvester fetch stage")
         return True
-    
+
     def import_stage(self, harvest_object):
         '''
         The import stage will receive a HarvestObject object and will be
@@ -181,9 +174,9 @@ class DHIS2Harvester(HarvesterBase):
         - creating the HarvestObject - Package relation (if necessary)
         - returning True if the action was done, "unchanged" if the object
           didn't need harvesting after all or False if there were errors.
-        
+
         NB You can run this stage repeatedly using 'paster harvest import'.
-        
+
         :param harvest_object: HarvestObject object
         :returns: True if the action was done, "unchanged" if the object didn't
               need harvesting after all or False if there were errors.
@@ -192,11 +185,11 @@ class DHIS2Harvester(HarvesterBase):
 
         context = {'model': model, 'session': model.Session,
                    'user': self._get_user_name()}
-        
-        source_package = toolkit.get_action('package_show')(context,
-                                                            {
-                                                                "id": harvest_object.harvest_source_id
-                                                            })
+
+        source_package = toolkit.get_action('package_show')(
+            context,
+            {"id": harvest_object.harvest_source_id}
+        )
 
         org = source_package["organization"]
 
@@ -215,15 +208,15 @@ class DHIS2Harvester(HarvesterBase):
                                                                   {
                                                                       "id": package["name"]
                                                                   })
-            # TODO : if the package is in a deleted state we should activate it           
+            # TODO : if the package is in a deleted state we should activate it
             existing_package.update(package)
             new_package = toolkit.get_action('package_update')(context,
                                                                existing_package)
-        except NotFound as e:
+        except NotFound:
             log.info("Creating new package")
             context = {'model': model, 'session': model.Session,
                        'user': self._get_user_name()}
-            package["id"] = str(uuid.uuid4()) 
+            package["id"] = str(uuid.uuid4())
             new_package = toolkit.get_action('package_create')(context,
                                                                package)
 
@@ -245,18 +238,22 @@ class DHIS2Harvester(HarvesterBase):
             found = False
             for old_resource in new_package["resources"]:
                 if old_resource["name"] == resource["name"]:
-                    existing_resource = toolkit.get_action('resource_show')(context,
-                                                                            {
-                                                                                "id": old_resource["id"]
-                                                                            })
+                    existing_resource = toolkit.get_action('resource_show')(
+                        context,
+                        {"id": old_resource["id"]}
+                    )
 
                     existing_resource.update(resource)
-                    new_resource = toolkit.get_action('resource_update')(context,
-                                                                         existing_resource)
+                    toolkit.get_action('resource_update')(
+                        context,
+                        existing_resource
+                    )
                     found = True
             if not found:
-                new_resource = toolkit.get_action('resource_create')(context,
-                                                                     resource)
+                toolkit.get_action('resource_create')(
+                    context,
+                    resource
+                )
 
             harvest_object.package_id = new_package['id']
             harvest_object.current = True

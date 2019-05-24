@@ -1,10 +1,10 @@
 import logging
 from itertools import izip_longest
-
 import requests
 import csv
 import json
 from base64 import b64encode
+
 log = logging.getLogger(__name__)
 
 DHIS2_API_URL = 'https://play.dhis2.org/api/26/'
@@ -13,9 +13,9 @@ DHIS2_ORG_RESOURCE = 'organisationUnits'
 DHIS2_PARAMS = ''
 DHIS2_METADATA = '&skipData=true'
 DHIS2_DATA = '&skipMeta=true'
-
 DHIS2_USERNAME = 'admin'
 DHIS2_PASSWORD = 'district'
+
 
 def create_dhis2_headers():
     u_and_p = b"%s:%s" % (DHIS2_USERNAME, DHIS2_PASSWORD)
@@ -32,13 +32,20 @@ def __grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return izip_longest(*args, fillvalue=fillvalue)
 
+
 def _get_organisation_details(organisation_ids_list):
     param_fields = 'fields=id,name,coordinates'
     result = dict()
     for chunk in __grouper(organisation_ids_list, 500, fillvalue=''):
         ids_str = '[' + ','.join(chunk) + ']'
         param_filters = 'filter=id:in:%s' % str(ids_str)
-        r_org = requests.get(DHIS2_API_URL + DHIS2_ORG_RESOURCE + '?paging=false&%s&%s' % (param_fields, param_filters), headers=create_dhis2_headers())
+        r_org = requests.get(
+            DHIS2_API_URL + DHIS2_ORG_RESOURCE + '?paging=false&%s&%s' % (
+                param_fields,
+                param_filters
+            ),
+            headers=create_dhis2_headers()
+        )
         organisation_units = json.loads(r_org.text)['organisationUnits']
 
         for org in organisation_units:
@@ -75,8 +82,14 @@ def work(config=None):
     log.info("Parsing config.")
     _parse_config(config)
     log.info("Fetching DHIS2 data.")
-    r_meta = requests.get(DHIS2_API_URL + DHIS2_API_RESOURCE + '?' + DHIS2_PARAMS + DHIS2_METADATA, headers=create_dhis2_headers())
-    r_data = requests.get(DHIS2_API_URL + DHIS2_API_RESOURCE + '?' + DHIS2_PARAMS + DHIS2_DATA, headers=create_dhis2_headers())
+    r_meta = requests.get(
+        DHIS2_API_URL + DHIS2_API_RESOURCE + '?' + DHIS2_PARAMS + DHIS2_METADATA,
+        headers=create_dhis2_headers()
+    )
+    r_data = requests.get(
+        DHIS2_API_URL + DHIS2_API_RESOURCE + '?' + DHIS2_PARAMS + DHIS2_DATA,
+        headers=create_dhis2_headers()
+    )
     data_text = r_data.text
     meta_text = r_meta.text
     data = json.loads(data_text)
@@ -124,4 +137,3 @@ def work(config=None):
             row = [x.replace(u'\xa0', u' ') for x in row]
             cvs_writer.writerow(row)
     log.info("DHIS2 fetch finished successfully.")
-
