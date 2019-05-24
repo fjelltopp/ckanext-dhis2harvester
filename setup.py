@@ -22,6 +22,6 @@ setup(
     [ckan.plugins]
     # Add plugins here, eg
     dhis2harvester_plugin=ckanext.dhis2harvester.plugin:DHIS2HarvesterPlugin
-    dhis2harvester=ckanext.dhis2harvester.harvesters:DHIS2Harvester
+    dhis2harvester=ckanext.dhis2harvester.harvesters.dhis2harvester:DHIS2Harvester
     """,
 )

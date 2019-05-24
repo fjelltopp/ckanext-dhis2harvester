@@ -9,11 +9,11 @@ nosetests --ckan \
           --nologcapture \
           --with-pylons=subdir/test.ini \
           --with-coverage \
-          --cover-package=ckanext.validator \
+          --cover-package=ckanext.dhis2harvester \
           --cover-inclusive \
           --cover-erase \
           --cover-tests \
-          ckanext/validator
+          ckanext/dhis2harvester
 
 # strict linting
-flake8 . --count --max-complexity=12 --max-line-length=127 --statistics --exclude ckan,{{ project }}
+flake8 . --count --max-complexity=12 --max-line-length=127 --statistics --exclude ckan,ckanext-harvest,{{ project }}
