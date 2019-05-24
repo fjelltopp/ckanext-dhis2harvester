@@ -55,9 +55,17 @@ cd ckan
 paster db init -c test-core.ini
 cd -
 
-echo "Installing ckanext-dhis2harvester and its requirements..."
+echo "Installing ckanext-harvest and its requirements..."
+git clone https://github.com/ckan/ckanext-harvest
+cd ckanext-harvest
 sudo python setup.py develop
-pip install --user -r requirements.txt
+pip install --user -r pip-requirements.txt
+paster harvester initdb -c ../ckan/test-core.ini
+cd -
+
+echo "Installing ckanext-dhis2harvester and its requirements..."
+pip install --user -r dev-requirements.txt
+sudo python setup.py develop
 
 echo "Moving test.ini into a subdir..."
 mkdir subdir
