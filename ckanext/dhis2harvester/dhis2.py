@@ -17,6 +17,7 @@ DHIS2_DATA = '&skipMeta=true'
 DHIS2_USERNAME = 'admin'
 DHIS2_PASSWORD = 'district'
 
+
 def create_dhis2_headers():
     u_and_p = b"%s:%s" % (DHIS2_USERNAME, DHIS2_PASSWORD)
     u_and_p_b64 = b64encode(u_and_p).decode("ascii")
@@ -138,13 +139,14 @@ def work(config=None):
             cvs_writer.writerow(row)
     log.info("DHIS2 fetch finished successfully.")
 
+
 if __name__ == '__main__':
     config = {
         "url": "https://play.dhis2.org/2.32.0/api/29/",
         "username": "admin",
         "password": "district",
         "apiResource": "analytics.json",
-        "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
-        # "resourceParams": "dimension=dx:uok31uImF2O;szTUYhNllEM&dimension=pe:LAST_YEAR&dimension=ou:LEVEL-5;HfVjCurKxh2&displayProperty=NAME"
+        "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS"
+                          "&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
     }
     work(config)
