@@ -5,6 +5,7 @@ from ckan.logic import NotFound
 from ckan import model
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from StringIO import StringIO
+from slugify import slugify
 import uuid
 import json
 import logging
@@ -63,8 +64,13 @@ class DHIS2Harvester(HarvesterBase):
         :param harvest_object_id: Config string coming from the form
         :returns: A string with the validated configuration options
         '''
-        log.info("VALIDATE CONFIG")
-        log.info(config)
+        log.debug("Starting config validation")
+        config_dict = json.loads(config)
+        msg_template = "Couldn't find '{0}' in harvester source config."
+        for config_item in ["username", "password", "apiResource", "resourceParams", "ckanResourceName", "ckanPackageTitle"]:
+            if config_item not in config_dict:
+                raise ValueError(msg_template.format(config_item))
+        log.info("Received config string: " + config)
         return config
 
     def get_original_url(self, harvest_object_id):
@@ -191,11 +197,19 @@ class DHIS2Harvester(HarvesterBase):
             {"id": harvest_object.harvest_source_id}
         )
 
+        config = json.loads(harvest_object.source.config)
         org = source_package["organization"]
+        log.info("Config: " + harvest_object.source.config)
+        ckan_resource_name = config['ckanResourceName']
+        if 'ckanPackageTitle' in config:
+            ckan_package_title = config['ckanPackageTitle']
+        else:
+            ckan_package_title = ckan_resource_name + "DHIS2"
+        ckan_package_name = slugify(ckan_package_title)
 
         package = {
-            "name": org["name"] + "_dhis2",
-            "title": org["title"] + " DHIS2",
+            "name": ckan_package_name,
+            "title": ckan_package_title,
             "type": "dataset",
             "owner_org": org["id"],
             "extras": [
@@ -226,7 +240,7 @@ class DHIS2Harvester(HarvesterBase):
         res_file.seek(0)
         with open('dhis2.csv', 'rb') as csvfile:
             resource = {
-                "name": "DHIS2 Test",
+                "name": ckan_resource_name,
                 "description": "Data pulled from DHIS2",
                 "url_type": "upload",
                 "upload": FlaskFileStorage(
