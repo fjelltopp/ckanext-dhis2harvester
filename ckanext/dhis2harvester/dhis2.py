@@ -7,15 +7,14 @@ from base64 import b64encode
 
 log = logging.getLogger(__name__)
 
-DHIS2_API_URL = 'https://play.dhis2.org/api/26/'
+DHIS2_API_URL = 'https://play.dhis2.org/2.32.0/api/29/'
 DHIS2_API_RESOURCE = 'analytics.json'
 DHIS2_ORG_RESOURCE = 'organisationUnits'
-DHIS2_PARAMS = ''
+DHIS2_PARAMS = 'dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS&filter=ou:ImspTQPwCqd;LEVEL-2&displayProperty=NAME'
 DHIS2_METADATA = '&skipData=true'
 DHIS2_DATA = '&skipMeta=true'
 DHIS2_USERNAME = 'admin'
 DHIS2_PASSWORD = 'district'
-
 
 def create_dhis2_headers():
     u_and_p = b"%s:%s" % (DHIS2_USERNAME, DHIS2_PASSWORD)
