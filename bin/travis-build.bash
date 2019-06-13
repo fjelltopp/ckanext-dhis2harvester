@@ -64,6 +64,7 @@ paster harvester initdb -c ../ckan/test-core.ini
 cd -
 
 echo "Installing ckanext-dhis2harvester and its requirements..."
+pip install --user -r pip-requirements.txt
 pip install --user -r dev-requirements.txt
 sudo python setup.py develop
 
