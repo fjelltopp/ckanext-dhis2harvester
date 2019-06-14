@@ -7,10 +7,11 @@ from base64 import b64encode
 
 log = logging.getLogger(__name__)
 
-DHIS2_API_URL = 'https://play.dhis2.org/api/26/'
+DHIS2_API_URL = 'https://play.dhis2.org/2.32.0/api/29/'
 DHIS2_API_RESOURCE = 'analytics.json'
 DHIS2_ORG_RESOURCE = 'organisationUnits'
-DHIS2_PARAMS = ''
+DHIS2_PARAMS = 'dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS' \
+               '&filter=ou:ImspTQPwCqd;LEVEL-2&displayProperty=NAME'
 DHIS2_METADATA = '&skipData=true'
 DHIS2_DATA = '&skipMeta=true'
 DHIS2_USERNAME = 'admin'
@@ -137,3 +138,15 @@ def work(config=None):
             row = [x.replace(u'\xa0', u' ') for x in row]
             cvs_writer.writerow(row)
     log.info("DHIS2 fetch finished successfully.")
+
+
+if __name__ == '__main__':
+    config = {
+        "url": "https://play.dhis2.org/2.32.0/api/29/",
+        "username": "admin",
+        "password": "district",
+        "apiResource": "analytics.json",
+        "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS"
+                          "&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
+    }
+    work(config)
