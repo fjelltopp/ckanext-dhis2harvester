@@ -67,9 +67,14 @@ class DHIS2Harvester(HarvesterBase):
         log.debug("Starting config validation")
         config_dict = json.loads(config)
         msg_template = "Couldn't find '{0}' in harvester source config."
-        for config_item in ["username", "password", "apiResource", "resourceParams", "ckanResourceName", "ckanPackageTitle"]:
+        for config_item in ["username", "password", "resources"]:
             if config_item not in config_dict:
                 raise ValueError(msg_template.format(config_item))
+        for resource_config in config_dict['resources']:
+            for config_item in ["apiResource", "resourceParams", "ckanResourceName", "ckanPackageTitle"]:
+                if config_item not in resource_config:
+                    raise ValueError(msg_template.format(config_item))
+
         log.info("Received config string: " + config)
         return config
 
@@ -130,13 +135,9 @@ class DHIS2Harvester(HarvesterBase):
         obj.save()
 
         # get DHIS2 data
-        dhis2_config = {
-            'url': harvest_job.source.url,
-            "apiResource": source_config['apiResource'],
-            "resourceParams": source_config['resourceParams'],
-            "username": source_config['username'],
-            "password": source_config['password']
-        }
+        dhis2_config = source_config.update({
+            'url': harvest_job.source.url
+        })
         dhis2.work(dhis2_config)
         return [obj.id]
 
@@ -200,77 +201,75 @@ class DHIS2Harvester(HarvesterBase):
         config = json.loads(harvest_object.source.config)
         org = source_package["organization"]
         log.info("Config: " + harvest_object.source.config)
-        ckan_resource_name = config['ckanResourceName']
-        if 'ckanPackageTitle' in config:
-            ckan_package_title = config['ckanPackageTitle']
-        else:
-            ckan_package_title = ckan_resource_name + "DHIS2"
-        ckan_package_name = slugify(ckan_package_title)
 
-        package = {
-            "name": ckan_package_name,
-            "title": ckan_package_title,
-            "type": "dataset",
-            "owner_org": org["id"],
-            "extras": [
-                {"key": "harvest_source_id",
-                 "value": harvest_object.job.source.id}]
-        }
+        for resource_config in config['resources']:
+            ckan_resource_name = resource_config['ckanResourceName']
+            if 'ckanPackageTitle' in resource_config:
+                ckan_package_title = resource_config['ckanPackageTitle']
+            else:
+                ckan_package_title = ckan_resource_name + "DHIS2"
+            ckan_package_name = slugify(ckan_package_title)
 
-        try:
-            existing_package = toolkit.get_action('package_show')(context,
-                                                                  {
-                                                                      "id": package["name"]
-                                                                  })
-            # TODO : if the package is in a deleted state we should activate it
-            existing_package.update(package)
-            new_package = toolkit.get_action('package_update')(context,
-                                                               existing_package)
-        except NotFound:
-            log.info("Creating new package")
-            context = {'model': model, 'session': model.Session,
-                       'user': self._get_user_name()}
-            package["id"] = str(uuid.uuid4())
-            new_package = toolkit.get_action('package_create')(context,
-                                                               package)
+            package = {
+                "name": ckan_package_name,
+                "title": ckan_package_title,
+                "type": "dataset",
+                "owner_org": org["id"],
+                "extras": [
+                    {"key": "harvest_source_id",
+                     "value": harvest_object.job.source.id}]
+            }
 
-        res_file = StringIO()
+            try:
+                existing_package = toolkit.get_action('package_show')(context,
+                                                                      {
+                                                                          "id": package["name"]
+                                                                      })
+                # TODO : if the package is in a deleted state we should activate it
+                existing_package.update(package)
+                new_package = toolkit.get_action('package_update')(context,
+                                                                   existing_package)
+            except NotFound:
+                log.info("Creating new package")
+                context = {'model': model, 'session': model.Session,
+                           'user': self._get_user_name()}
+                package["id"] = str(uuid.uuid4())
+                new_package = toolkit.get_action('package_create')(context,
+                                                                   package)
+            resource_filename = "%s_%s.csv" % (slugify(resource_config['ckanPackageTitle']), resource_config['ckanResourceName'])
+            with open(resource_filename, 'rb') as csvfile:
+                resource = {
+                    "name": ckan_resource_name,
+                    "description": "Data pulled from DHIS2",
+                    "url_type": "upload",
+                    "upload": FlaskFileStorage(
+                        stream=csvfile,
+                        filename="dhis2.csv"
+                        ),
+                    "package_id": new_package["id"]
+                    }
+                found = False
+                for old_resource in new_package["resources"]:
+                    if old_resource["name"] == resource["name"]:
+                        existing_resource = toolkit.get_action('resource_show')(
+                            context,
+                            {"id": old_resource["id"]}
+                        )
 
-        res_file.write("a,b\n1,2\n,3,4")
-        res_file.seek(0)
-        with open('dhis2.csv', 'rb') as csvfile:
-            resource = {
-                "name": ckan_resource_name,
-                "description": "Data pulled from DHIS2",
-                "url_type": "upload",
-                "upload": FlaskFileStorage(
-                    stream=csvfile,
-                    filename="dhis2.csv"
-                    ),
-                "package_id": new_package["id"]
-                }
-            found = False
-            for old_resource in new_package["resources"]:
-                if old_resource["name"] == resource["name"]:
-                    existing_resource = toolkit.get_action('resource_show')(
+                        existing_resource.update(resource)
+                        toolkit.get_action('resource_update')(
+                            context,
+                            existing_resource
+                        )
+                        found = True
+                if not found:
+                    toolkit.get_action('resource_create')(
                         context,
-                        {"id": old_resource["id"]}
+                        resource
                     )
 
-                    existing_resource.update(resource)
-                    toolkit.get_action('resource_update')(
-                        context,
-                        existing_resource
-                    )
-                    found = True
-            if not found:
-                toolkit.get_action('resource_create')(
-                    context,
-                    resource
-                )
-
-            harvest_object.package_id = new_package['id']
-            harvest_object.current = True
-            harvest_object.save()
+                harvest_object.package_id = new_package['id']
+                harvest_object.current = True
+                harvest_object.save()
 
         return True

@@ -4,6 +4,7 @@ import requests
 import csv
 import json
 from base64 import b64encode
+from slugify import slugify
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ DHIS2_METADATA = '&skipData=true'
 DHIS2_DATA = '&skipMeta=true'
 DHIS2_USERNAME = 'admin'
 DHIS2_PASSWORD = 'district'
-
+RESOURCE_FILENAME = 'test_dhis2_resource.csv'
 
 def create_dhis2_headers():
     u_and_p = b"%s:%s" % (DHIS2_USERNAME, DHIS2_PASSWORD)
@@ -67,21 +68,25 @@ def _get_organisation_details(organisation_ids_list):
 
     return result
 
-
-def _parse_config(config):
-    log.info('Got config: \n %s' % config)
-    global DHIS2_API_URL, DHIS2_API_RESOURCE, DHIS2_PARAMS, DHIS2_USERNAME, DHIS2_PASSWORD
+def _parse_dhis2_configuration(config):
+    log.info('Got DHIS2 config: \n %s' % config)
+    global DHIS2_API_URL, DHIS2_USERNAME, DHIS2_PASSWORD
 
     DHIS2_API_URL = config['url']
-    DHIS2_API_RESOURCE = config['apiResource']
-    DHIS2_PARAMS = config['resourceParams']
     DHIS2_USERNAME = config['username']
     DHIS2_PASSWORD = config['password']
 
+def _parse_resource_config(config):
+    log.info('Got config: \n %s' % config)
+    global DHIS2_API_RESOURCE, DHIS2_PARAMS, RESOURCE_FILENAME
 
-def work(config=None):
-    log.info("Parsing config.")
-    _parse_config(config)
+    DHIS2_API_RESOURCE = config['apiResource']
+    DHIS2_PARAMS = config['resourceParams']
+    RESOURCE_FILENAME = "%s_%s.csv" % (slugify(config['ckanPackageTitle']), config['ckanResourceName'])
+
+
+def fetch_resource(resource_config=None):
+    _parse_resource_config(resource_config)
     log.info("Fetching DHIS2 data.")
     r_meta = requests.get(
         DHIS2_API_URL + DHIS2_API_RESOURCE + '?' + DHIS2_PARAMS + DHIS2_METADATA,
@@ -124,7 +129,7 @@ def work(config=None):
         result['latitude'] = org_details['latitude']
 
     log.info("Writing to csv file.")
-    with open('dhis2.csv', 'wb') as csvfile:
+    with open(RESOURCE_FILENAME, 'wb') as csvfile:
         cvs_writer = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
         value_column_names = [dhis2_items_map[dim_id].replace(u' ', u'-') for dim_id in x_dimensions]
@@ -140,13 +145,31 @@ def work(config=None):
     log.info("DHIS2 fetch finished successfully.")
 
 
+def work(config=None):
+    log.info("Parsing config.")
+    _parse_dhis2_configuration(config)
+    for resource_config in config['resources']:
+        fetch_resource(resource_config)
+
+
 if __name__ == '__main__':
     config = {
         "url": "https://play.dhis2.org/2.32.0/api/29/",
         "username": "admin",
         "password": "district",
-        "apiResource": "analytics.json",
-        "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS"
-                          "&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
+        "resources": [
+            {
+                "apiResource": "analytics.json",
+                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
+                "ckanResourceName": "DHIS2_HIV_tests_data",
+                "ckanPackageTitle": "DHIS2 Import"
+            },
+            {
+                "apiResource": "analytics.json",
+                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD;lOiynlltFdy&dimension=pe:LAST_12_MONTHS&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
+                "ckanResourceName": "second_resource",
+                "ckanPackageTitle": "Tomek Import"
+            }
+        ]
     }
     work(config)
