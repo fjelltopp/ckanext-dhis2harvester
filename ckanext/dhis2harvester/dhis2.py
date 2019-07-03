@@ -19,6 +19,7 @@ DHIS2_USERNAME = 'admin'
 DHIS2_PASSWORD = 'district'
 RESOURCE_FILENAME = 'test_dhis2_resource.csv'
 
+
 def create_dhis2_headers():
     u_and_p = b"%s:%s" % (DHIS2_USERNAME, DHIS2_PASSWORD)
     u_and_p_b64 = b64encode(u_and_p).decode("ascii")
@@ -68,6 +69,7 @@ def _get_organisation_details(organisation_ids_list):
 
     return result
 
+
 def _parse_dhis2_configuration(config):
     log.info('Got DHIS2 config: \n %s' % config)
     global DHIS2_API_URL, DHIS2_USERNAME, DHIS2_PASSWORD
@@ -75,6 +77,7 @@ def _parse_dhis2_configuration(config):
     DHIS2_API_URL = config['url']
     DHIS2_USERNAME = config['username']
     DHIS2_PASSWORD = config['password']
+
 
 def _parse_resource_config(config):
     log.info('Got config: \n %s' % config)
@@ -160,13 +163,15 @@ if __name__ == '__main__':
         "exportResources": [
             {
                 "apiResource": "analytics.json",
-                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
+                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS"
+                                  "&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
                 "ckanResourceName": "DHIS2_HIV_tests_data",
                 "ckanPackageTitle": "DHIS2 Import"
             },
             {
                 "apiResource": "analytics.json",
-                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD;lOiynlltFdy&dimension=pe:LAST_12_MONTHS&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
+                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD;lOiynlltFdy&dimension=pe:LAST_12_MONTHS"
+                                  "&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
                 "ckanResourceName": "second_resource",
                 "ckanPackageTitle": "Tomek Import"
             }

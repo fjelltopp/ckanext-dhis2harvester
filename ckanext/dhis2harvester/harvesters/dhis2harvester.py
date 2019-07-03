@@ -6,7 +6,6 @@ from ckan.plugins import toolkit
 from ckan.logic import NotFound
 from ckan import model
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
-from StringIO import StringIO
 from slugify import slugify
 import uuid
 import json
