@@ -1,3 +1,5 @@
+import copy
+
 from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import HarvestObject
 from ckan.plugins import toolkit
@@ -67,10 +69,10 @@ class DHIS2Harvester(HarvesterBase):
         log.debug("Starting config validation")
         config_dict = json.loads(config)
         msg_template = "Couldn't find '{0}' in harvester source config."
-        for config_item in ["username", "password", "resources"]:
+        for config_item in ["username", "password", "exportResources"]:
             if config_item not in config_dict:
                 raise ValueError(msg_template.format(config_item))
-        for resource_config in config_dict['resources']:
+        for resource_config in config_dict['exportResources']:
             for config_item in ["apiResource", "resourceParams", "ckanResourceName", "ckanPackageTitle"]:
                 if config_item not in resource_config:
                     raise ValueError(msg_template.format(config_item))
@@ -135,9 +137,8 @@ class DHIS2Harvester(HarvesterBase):
         obj.save()
 
         # get DHIS2 data
-        dhis2_config = source_config.update({
-            'url': harvest_job.source.url
-        })
+        dhis2_config = copy.deepcopy(source_config)
+        dhis2_config['url'] = harvest_job.source.url
         dhis2.work(dhis2_config)
         return [obj.id]
 
@@ -202,7 +203,7 @@ class DHIS2Harvester(HarvesterBase):
         org = source_package["organization"]
         log.info("Config: " + harvest_object.source.config)
 
-        for resource_config in config['resources']:
+        for resource_config in config['exportResources']:
             ckan_resource_name = resource_config['ckanResourceName']
             if 'ckanPackageTitle' in resource_config:
                 ckan_package_title = resource_config['ckanPackageTitle']
@@ -236,7 +237,7 @@ class DHIS2Harvester(HarvesterBase):
                 package["id"] = str(uuid.uuid4())
                 new_package = toolkit.get_action('package_create')(context,
                                                                    package)
-            resource_filename = "%s_%s.csv" % (slugify(resource_config['ckanPackageTitle']), resource_config['ckanResourceName'])
+            resource_filename = "%s_%s.csv" % (ckan_package_name, ckan_resource_name)
             with open(resource_filename, 'rb') as csvfile:
                 resource = {
                     "name": ckan_resource_name,
@@ -244,7 +245,7 @@ class DHIS2Harvester(HarvesterBase):
                     "url_type": "upload",
                     "upload": FlaskFileStorage(
                         stream=csvfile,
-                        filename="dhis2.csv"
+                        filename=resource_filename
                         ),
                     "package_id": new_package["id"]
                     }

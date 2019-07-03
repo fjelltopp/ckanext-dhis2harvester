@@ -148,7 +148,7 @@ def fetch_resource(resource_config=None):
 def work(config=None):
     log.info("Parsing config.")
     _parse_dhis2_configuration(config)
-    for resource_config in config['resources']:
+    for resource_config in config['exportResources']:
         fetch_resource(resource_config)
 
 
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         "url": "https://play.dhis2.org/2.32.0/api/29/",
         "username": "admin",
         "password": "district",
-        "resources": [
+        "exportResources": [
             {
                 "apiResource": "analytics.json",
                 "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
