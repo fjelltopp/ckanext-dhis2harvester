@@ -3,7 +3,7 @@ import logging
 import licenses
 import ckan.model.license as core_licenses
 import ckan.model.package as package
-
+import ckan.plugins.toolkit as toolkit
 log = logging.getLogger(__name__)
 
 
@@ -33,3 +33,4 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin):
         '''
         add_licenses()
         log.info("DHIS2 Plugin is enabled")
+        toolkit.add_template_directory(config, 'templates')
