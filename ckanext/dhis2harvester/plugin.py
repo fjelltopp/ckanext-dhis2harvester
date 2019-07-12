@@ -34,3 +34,4 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin):
         add_licenses()
         log.info("DHIS2 Plugin is enabled")
         toolkit.add_template_directory(config, 'templates')
+        p.toolkit.add_public_directory(config, 'public')

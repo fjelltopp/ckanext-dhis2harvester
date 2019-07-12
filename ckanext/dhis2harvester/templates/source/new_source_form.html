@@ -46,12 +46,8 @@
   {% block extra_config %}
   {{ form.textarea('config', id='field-config', label=_('Configuration'), value=data.config, error=errors.config) }}
     <div id='editor_holder'></div>
-    <style>
-      div#editor_holder h3 {
-        font-size: 14px;
-      }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
+    <script src="{{ h.url_for_static('/jsoneditor.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ h.url_for_static('/dhis2harvester.css')}}">
     <script>
       schema_json = {
   "type": "object",
