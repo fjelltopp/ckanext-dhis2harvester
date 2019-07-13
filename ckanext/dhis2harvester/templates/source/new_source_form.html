@@ -45,13 +45,14 @@
 
   <div id='editor_holder'></div>
   <p id="submit-config">Submit configuration.</p>
-  <script src="{{ h.url_for_static('/jsoneditor.min.js') }}"></script>
-  <link rel="stylesheet" type="text/css" href="{{ h.url_for_static('/dhis2_harvester_source_form.css')}}">
-  <script src="{{ h.url_for_static('/dhis2_harvester_source_form.js') }}"></script>
 
   {% block extra_config %}
   {{ form.textarea('config', id='field-config', label=_('Configuration'), value=data.config, error=errors.config) }}
   {% endblock extra_config %}
+
+  <script src="{{ h.url_for_static('/jsoneditor.min.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ h.url_for_static('/dhis2_harvester_source_form.css')}}">
+  <script src="{{ h.url_for_static('/dhis2_harvester_source_form.js') }}"></script>
 
   {# if we have a default group then this wants remembering #}
   {% if data.group_id %}

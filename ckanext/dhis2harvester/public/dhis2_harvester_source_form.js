@@ -91,6 +91,9 @@ schema_json = {
     }
   }
 };
+
+
+var config_json = JSON.parse(document.getElementById('field-config').value);
 // Initialize the editor with a JSON schema
 var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   schema: schema_json,
@@ -99,46 +102,13 @@ var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   required_by_default: true,
   disable_edit_json: true,
   disable_properties: true,
-  prompt_before_delete: false
+  prompt_before_delete: false,
+  startval: config_json
 });
 
+
 document.getElementById('submit-config').onclick = function(){
-  var config_json = configEditor.getValue();
-  var harvester_config = {
-    'username': config_json['username'],
-    'password': config_json['password'],
-  };
-  var resourcesToExport = [];
-  var resourcesFromEditor = config_json['resourcesToExport'];
-  resourcesFromEditor.forEach( function(resource, i) {
-    var json_resource_el = {};
-    json_resource_el['apiResource'] = config_json['apiResource'];
-
-    var resourceParamStr = '';
-    // Adding data elements ids
-    resourceParamStr += "dimension=dx:";
-    var dataElementsIds = resource['dataElementsIds'];
-    dataElementsIds.forEach( function(el, j) {
-      if (j !== 0) {
-        resourceParamStr += ";"
-      }
-      resourceParamStr += el['id']
-    });
-
-    // Adding period, org unit and constants
-    resourceParamStr += "&dimension=pe:" + resource['period'];
-    resourceParamStr += "&dimension=ou:" + resource['orgUnitLevel'] + ";" + resource['orgUnitId'];
-    resourceParamStr += "&displayProperty=NAME";
-
-    json_resource_el['resourceParams'] = resourceParamStr;
-    json_resource_el['ckanResourceName'] = resource['ckanResourceName'];
-    json_resource_el['ckanPackageTitle'] = resource['ckanPackageTitle'];
-
-    resourcesToExport.push(json_resource_el)
-  });
-
-  harvester_config['exportResources'] = resourcesToExport;
-
-  document.getElementById('field-config').value = JSON.stringify(harvester_config, null, 4);
+  var config_editor_json = configEditor.getValue();
+  document.getElementById('field-config').value = JSON.stringify(config_editor_json, null, 4);
 };
 
