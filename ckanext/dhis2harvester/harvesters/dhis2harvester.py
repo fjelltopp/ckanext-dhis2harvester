@@ -10,7 +10,8 @@ from slugify import slugify
 import uuid
 import json
 import logging
-from ckanext.dhis2harvester import dhis2
+from ckanext.dhis2harvester.harvesters import dhis2
+from ckanext.dhis2harvester.harvesters.harvest_config_utils import parse_config
 
 log = logging.getLogger(__name__)
 
@@ -197,8 +198,7 @@ class DHIS2Harvester(HarvesterBase):
             context,
             {"id": harvest_object.harvest_source_id}
         )
-
-        config = json.loads(harvest_object.source.config)
+        config = parse_config(json.loads(harvest_object.source.config))
         org = source_package["organization"]
         log.info("Config: " + harvest_object.source.config)
 

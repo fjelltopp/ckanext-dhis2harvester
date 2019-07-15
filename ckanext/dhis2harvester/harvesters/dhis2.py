@@ -6,6 +6,8 @@ import json
 from base64 import b64encode
 from slugify import slugify
 
+from ckanext.dhis2harvester.harvesters.harvest_config_utils import parse_config
+
 log = logging.getLogger(__name__)
 
 DHIS2_API_URL = 'https://play.dhis2.org/2.32.0/api/29/'
@@ -149,44 +151,9 @@ def fetch_resource(resource_config=None):
 
 
 
-def _parse_config(config):
-    harvester_config = {
-        'username': config['username'],
-        'password': config['password'],
-    }
-    resourcesToExport = []
-    resourcesFromEditor = config['resourcesToExport']
-    for i, resource in enumerate(resourcesFromEditor):
-        json_resource_el = {}
-        json_resource_el['apiResource'] = config['apiResource']
-
-        resourceParamStr = ''
-        # Adding data elements ids
-        resourceParamStr += "dimension=dx:"
-        dataElementsIds = resource['dataElementsIds']
-        for j, el in enumerate(dataElementsIds):
-            if j != 0:
-                resourceParamStr += ""
-            resourceParamStr += el['id']
-
-        # Adding period, org unit and constants
-        resourceParamStr += "&dimension=pe:" + resource['period']
-        resourceParamStr += "&dimension=ou:" + resource['orgUnitLevel'] + "" + resource['orgUnitId']
-        resourceParamStr += "&displayProperty=NAME"
-
-        json_resource_el['resourceParams'] = resourceParamStr
-        json_resource_el['ckanResourceName'] = resource['ckanResourceName']
-        json_resource_el['ckanPackageTitle'] = resource['ckanPackageTitle']
-
-        resourcesToExport.append(json_resource_el)
-
-    harvester_config['exportResources'] = resourcesToExport
-    return harvester_config
-
-
 def work(config=None):
     log.info("Parsing config.")
-    harvester_config = _parse_config(config)
+    harvester_config = parse_config(config)
     return harvester_config
 
 
