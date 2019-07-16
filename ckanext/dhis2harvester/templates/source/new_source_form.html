@@ -2,8 +2,6 @@
 {% resource 'harvest-extra-field/main' %}
 
 <form id="source-new" class="form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" >
-  <h1>Tomek from original harvest tests.</h1>
-
   {% block errors %}{{ form.errors(error_summary) }}{% endblock %}
 
   {% call form.input('url', id='field-url', label=_('URL'), value=data.url, error=errors.url, classes=['control-full', 'control-large']) %}
