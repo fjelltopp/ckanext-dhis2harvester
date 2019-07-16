@@ -69,7 +69,7 @@ class DHIS2Harvester(HarvesterBase):
         log.debug("Starting config validation")
         config_dict = json.loads(config)
         msg_template = "Couldn't find '{0}' in harvester source config."
-        for config_item in ["username", "password", "apiResource", "resourcesToExport"]:
+        for config_item in ["username", "password", "resourcesToExport"]:
             if config_item not in config_dict:
                 raise ValueError(msg_template.format(config_item))
         # for resource_config in config_dict['exportResources']:
