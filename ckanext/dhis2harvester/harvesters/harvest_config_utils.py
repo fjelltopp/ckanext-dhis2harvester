@@ -9,7 +9,7 @@ def parse_config(config):
     resourcesFromEditor = config['resourcesToExport']
     for i, resource in enumerate(resourcesFromEditor):
         json_resource_el = {}
-        json_resource_el['apiResource'] = config['apiResource']
+        json_resource_el['apiResource'] = 'application.json'
 
         resourceParamStr = ''
         # Adding data elements ids

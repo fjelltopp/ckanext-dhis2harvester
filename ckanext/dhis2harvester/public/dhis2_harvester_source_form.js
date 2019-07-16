@@ -20,13 +20,6 @@ schema_json = {
       "default": "district",
       "pattern": "^(.*)$"
     },
-    "apiResource": {
-      "$id": "#/properties/apiResource",
-      "type": "string",
-      "title": "DHIS2 API Resource",
-      "default": "analytics.json",
-      "pattern": "^(.*)$"
-    },
     "resourcesToExport": {
       "type": "array",
       "format": "grid",
