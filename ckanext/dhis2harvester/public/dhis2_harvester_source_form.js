@@ -102,8 +102,7 @@ if (config_str) {
   configEditor.startval = JSON.parse(document.getElementById('field-config').value);
 }
 
-document.getElementById('submit-config').onclick = function(){
+configEditor.on('change',function() {
   var config_editor_json = configEditor.getValue();
   document.getElementById('field-config').value = JSON.stringify(config_editor_json, null, 4);
-};
-
+});
