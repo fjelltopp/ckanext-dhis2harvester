@@ -85,8 +85,6 @@ schema_json = {
   }
 };
 
-
-var config_json = JSON.parse(document.getElementById('field-config').value);
 // Initialize the editor with a JSON schema
 var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   schema: schema_json,
@@ -95,10 +93,14 @@ var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   required_by_default: true,
   disable_edit_json: true,
   disable_properties: true,
+  disable_array_reorder: true,
   prompt_before_delete: false,
-  startval: config_json
 });
 
+var config_str = document.getElementById('field-config').value;
+if (config_str) {
+  configEditor.startval = JSON.parse(document.getElementById('field-config').value);
+}
 
 document.getElementById('submit-config').onclick = function(){
   var config_editor_json = configEditor.getValue();
