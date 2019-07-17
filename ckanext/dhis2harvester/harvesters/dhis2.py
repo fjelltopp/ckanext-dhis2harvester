@@ -150,7 +150,6 @@ def fetch_resource(resource_config=None):
     log.info("DHIS2 fetch finished successfully.")
 
 
-
 def work(config=None):
     log.info("Parsing config.")
     harvester_config = parse_config(config)

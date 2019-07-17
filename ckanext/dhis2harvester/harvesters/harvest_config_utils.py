@@ -33,4 +33,3 @@ def parse_config(config):
 
     harvester_config['exportResources'] = resourcesToExport
     return harvester_config
-
