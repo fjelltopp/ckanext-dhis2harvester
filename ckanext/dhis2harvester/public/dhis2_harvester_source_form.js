@@ -106,3 +106,16 @@ configEditor.on('change',function() {
   var config_editor_json = configEditor.getValue();
   document.getElementById('field-config').value = JSON.stringify(config_editor_json, null, 4);
 });
+let advanceConfigBox = document.getElementsByClassName('dhis2-harvester-json-config')[0];
+let showAdvancedConfig = document.getElementById('btn-show-advanced-config');
+let hideAdvancedConfig = document.getElementById('btn-hide-advanced-config');
+showAdvancedConfig.onclick = function() {
+  advanceConfigBox.classList.toggle('hidden');
+  showAdvancedConfig.classList.toggle('hidden');
+  hideAdvancedConfig.classList.toggle('hidden');
+};
+hideAdvancedConfig.onclick = function() {
+  advanceConfigBox.classList.toggle('hidden');
+  showAdvancedConfig.classList.toggle('hidden');
+  hideAdvancedConfig.classList.toggle('hidden');
+};
