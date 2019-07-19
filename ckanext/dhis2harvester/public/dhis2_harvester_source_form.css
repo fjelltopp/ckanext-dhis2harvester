@@ -4,3 +4,10 @@
 div#editor_holder h3 {
     font-size: 14px;
 }
+div#editor_holder .tab-content {
+  display: block;
+}
+
+div#editor_holder .form-group {
+    margin: 0
+}

@@ -22,7 +22,7 @@ schema_json = {
     },
     "resourcesToExport": {
       "type": "array",
-      "format": "grid",
+      "format": "tabs",
       "title": "Resources to export",
       "items": {
         "type": "object",
@@ -88,7 +88,7 @@ schema_json = {
 // Initialize the editor with a JSON schema
 var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   schema: schema_json,
-  theme: 'bootstrap2',
+  theme: 'bootstrap3',
   disable_collapse: true,
   required_by_default: true,
   disable_edit_json: true,
