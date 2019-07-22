@@ -99,7 +99,7 @@ var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
 
 var config_str = document.getElementById('field-config').value;
 if (config_str) {
-  configEditor.startval = JSON.parse(document.getElementById('field-config').value);
+  configEditor.setValue(JSON.parse(document.getElementById('field-config').value));
 }
 
 configEditor.on('change',function() {
