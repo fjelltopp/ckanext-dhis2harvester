@@ -10,7 +10,8 @@ from slugify import slugify
 import uuid
 import json
 import logging
-from ckanext.dhis2harvester import dhis2
+from ckanext.dhis2harvester.harvesters import dhis2
+from ckanext.dhis2harvester.harvesters.harvest_config_utils import parse_config
 
 log = logging.getLogger(__name__)
 
@@ -68,13 +69,13 @@ class DHIS2Harvester(HarvesterBase):
         log.debug("Starting config validation")
         config_dict = json.loads(config)
         msg_template = "Couldn't find '{0}' in harvester source config."
-        for config_item in ["username", "password", "exportResources"]:
+        for config_item in ["username", "password", "resourcesToExport"]:
             if config_item not in config_dict:
                 raise ValueError(msg_template.format(config_item))
-        for resource_config in config_dict['exportResources']:
-            for config_item in ["apiResource", "resourceParams", "ckanResourceName", "ckanPackageTitle"]:
-                if config_item not in resource_config:
-                    raise ValueError(msg_template.format(config_item))
+        # for resource_config in config_dict['exportResources']:
+        #     for config_item in ["apiResource", "resourceParams", "ckanResourceName", "ckanPackageTitle"]:
+        #         if config_item not in resource_config:
+        #             raise ValueError(msg_template.format(config_item))
 
         log.info("Received config string: " + config)
         return config
@@ -197,8 +198,7 @@ class DHIS2Harvester(HarvesterBase):
             context,
             {"id": harvest_object.harvest_source_id}
         )
-
-        config = json.loads(harvest_object.source.config)
+        config = parse_config(json.loads(harvest_object.source.config))
         org = source_package["organization"]
         log.info("Config: " + harvest_object.source.config)
 

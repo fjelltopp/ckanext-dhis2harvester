@@ -1,0 +1,13 @@
+/* Fixing bug with jsoneditor not wrapping h3 title with <label> for
+    type:array, format:table
+*/
+div#editor_holder h3 {
+    font-size: 14px;
+}
+div#editor_holder .tab-content {
+  display: block;
+}
+
+div#editor_holder .form-group {
+    margin: 0
+}

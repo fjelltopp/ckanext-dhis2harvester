@@ -6,6 +6,8 @@ import json
 from base64 import b64encode
 from slugify import slugify
 
+from ckanext.dhis2harvester.harvesters.harvest_config_utils import parse_config
+
 log = logging.getLogger(__name__)
 
 DHIS2_API_URL = 'https://play.dhis2.org/2.32.0/api/29/'
@@ -150,9 +152,8 @@ def fetch_resource(resource_config=None):
 
 def work(config=None):
     log.info("Parsing config.")
-    _parse_dhis2_configuration(config)
-    for resource_config in config['exportResources']:
-        fetch_resource(resource_config)
+    harvester_config = parse_config(config)
+    return harvester_config
 
 
 if __name__ == '__main__':
@@ -177,4 +178,26 @@ if __name__ == '__main__':
             }
         ]
     }
-    work(config)
+    foobar = {
+        "username": "admin",
+        "password": "district",
+        "apiResource": "analytics.json",
+        "resourcesToExport": [
+            {
+                "dataElementsIds": [
+                    {
+                        "id": "sMTMkudvLC"
+                    },
+                    {
+                        "id": "22222"
+                    }
+                ],
+                "period": "LAST_12_MONTHS",
+                "orgUnitLevel": "LEVEL-2",
+                "orgUnitId": "ImspTQPwCqd",
+                "ckanResourceName": "my_DHIS2_resource",
+                "ckanPackageTitle": "My Dataset Title"
+            }
+        ]
+    }
+    work(foobar)
