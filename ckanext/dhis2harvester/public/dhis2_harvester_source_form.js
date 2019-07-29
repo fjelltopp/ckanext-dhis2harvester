@@ -2,22 +2,32 @@ schema_json = {
   "type": "object",
   "title": "DHIS2 Harvest Source Config Schema",
   "required": [
+    "url",
     "username",
     "password"
   ],
   "properties": {
+    "url": {
+      "$id": "#/properties/username",
+      "type": "string",
+      "format": "url",
+      "title": "DHIS2 URL",
+      "description": "URL to DHIS2 api endpoint e.g. https://play.dhis2.org/api/26/",
+      "pattern": "^(.*)$"
+    },
     "username": {
       "$id": "#/properties/username",
       "type": "string",
       "title": "DHIS2 username",
-      "default": "admin",
+      "description": "DHIS2 username e.g. admin",
       "pattern": "^(.*)$"
     },
     "password": {
       "$id": "#/properties/password",
       "type": "string",
+      "format": "password",
       "title": "DHIS2 password",
-      "default": "district",
+      "description": "DHIS2 user password e.g. district",
       "pattern": "^(.*)$"
     },
     "resourcesToExport": {
@@ -32,13 +42,13 @@ schema_json = {
             "type": "array",
             "format": "table",
             "title": "DHIS2 Data Elements IDs",
+            "description": "DHIS2 data element ids, e.g. sMTMkudvLC",
             "items": {
               "type": "object",
               "title": "DHIS2 ID",
               "properties": {
                 "id": {
                   "type": "string",
-                  "description": "Single DHIS2 data element id, e.g. sMTMkudvLC"
                 }
               }
             }
@@ -47,14 +57,14 @@ schema_json = {
             "$id": "#/properties/period",
             "type": "string",
             "title": "Period to export",
-            "default": "LAST_12_MONTHS",
+            "description": "DHIS2 period, can be provided as an DHIS2 alias e.g. LAST_YEAR, LAST_12_MONTHS",
             "pattern": "^(.*)$"
           },
           "orgUnitLevel": {
             "$id": "#/properties/orgUnitLevel",
             "type": "string",
             "title": "Organisation unit level",
-            "default": "LEVEL-2",
+            "description": "DHIS2 organisation level to export e.g. LEVEL-5",
             "pattern": "^(.*)$"
           },
           "orgUnitId": {
@@ -69,14 +79,14 @@ schema_json = {
             "$id": "#/properties/ckanResourceName",
             "type": "string",
             "title": "CKAN resource name",
-            "default": "my_DHIS2_resource",
+            "description": "Name of CKAN resource containing exported csv data e.g. my_DHIS2_resource",
             "pattern": "^(.*)$"
           },
           "ckanPackageTitle": {
             "$id": "#/properties/ckanPackageTitle",
             "type": "string",
             "title": "CKAN package title",
-            "default": "My Dataset Title",
+            "description": "Name of CKAN package containing exported resource e.g. My Dataset Title",
             "pattern": "^(.*)$"
           }
         }

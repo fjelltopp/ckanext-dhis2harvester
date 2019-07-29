@@ -11,3 +11,7 @@ div#editor_holder .tab-content {
 div#editor_holder .form-group {
     margin: 0
 }
+
+div#editor_holder .col-md-12 {
+    padding: 7px;
+}
