@@ -96,7 +96,7 @@ schema_json = {
 };
 
 // Initialize the editor with a JSON schema
-var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
+let configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   schema: schema_json,
   theme: 'bootstrap3',
   disable_collapse: true,
@@ -107,15 +107,30 @@ var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   prompt_before_delete: false,
 });
 
-var config_str = document.getElementById('field-config').value;
+// coupling configEditor form with native harvester source text area #field-config
+// only value of #field-config is persistent
+let config_field = document.getElementById('field-config');
+let config_str = config_field.value;
 if (config_str) {
-  configEditor.setValue(JSON.parse(document.getElementById('field-config').value));
+  configEditor.setValue(JSON.parse(config_str));
 }
-
 configEditor.on('change',function() {
-  var config_editor_json = configEditor.getValue();
-  document.getElementById('field-config').value = JSON.stringify(config_editor_json, null, 4);
+  let config_editor_json = configEditor.getValue();
+  config_field.value = JSON.stringify(config_editor_json, null, 4);
 });
+
+// coupling DHIS2 url in configEditor with native havester source #field-url
+// URL is persistence with #field-url
+let fieldURL = document.getElementById('field-url');
+configEditor.watch('root.url',function() {
+  fieldURL.value = configEditor.getEditor('root.url').getValue();
+});
+fieldURL.onchange = function() {
+  configEditor.getEditor('root.url').setValue(fieldURL.value)
+};
+
+// native config text area serves as persistence storage for config.
+// It's hidden by default. It can be accessed by advanced users.
 let advanceConfigBox = document.getElementsByClassName('dhis2-harvester-json-config')[0];
 let showAdvancedConfig = document.getElementById('btn-show-advanced-config');
 let hideAdvancedConfig = document.getElementById('btn-hide-advanced-config');
