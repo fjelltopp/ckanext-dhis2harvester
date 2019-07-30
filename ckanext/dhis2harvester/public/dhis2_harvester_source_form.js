@@ -1,6 +1,7 @@
 schema_json = {
   "type": "object",
-  "title": "DHIS2 Harvest Source Config Schema",
+  "title": "",
+  "headerTemplate": " ",
   "required": [
     "url",
     "username",
@@ -34,15 +35,53 @@ schema_json = {
       "type": "array",
       "format": "tabs",
       "title": "Resources to export",
+      "default": {},
       "items": {
         "type": "object",
         "title": "Resource",
         "properties": {
+          "ckanResourceName": {
+            "$id": "#/properties/ckanResourceName",
+            "type": "string",
+            "title": "ADR resource name",
+            "description": "Name of CKAN resource containing exported csv data e.g. my_DHIS2_resource",
+            "pattern": "^(.*)$"
+          },
+          "ckanPackageTitle": {
+            "$id": "#/properties/ckanPackageTitle",
+            "type": "string",
+            "title": "ADR package title",
+            "description": "Name of CKAN package containing exported resource e.g. My Dataset Title",
+            "pattern": "^(.*)$"
+          },
+          "period": {
+            "$id": "#/properties/period",
+            "type": "string",
+            "title": "DHIS2 Period to export",
+            "description": "DHIS2 period, can be provided as an DHIS2 alias e.g. LAST_YEAR, LAST_12_MONTHS",
+            "pattern": "^(.*)$"
+          },
+          "orgUnitLevel": {
+            "$id": "#/properties/orgUnitLevel",
+            "type": "string",
+            "title": "DHIS2 Organisation unit level",
+            "description": "DHIS2 organisation level to export e.g. LEVEL-5",
+            "pattern": "^(.*)$"
+          },
+          "orgUnitId": {
+            "$id": "#/properties/orgUnitId",
+            "type": "string",
+            "title": "DHIS2 Organisation unit Id",
+            "default": "ImspTQPwCqd",
+            "description": "Parent organisation unit id to fetch org unit level from.",
+            "pattern": "^(.*)$"
+          },
           "dataElementsIds": {
             "type": "array",
             "format": "table",
             "title": "DHIS2 Data Elements IDs",
             "description": "DHIS2 data element ids, e.g. sMTMkudvLC",
+            "default": {"id": " "},
             "items": {
               "type": "object",
               "title": "DHIS2 ID",
@@ -52,42 +91,6 @@ schema_json = {
                 }
               }
             }
-          },
-          "period": {
-            "$id": "#/properties/period",
-            "type": "string",
-            "title": "Period to export",
-            "description": "DHIS2 period, can be provided as an DHIS2 alias e.g. LAST_YEAR, LAST_12_MONTHS",
-            "pattern": "^(.*)$"
-          },
-          "orgUnitLevel": {
-            "$id": "#/properties/orgUnitLevel",
-            "type": "string",
-            "title": "Organisation unit level",
-            "description": "DHIS2 organisation level to export e.g. LEVEL-5",
-            "pattern": "^(.*)$"
-          },
-          "orgUnitId": {
-            "$id": "#/properties/orgUnitId",
-            "type": "string",
-            "title": "Organisation unit Id",
-            "default": "ImspTQPwCqd",
-            "description": "Parent organisation unit id to fetch org unit level from.",
-            "pattern": "^(.*)$"
-          },
-          "ckanResourceName": {
-            "$id": "#/properties/ckanResourceName",
-            "type": "string",
-            "title": "CKAN resource name",
-            "description": "Name of CKAN resource containing exported csv data e.g. my_DHIS2_resource",
-            "pattern": "^(.*)$"
-          },
-          "ckanPackageTitle": {
-            "$id": "#/properties/ckanPackageTitle",
-            "type": "string",
-            "title": "CKAN package title",
-            "description": "Name of CKAN package containing exported resource e.g. My Dataset Title",
-            "pattern": "^(.*)$"
           }
         }
       }
@@ -104,6 +107,7 @@ let configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   disable_edit_json: true,
   disable_properties: true,
   disable_array_reorder: true,
+  disable_array_delete_all_rows: true,
   prompt_before_delete: false,
 });
 

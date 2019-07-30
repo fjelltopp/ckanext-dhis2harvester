@@ -4,13 +4,7 @@
 <form id="source-new" class="form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" >
   {% block errors %}{{ form.errors(error_summary) }}{% endblock %}
 
-  {% call form.input('url', id='field-url', label=_('URL'), value=data.url, error=errors.url, classes=['control-full', 'control-large']) %}
-      <span class="info-block">
-        {{ _('This should include the http:// part of the URL') }}
-      </span>
-  {% endcall %}
-
-  {{ form.input('title', id='field-title', label=_('Title'), placeholder=_('eg. A descriptive title'), value=data.title, error=errors.title, classes=['control-full'], attrs={'data-module': 'slug-preview-target'}) }}
+  {{ form.input('title', id='field-title', label=_('Title'), placeholder=_('eg. A descriptive title'), value=data.title, error=errors.title, classes=['control-full', 'control-large'], attrs={'data-module': 'slug-preview-target'}) }}
 
   {% set prefix = 'harvest' %}
   {% set domain = h.url_for('{0}_read'.format(c.dataset_type), id='', qualified=true) %}
@@ -20,38 +14,6 @@
   {{ form.prepend('name', id='field-name', label=_('Name'), prepend=prefix, placeholder=_('eg. my-dataset'), value=data.name, error=errors.name, attrs=attrs) }}
 
   {{ form.markdown('notes', id='field-notes', label=_('Description'), value=data.notes, error=errors.notes) }}
-
-  <div class="harvest-types form-group control-group">
-    <label class="control-label">Source type</label>
-    <div class="controls">
-      {% for harvester in h.harvesters_info() %}
-        {% set checked = False %}
-        {# select first option if nothing in data #}
-        {% if data.source_type == harvester['name'] or (not data.source_type and loop.first) %}
-           {% set checked = True %}
-        {% endif %}
-        <label class="radio">
-          <input type="radio" name="source_type" value="{{ harvester['name'] }}" {{ "checked " if checked }} data-module="harvest-type-change">
-          {{ harvester['title'] }}
-          <i class="fa fa-question-circle icon-question-sign muted" title="{{ harvester['description'] }}" data-toggle="tooltip"></i>
-        </label>
-      {% endfor %}
-    </div>
-  </div>
-
-  {{ form.select('frequency', id='field-frequency', label=_('Update frequency'), options=h.harvest_frequencies(), selected=data.frequency, error=errors.frequency) }}
-
-  <div id='editor_holder'></div>
-  <a class="btn btn-default" id="btn-show-advanced-config">Show advanced configuration</a>
-  <a class="btn btn-default hidden" id="btn-hide-advanced-config">Hide advanced configuration</a>
-
-  {% block extra_config %}
-  {{ form.textarea('config', id='field-config', classes=['dhis2-harvester-json-config', 'hidden'], label=_('JSON Configuration'), value=data.config, error=errors.config) }}
-  {% endblock extra_config %}
-
-  <script src="{{ h.url_for_static('/jsoneditor.min.js') }}"></script>
-  <link rel="stylesheet" type="text/css" href="{{ h.url_for_static('/dhis2_harvester_source_form.css')}}">
-  <script src="{{ h.url_for_static('/dhis2_harvester_source_form.js') }}"></script>
 
   {# if we have a default group then this wants remembering #}
   {% if data.group_id %}
@@ -80,6 +42,49 @@
       </div>
     </div>
   {% endif %}
+
+  {% set harvest_type = request.GET.get('type', '') %}
+  {% if harvest_type in h.harvesters_info() | map(attribute='name') | list %}
+    <input type = "hidden" name="source_type" value="{{harvest_type}}" >
+  {% else %}
+  <div class="harvest-types form-group control-group">
+    <label class="control-label">Source type</label>
+    <div class="controls">
+      {% for harvester in h.harvesters_info() %}
+        {% set checked = False %}
+        {# select first option if nothing in data #}
+        {% if data.source_type == harvester['name'] or (not data.source_type and loop.first) %}
+           {% set checked = True %}
+        {% endif %}
+        <label class="radio">
+          <input type="radio" name="source_type" value="{{ harvester['name'] }}" {{ "checked " if checked }} data-module="harvest-type-change">
+          {{ harvester['title'] }}
+          <i class="fa fa-question-circle icon-question-sign muted" title="{{ harvester['description'] }}" data-toggle="tooltip"></i>
+        </label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% call form.input('url', id='field-url', label=_('Source API URL'), value=data.url, error=errors.url, classes=['control-full']) %}
+      <span class="info-block">
+        {{ _('This should include the http:// part of the URL') }}
+      </span>
+  {% endcall %}
+
+  {{ form.select('frequency', id='field-frequency', label=_('Update frequency'), options=h.harvest_frequencies(), selected=data.frequency, error=errors.frequency) }}
+
+  <div id='editor_holder'></div>
+  <a class="btn btn-default" id="btn-show-advanced-config">Show advanced configuration</a>
+  <a class="btn btn-default hidden" id="btn-hide-advanced-config">Hide advanced configuration</a>
+
+  {% block extra_config %}
+  {{ form.textarea('config', id='field-config', classes=['dhis2-harvester-json-config', 'hidden'], label=_('JSON Configuration'), value=data.config, error=errors.config) }}
+  {% endblock extra_config %}
+
+  <script src="{{ h.url_for_static('/jsoneditor.min.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ h.url_for_static('/dhis2_harvester_source_form.css')}}">
+  <script src="{{ h.url_for_static('/dhis2_harvester_source_form.js') }}"></script>
 
   {% if data.get('id', None) and h.check_access('harvest_source_delete', {'id': data.id}) and data.get('state', 'none') == 'deleted' %}
     <div class="control-group">
