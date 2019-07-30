@@ -2,22 +2,32 @@ schema_json = {
   "type": "object",
   "title": "DHIS2 Harvest Source Config Schema",
   "required": [
+    "url",
     "username",
     "password"
   ],
   "properties": {
+    "url": {
+      "$id": "#/properties/username",
+      "type": "string",
+      "format": "url",
+      "title": "DHIS2 URL",
+      "description": "URL to DHIS2 api endpoint e.g. https://play.dhis2.org/api/26/",
+      "pattern": "^(.*)$"
+    },
     "username": {
       "$id": "#/properties/username",
       "type": "string",
       "title": "DHIS2 username",
-      "default": "admin",
+      "description": "DHIS2 username e.g. admin",
       "pattern": "^(.*)$"
     },
     "password": {
       "$id": "#/properties/password",
       "type": "string",
+      "format": "password",
       "title": "DHIS2 password",
-      "default": "district",
+      "description": "DHIS2 user password e.g. district",
       "pattern": "^(.*)$"
     },
     "resourcesToExport": {
@@ -32,13 +42,13 @@ schema_json = {
             "type": "array",
             "format": "table",
             "title": "DHIS2 Data Elements IDs",
+            "description": "DHIS2 data element ids, e.g. sMTMkudvLC",
             "items": {
               "type": "object",
               "title": "DHIS2 ID",
               "properties": {
                 "id": {
                   "type": "string",
-                  "description": "Single DHIS2 data element id, e.g. sMTMkudvLC"
                 }
               }
             }
@@ -47,14 +57,14 @@ schema_json = {
             "$id": "#/properties/period",
             "type": "string",
             "title": "Period to export",
-            "default": "LAST_12_MONTHS",
+            "description": "DHIS2 period, can be provided as an DHIS2 alias e.g. LAST_YEAR, LAST_12_MONTHS",
             "pattern": "^(.*)$"
           },
           "orgUnitLevel": {
             "$id": "#/properties/orgUnitLevel",
             "type": "string",
             "title": "Organisation unit level",
-            "default": "LEVEL-2",
+            "description": "DHIS2 organisation level to export e.g. LEVEL-5",
             "pattern": "^(.*)$"
           },
           "orgUnitId": {
@@ -69,14 +79,14 @@ schema_json = {
             "$id": "#/properties/ckanResourceName",
             "type": "string",
             "title": "CKAN resource name",
-            "default": "my_DHIS2_resource",
+            "description": "Name of CKAN resource containing exported csv data e.g. my_DHIS2_resource",
             "pattern": "^(.*)$"
           },
           "ckanPackageTitle": {
             "$id": "#/properties/ckanPackageTitle",
             "type": "string",
             "title": "CKAN package title",
-            "default": "My Dataset Title",
+            "description": "Name of CKAN package containing exported resource e.g. My Dataset Title",
             "pattern": "^(.*)$"
           }
         }
@@ -86,7 +96,7 @@ schema_json = {
 };
 
 // Initialize the editor with a JSON schema
-var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
+let configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   schema: schema_json,
   theme: 'bootstrap3',
   disable_collapse: true,
@@ -97,15 +107,30 @@ var configEditor = new JSONEditor(document.getElementById('editor_holder'),{
   prompt_before_delete: false,
 });
 
-var config_str = document.getElementById('field-config').value;
+// coupling configEditor form with native harvester source text area #field-config
+// only value of #field-config is persistent
+let config_field = document.getElementById('field-config');
+let config_str = config_field.value;
 if (config_str) {
-  configEditor.setValue(JSON.parse(document.getElementById('field-config').value));
+  configEditor.setValue(JSON.parse(config_str));
 }
-
 configEditor.on('change',function() {
-  var config_editor_json = configEditor.getValue();
-  document.getElementById('field-config').value = JSON.stringify(config_editor_json, null, 4);
+  let config_editor_json = configEditor.getValue();
+  config_field.value = JSON.stringify(config_editor_json, null, 4);
 });
+
+// coupling DHIS2 url in configEditor with native havester source #field-url
+// URL is persistence with #field-url
+let fieldURL = document.getElementById('field-url');
+configEditor.watch('root.url',function() {
+  fieldURL.value = configEditor.getEditor('root.url').getValue();
+});
+fieldURL.onchange = function() {
+  configEditor.getEditor('root.url').setValue(fieldURL.value)
+};
+
+// native config text area serves as persistence storage for config.
+// It's hidden by default. It can be accessed by advanced users.
 let advanceConfigBox = document.getElementsByClassName('dhis2-harvester-json-config')[0];
 let showAdvancedConfig = document.getElementById('btn-show-advanced-config');
 let hideAdvancedConfig = document.getElementById('btn-hide-advanced-config');
