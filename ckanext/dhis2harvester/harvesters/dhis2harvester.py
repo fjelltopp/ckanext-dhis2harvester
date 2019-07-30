@@ -1,10 +1,12 @@
 import copy
 
+import requests
 from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import HarvestObject
 from ckan.plugins import toolkit
 from ckan.logic import NotFound
 from ckan import model
+from requests.auth import HTTPBasicAuth
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from slugify import slugify
 import uuid
@@ -72,12 +74,16 @@ class DHIS2Harvester(HarvesterBase):
         for config_item in ["username", "password", "resourcesToExport"]:
             if config_item not in config_dict:
                 raise ValueError(msg_template.format(config_item))
-        # for resource_config in config_dict['exportResources']:
-        #     for config_item in ["apiResource", "resourceParams", "ckanResourceName", "ckanPackageTitle"]:
-        #         if config_item not in resource_config:
-        #             raise ValueError(msg_template.format(config_item))
-
         log.info("Received config string: " + config)
+        try:
+            r = requests.get(config_dict["url"], auth=HTTPBasicAuth(config_dict['username'], config_dict['password']))
+        except requests.ConnectionError:
+            raise ValueError("Cannot connect to provided URL. Please double check.")
+        if r.status_code == 401:
+            raise ValueError("Bad credentials. Status code: " + repr(r.status_code))
+        elif r.status_code != 200:
+            raise ValueError("Cannot connect to provided URL. Please double check. Status code: " + repr(r.status_code))
+
         return config
 
     def get_original_url(self, harvest_object_id):
