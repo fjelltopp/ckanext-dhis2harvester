@@ -145,9 +145,7 @@ class DHIS2Harvester(HarvesterBase):
         obj.save()
 
         # get DHIS2 data
-        dhis2_config = copy.deepcopy(source_config)
-        dhis2_config['url'] = harvest_job.source.url
-        dhis2.work(dhis2_config)
+        dhis2.work(source_config)
         return [obj.id]
 
     def fetch_stage(self, harvest_object):

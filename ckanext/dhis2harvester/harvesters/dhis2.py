@@ -153,6 +153,9 @@ def fetch_resource(resource_config=None):
 def work(config=None):
     log.info("Parsing config.")
     harvester_config = parse_config(config)
+    _parse_dhis2_configuration(harvester_config)
+    for resource_config in harvester_config['exportResources']:
+        fetch_resource(resource_config)
     return harvester_config
 
 
@@ -200,4 +203,18 @@ if __name__ == '__main__':
             }
         ]
     }
-    work(foobar)
+    export_config = {'url': u'https://hiskenya.org/api/26/', 'username': u'Taavie', 'exportResources': [{
+                                                                                            'resourceParams': u'dimension=dx:ISGNo6jMJlI;cbUoZG6mlS7;oTjp04eBIaV;QISrDYwXnMw&dimension=pe:2017&dimension=ou:LEVEL-5HfVjCurKxh2&displayProperty=NAME',
+                                                                                            'ckanPackageTitle': u'ART DHIS2 Import',
+                                                                                            'ckanResourceName': u'#-of-people-on-ART',
+                                                                                            'apiResource': 'analytics.json'},
+                                                                                        {
+                                                                                            'resourceParams': u'dimension=dx:yPGhCvz2bX2;Ivi4xwwsjNN;CNK6qMLzi8b;QTfUGmnpzCm&dimension=pe:LAST_3_MONTHS&dimension=ou:LEVEL-5HfVjCurKxh2&displayProperty=NAME',
+                                                                                            'ckanPackageTitle': u'ART DHIS2 Import',
+                                                                                            'ckanResourceName': u'#-of-new-people-on-ART',
+                                                                                            'apiResource': 'analytics.json'}],
+     'password': u'Karnivor1'}
+    _parse_dhis2_configuration(export_config)
+    for resource_config in export_config['exportResources']:
+        fetch_resource(resource_config)
+    # work(foobar)

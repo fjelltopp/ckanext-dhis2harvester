@@ -9,7 +9,7 @@ def parse_config(config):
     resourcesFromEditor = config['resourcesToExport']
     for i, resource in enumerate(resourcesFromEditor):
         json_resource_el = {}
-        json_resource_el['apiResource'] = 'application.json'
+        json_resource_el['apiResource'] = 'analytics.json'
 
         resourceParamStr = ''
         # Adding data elements ids
@@ -17,12 +17,12 @@ def parse_config(config):
         dataElementsIds = resource['dataElementsIds']
         for j, el in enumerate(dataElementsIds):
             if j != 0:
-                resourceParamStr += ""
+                resourceParamStr += ";"
             resourceParamStr += el['id']
 
         # Adding period, org unit and constants
         resourceParamStr += "&dimension=pe:" + resource['period']
-        resourceParamStr += "&dimension=ou:" + resource['orgUnitLevel'] + "" + resource['orgUnitId']
+        resourceParamStr += "&dimension=ou:" + resource['orgUnitLevel'] + ";" + resource['orgUnitId']
         resourceParamStr += "&displayProperty=NAME"
 
         json_resource_el['resourceParams'] = resourceParamStr
