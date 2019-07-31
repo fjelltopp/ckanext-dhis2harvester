@@ -1,5 +1,3 @@
-import copy
-
 import requests
 from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import HarvestObject
@@ -76,7 +74,9 @@ class DHIS2Harvester(HarvesterBase):
                 raise ValueError(msg_template.format(config_item))
         log.info("Received config string: " + config)
         try:
-            r = requests.get(config_dict["url"] + "organisationUnits", auth=HTTPBasicAuth(config_dict['username'], config_dict['password']))
+            r = requests.get(config_dict["url"] + "organisationUnits",
+                             auth=HTTPBasicAuth(config_dict['username'], config_dict['password'])
+                             )
         except requests.ConnectionError:
             raise ValueError("Cannot connect to provided URL. Please double check.")
         if r.status_code == 401:
