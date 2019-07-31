@@ -47,7 +47,7 @@
   {% if harvest_type in h.harvesters_info() | map(attribute='name') | list %}
     <input type = "hidden" name="source_type" value="{{harvest_type}}" >
   {% else %}
-  <div class="harvest-types form-group control-group">
+  <div class="harvest-types form-group control-group hidden">
     <label class="control-label">Source type</label>
     <div class="controls">
       {% for harvester in h.harvesters_info() %}
@@ -66,7 +66,7 @@
   </div>
   {% endif %}
 
-  {% call form.input('url', id='field-url', label=_('Source API URL'), value=data.url, error=errors.url, classes=['control-full']) %}
+  {% call form.input('url', id='field-url', label=_('DHIS2 API URL'), value=data.url, error=errors.url, classes=['control-full', 'hidden']) %}
       <span class="info-block">
         {{ _('This should include the http:// part of the URL') }}
       </span>

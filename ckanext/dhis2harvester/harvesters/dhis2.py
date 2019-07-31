@@ -153,51 +153,7 @@ def fetch_resource(resource_config=None):
 def work(config=None):
     log.info("Parsing config.")
     harvester_config = parse_config(config)
+    _parse_dhis2_configuration(harvester_config)
+    for resource_config in harvester_config['exportResources']:
+        fetch_resource(resource_config)
     return harvester_config
-
-
-if __name__ == '__main__':
-    config = {
-        "url": "https://play.dhis2.org/2.32.0/api/29/",
-        "username": "admin",
-        "password": "district",
-        "exportResources": [
-            {
-                "apiResource": "analytics.json",
-                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD&dimension=pe:LAST_12_MONTHS"
-                                  "&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
-                "ckanResourceName": "DHIS2_HIV_tests_data",
-                "ckanPackageTitle": "DHIS2 Import"
-            },
-            {
-                "apiResource": "analytics.json",
-                "resourceParams": "dimension=dx:lOiynlltFdy;sMTMkudvLCD;lOiynlltFdy&dimension=pe:LAST_12_MONTHS"
-                                  "&dimension=ou:LEVEL-2;ImspTQPwCqd&displayProperty=NAME",
-                "ckanResourceName": "second_resource",
-                "ckanPackageTitle": "Tomek Import"
-            }
-        ]
-    }
-    foobar = {
-        "username": "admin",
-        "password": "district",
-        "apiResource": "analytics.json",
-        "resourcesToExport": [
-            {
-                "dataElementsIds": [
-                    {
-                        "id": "sMTMkudvLC"
-                    },
-                    {
-                        "id": "22222"
-                    }
-                ],
-                "period": "LAST_12_MONTHS",
-                "orgUnitLevel": "LEVEL-2",
-                "orgUnitId": "ImspTQPwCqd",
-                "ckanResourceName": "my_DHIS2_resource",
-                "ckanPackageTitle": "My Dataset Title"
-            }
-        ]
-    }
-    work(foobar)
