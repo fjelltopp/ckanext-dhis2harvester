@@ -58,14 +58,14 @@ schema_json = {
             "$id": "#/properties/period",
             "type": "string",
             "title": "DHIS2 Period to export",
-            "description": "DHIS2 period, can be provided as an DHIS2 alias e.g. LAST_YEAR, LAST_12_MONTHS",
+            "description": "Value as DHIS2 alias e.g. LAST_YEAR, LAST_12_MONTHS, or exact date e.g. 2017 (year), 201801 (month of year), 2019W52 (weak of year)",
             "pattern": "^(.*)$"
           },
           "orgUnitLevel": {
             "$id": "#/properties/orgUnitLevel",
             "type": "string",
             "title": "DHIS2 Organisation unit level",
-            "description": "DHIS2 organisation level to export e.g. LEVEL-5",
+            "description": "DHIS2 organisation level to export e.g. LEVEL-5, LEVEL-3",
             "pattern": "^(.*)$"
           },
           "orgUnitId": {
