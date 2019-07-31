@@ -12,7 +12,7 @@ schema_json = {
       "$id": "#/properties/username",
       "type": "string",
       "format": "url",
-      "title": "DHIS2 URL",
+      "title": "DHIS2 API URL",
       "description": "URL to DHIS2 api endpoint e.g. https://play.dhis2.org/api/26/",
       "pattern": "^(.*)$"
     },
