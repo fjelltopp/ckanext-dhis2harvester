@@ -132,18 +132,19 @@ def fetch_resource(resource_config=None):
         result['facility_name'] = org_details['name']
         result['longitude'] = org_details['longitude']
         result['latitude'] = org_details['latitude']
+        result['org_id'] = org_id
 
     log.info("Writing to csv file.")
     with open(RESOURCE_FILENAME, 'wb') as csvfile:
         cvs_writer = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
         value_column_names = [dhis2_items_map[dim_id].replace(u' ', u'-') for dim_id in x_dimensions]
-        headers = ['latitude', 'longitude'] + value_column_names + ['period', 'facility name']
+        headers = ['latitude', 'longitude'] + value_column_names + ['period', 'facility name', 'DHIS2 location id']
         cvs_writer.writerow(headers)
         for org_id, result in results.iteritems():
             row = [result['latitude'], result['longitude']]
-            row += [result.get(x, "Unknown") for x in x_dimensions]
-            row += [result['period'], result['facility_name']]
+            row += [result.get(x, "") for x in x_dimensions]
+            row += [result['period'], result['facility_name'], result['org_id']]
             # replace problematic \xa0 - non-breaking space
             row = [x.replace(u'\xa0', u' ') for x in row]
             cvs_writer.writerow(row)
