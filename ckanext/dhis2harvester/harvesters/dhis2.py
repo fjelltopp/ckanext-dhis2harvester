@@ -140,6 +140,7 @@ def fetch_resource(resource_config=None):
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
         value_column_names = [dhis2_items_map[dim_id].replace(u' ', u'-') for dim_id in x_dimensions]
         headers = ['latitude', 'longitude'] + value_column_names + ['period', 'facility name', 'DHIS2 location id']
+        headers = [x.encode('utf-8') for x in headers]
         cvs_writer.writerow(headers)
         for org_id, result in results.iteritems():
             row = [result['latitude'], result['longitude']]
