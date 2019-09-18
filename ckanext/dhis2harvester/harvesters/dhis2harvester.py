@@ -1,3 +1,5 @@
+import os
+
 import requests
 from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import HarvestObject
@@ -277,5 +279,9 @@ class DHIS2Harvester(HarvesterBase):
                 harvest_object.package_id = new_package['id']
                 harvest_object.current = True
                 harvest_object.save()
+            try:
+                os.remove(resource_filename)
+            except OSError:
+                log.error("Failed to cleanup temp file %s".format(resource_filename))
 
         return True
