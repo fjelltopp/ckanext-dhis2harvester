@@ -145,9 +145,11 @@ def fetch_resource(resource_config=None):
             row = [result['latitude'], result['longitude']]
             row += [result.get(x, "") for x in x_dimensions]
             row += [result['period'], result['facility_name'], result['org_id']]
-            # replace problematic \xa0 - non-breaking space
-            row = [x.replace(u'\xa0', u' ') for x in row]
-            cvs_writer.writerow(row)
+            row = [x.encode('utf-8') for x in row]
+            try:
+                cvs_writer.writerow(row)
+            except UnicodeEncodeError:
+                log.error("Failed to write csv row %s".format(row), exc_info=True)
     log.info("DHIS2 fetch finished successfully.")
 
 
