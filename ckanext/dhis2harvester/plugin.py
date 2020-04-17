@@ -4,6 +4,7 @@ import licenses
 import ckan.model.license as core_licenses
 import ckan.model.package as package
 import ckan.plugins.toolkit as toolkit
+from blueprint import dhis2_data
 log = logging.getLogger(__name__)
 
 
@@ -25,6 +26,7 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin):
 
     p.implements(p.IConfigurer)
     p.implements(p.IFacets, inherit=True)
+    p.implements(p.interfaces.IBlueprint)
 
     # IConfigurer
     def update_config(self, config):
@@ -35,3 +37,6 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin):
         log.info("DHIS2 Plugin is enabled")
         toolkit.add_template_directory(config, 'templates')
         p.toolkit.add_public_directory(config, 'public')
+
+    def get_blueprint(self):
+        return dhis2_data
