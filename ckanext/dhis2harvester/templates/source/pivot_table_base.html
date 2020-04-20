@@ -1,0 +1,35 @@
+{% extends "source/admin_base.html" %}
+
+{% block breadcrumb_content %}
+  <li>{{ h.nav_link(_('Harvest Sources'), named_route='{0}_search'.format(c.dataset_type)) }}</li>
+  <li class="active">{{ h.nav_link(_('Create DHIS2 Pivot Table Fetcher'), named_route='{0}_new'.format(c.dataset_type)) }}</li>
+{% endblock %}
+
+{% block actions_content %}
+{% endblock %}
+
+{% block subtitle %}{{ _('Create DHIS2 Pivot Table Fetcher') }}{% endblock %}
+
+{% block primary_content %}
+  <section class="module">
+    <div class="module-content">
+        {% block form_content %}
+        {% endblock %}
+    </div>
+  </section>
+{% endblock %}
+
+{% block secondary_content %}
+  <section class="module module-narrow">
+    <h2 class="module-heading"><i class="fa fa-lg fa-info-circle icon-large icon-info-sign"></i> {{ _('Harvest sources') }}</h2>
+    <div class="module-content">
+      <p>
+        {% trans %}
+        Fetchers allow importing remote datasets into the ADR.  This DHIS2
+        fetcher can be configured to periodically fetch pivot tables from
+        a DHIS2 instance and do some automatic transformation upon them.
+        {% endtrans %}
+      </p>
+    </div>
+  </section>
+{% endblock %}

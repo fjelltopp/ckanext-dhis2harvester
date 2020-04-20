@@ -1,0 +1,12 @@
+{% extends "source/pivot_table_base.html" %}
+{% import 'macros/form.html' as form %}
+
+{% resource 'harvest-extra-field/main' %}
+{% block form_content %}
+<H2>
+  {{_('Choose your data')}}
+</H2>
+<form id="source-new" class="form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" >
+    <input id="next" name="next" value="{{_('Next')}}" type="submit" class="btn btn-primary pull-right">
+</form>
+{% endblock %}
