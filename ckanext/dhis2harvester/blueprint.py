@@ -19,7 +19,7 @@ def pivot_tables():
         return {'message': 'Failed to connect to DHIS2 with provided credentials'}, 400
     # get pivot tables info
     pivot_tables = dhis2_conn.get_pivot_tables()
-    return jsonify(pivot_tables), 200
+    return __response(result=pivot_tables, status=200)
 
 
 def __create_dhis2_conn():
@@ -40,12 +40,25 @@ def test_connection():
     try:
         dhis2_conn.test_connection()
     except Dhis2ConnectionError:
-        return __response('Failed to connect to DHIS2 with provided credentials', 400)
-    return __response('Connection to DHIS2 successful', 200)
+        return __response(error='Failed to connect to DHIS2 with provided credentials', status=400)
+    return __response(status=200)
 
 
-def __response(msg, status):
-    return jsonify({'message': msg}), status
+def __response(help="", result=None, error=None, status=200):
+    if result and error:
+        raise ValueError("Expecting error only when no result.")
+    body_ = {
+        'help': help
+    }
+    if not error:
+        body_['success'] = True
+        if result:
+            body_['result'] = result
+    else:
+        body_['success'] = False
+        if error:
+            body_['error'] = error
+    return jsonify(body_), status
 
 
 def hello():
