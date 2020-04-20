@@ -6,7 +6,7 @@ import ckan.lib.helpers as h
 log = logging.getLogger(__name__)
 
 dhis2_data = Blueprint(
-    u'dhis2data',
+    u'dhis2_data',
     __name__,
     url_prefix='/dhis2_data'
 )

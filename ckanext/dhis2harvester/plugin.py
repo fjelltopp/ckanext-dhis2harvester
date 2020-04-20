@@ -4,7 +4,7 @@ import licenses
 import ckan.model.license as core_licenses
 import ckan.model.package as package
 import ckan.plugins.toolkit as toolkit
-from blueprint import dhis2_data
+from dhis2_data_blueprint import dhis2_data
 log = logging.getLogger(__name__)
 
 
