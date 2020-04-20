@@ -5,6 +5,8 @@ import logging
 from base64 import b64encode
 
 import requests
+from requests import ConnectionError
+
 import request_util
 
 log = logging.getLogger(__name__)
@@ -42,9 +44,14 @@ class Dhis2Connection(object):
             raise (Dhis2ConnectionError(msg))
 
     def test_connection(self):
-        r = requests.get(self.url, headers=self.__create_dhis2_headers())
-        self.__response_validation("Failed to get valid response", r)
-        return True
+        try:
+            r = requests.get(self.url, headers=self.__create_dhis2_headers())
+            self.__response_validation("Failed to get valid response", r)
+            return True
+        except ConnectionError:
+            msg_ = "Failed to connect to DHIS2 with provided credentials."
+            log.debug(msg_)
+            raise (Dhis2ConnectionError(msg_))
 
     def get_pivot_tables(self):
         url_ = urlparse.urljoin(self.url, self.PIVOT_TABLES_RESOURCE)
