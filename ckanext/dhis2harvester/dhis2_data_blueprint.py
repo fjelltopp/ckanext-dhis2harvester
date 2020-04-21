@@ -15,10 +15,13 @@ def pivot_tables():
     dhis2_conn = __create_dhis2_conn()
     try:
         dhis2_conn.test_connection()
-    except Dhis2ConnectionError:
-        return {'message': 'Failed to connect to DHIS2 with provided credentials'}, 400
+    except Dhis2ConnectionError as e:
+        return __response(error=e.message, status=400)
     # get pivot tables info
-    pivot_tables = dhis2_conn.get_pivot_tables()
+    try:
+        pivot_tables = dhis2_conn.get_pivot_tables()
+    except Dhis2ConnectionError as e:
+        return __response(error=e.message, status=400)
     return __response(result=pivot_tables, status=200)
 
 
