@@ -59,12 +59,16 @@ class Dhis2Connection(object):
         ok = request_util.check_if_response_is_ok(r)
         if not ok:
             raise (Dhis2ConnectionError(msg))
+        elif "<html class=\"loginPage\">" in r.text:
+            msg_ = "Failed with DHIS2 authentication"
+            log.debug(msg_)
+            raise (Dhis2ConnectionError(msg))
 
     def test_connection(self):
         try:
-            headers = self.__create_dhis2_headers()
-            r = requests.get(self.api_url, headers=headers)
-            self.__response_validation("Failed to get valid response", r)
+            cookies = self.__create_auth_cookie()
+            r = requests.get(self.api_url, cookies=cookies)
+            self.__response_validation("Failed to authenticate to DHIS2", r)
             return True
         except ConnectionError:
             msg_ = "Failed to connect to DHIS2 with provided credentials."

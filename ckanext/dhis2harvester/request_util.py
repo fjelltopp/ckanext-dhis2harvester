@@ -15,7 +15,4 @@ def check_if_response_is_ok(response):
         finally:
             logger.debug("Failed to get valid response")
             return False
-    elif "<html class=\"loginPage\">" in response.text:
-        logger.debug("Failed with DHIS2 authentication")
-        return False
     return True
