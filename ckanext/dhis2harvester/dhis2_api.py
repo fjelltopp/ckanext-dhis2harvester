@@ -29,7 +29,9 @@ class Dhis2Connection(object):
             url += 'api/'
         return url
 
-    def __create_dhis2_headers(self, headers={}):
+    def __create_dhis2_headers(self, headers=None):
+        if headers is None:
+            headers = {}
         u_and_p = b"%s:%s" % (self.username, self.password)
         u_and_p_b64 = b64encode(u_and_p).decode("ascii")
         headers.update({
