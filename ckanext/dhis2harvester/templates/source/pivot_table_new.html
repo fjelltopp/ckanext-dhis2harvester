@@ -23,9 +23,9 @@
 
   <input type="hidden" name="source_type" value="dhis2_pivot_table" >
 
-  {% call form.input('dhis2_api_url', id='field-dhis2-api-url', label=_('DHIS2 API Endpoint URL'), value=data.dhis2_api_url, placeholder="e.g. https://play.dhis2.org/demo/api/26", error=errors.dhis2_api_url, classes=['control-full'], is_required=True) %}
+  {% call form.input('dhis2_api_url', id='field-dhis2-api-url', label=_('DHIS2 URL'), value=data.dhis2_api_url, placeholder="e.g. https://play.dhis2.org/demo/", error=errors.dhis2_api_url, classes=['control-full'], is_required=True) %}
       <span class="info-block">
-        {{ _('This should include the http:// part of the URL') }}
+        {{ _('This should include the https:// part of the URL') }}
       </span>
   {% endcall %}
   {% call form.input("dhis2_username", id="field-dhis2-username", label=_("DHIS2 Username"), placeholder=_("dhis2_username"), value=data.dhis2_username, error=errors.dhis2_username, classes=["control-medium"], is_required=True) %}
@@ -35,7 +35,7 @@
   {% endcall %}
   {% call form.input("dhis2_password", id="field-dhis2-password", label=_("DHIS2 Password"), type="password", placeholder="••••••••", value=data.dhis2_password, error=errors.dhis2_password, classes=["control-medium"], is_required=True) %}
     <span class="info-block">
-      {{ _('Your password will be encrypted and passed straight to the DHIS2 instance for authentication.') }}
+      {{ _("Your password won't be stored in ADR but passed straight to the DHIS2 instance for authentication.") }}
     </span>
   {% endcall %}
 
