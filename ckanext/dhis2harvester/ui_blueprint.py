@@ -16,11 +16,9 @@ ui_blueprint = Blueprint(
 )
 
 
-def hello():
-    return "{'message': 'hello'}", 200
-
-
-def _validate_required_fields(required_fields, errors=defaultdict(list)):
+def _validate_required_fields(required_fields, errors=None):
+    if errors is None:
+        errors = defaultdict(list)
     for field in required_fields:
         if not request.form.get(field['name']):
             errors[field['name']].append(
@@ -29,7 +27,9 @@ def _validate_required_fields(required_fields, errors=defaultdict(list)):
     return errors
 
 
-def _validate_dhis2_connection(errors=defaultdict(list)):
+def _validate_dhis2_connection(errors=None):
+    if errors is None:
+        errors = defaultdict(list)
     dhis2_url = request.form.get('dhis2_api_url')
     dhis2_username = request.form.get('dhis2_username')
     dhis2_password = request.form.get('dhis2_password')
@@ -44,7 +44,7 @@ def _validate_dhis2_connection(errors=defaultdict(list)):
     return errors
 
 
-def new_pivot_tables_1(methods=['GET', 'POST']):
+def pivot_tables_new():
     if request.method == 'POST':
         # Validate that all required fields are supplied
         required_fields = [
@@ -67,7 +67,7 @@ def new_pivot_tables_1(methods=['GET', 'POST']):
             )
         # If validation passes, redirect to next step.
         return redirect(url_for(
-            'dhis2_harvester.new_pivot_tables_2'
+            'dhis2_harvester.pivot_tables_choose'
         ))
     else:
         # If a simple GET request is made, render an empty form
@@ -77,7 +77,7 @@ def new_pivot_tables_1(methods=['GET', 'POST']):
         )
 
 
-def new_pivot_tables_2(methods=['GET', 'POST']):
+def pivot_tables_choose():
     log.warning(request.method)
     return t.render(
         'source/pivot_table_choose.html',
@@ -87,18 +87,12 @@ def new_pivot_tables_2(methods=['GET', 'POST']):
 
 ui_blueprint.add_url_rule(
     u'/pivot_tables/new',
-    view_func=new_pivot_tables_1,
+    view_func=pivot_tables_new,
     methods=['GET', 'POST']
 )
 
 ui_blueprint.add_url_rule(
     u'/pivot_tables/choose',
-    view_func=new_pivot_tables_2,
+    view_func=pivot_tables_choose,
     methods=['GET', 'POST']
-)
-
-ui_blueprint.add_url_rule(
-    u'/hello',
-    view_func=hello,
-    methods=['GET']
 )
