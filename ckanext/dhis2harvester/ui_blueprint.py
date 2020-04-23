@@ -1,9 +1,7 @@
 import logging
 from flask import Blueprint, request, Response, jsonify, redirect, url_for
-from dhis2_api import Dhis2Connection, Dhis2ConnectionError
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
-import json
 from collections import defaultdict
 from dhis2_api import Dhis2Connection, Dhis2ConnectionError
 
@@ -30,10 +28,7 @@ def _validate_required_fields(required_fields, errors=None):
 def _validate_dhis2_connection(errors=None):
     if errors is None:
         errors = defaultdict(list)
-    dhis2_url = request.form.get('dhis2_api_url')
-    dhis2_username = request.form.get('dhis2_username')
-    dhis2_password = request.form.get('dhis2_password')
-    dhis2_conn = Dhis2Connection(dhis2_url, dhis2_username, dhis2_password)
+    dhis2_conn = __get_dhis_conn()
     try:
         dhis2_conn.test_connection()
     except Dhis2ConnectionError:
@@ -44,55 +39,63 @@ def _validate_dhis2_connection(errors=None):
     return errors
 
 
+def __get_dhis_conn():
+    dhis2_url = request.form.get('dhis2_api_url')
+    dhis2_username = request.form.get('dhis2_username')
+    dhis2_password = request.form.get('dhis2_password')
+    dhis2_conn = Dhis2Connection(dhis2_url, dhis2_username, dhis2_password)
+    return dhis2_conn
+
+
 def pivot_tables_new():
     if request.method == 'POST':
-        # Validate that all required fields are supplied
-        required_fields = [
-            {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
-            {'label': 'DHIS2 Username', 'name': 'dhis2_username'},
-            {'label': 'DHIS2 API Endpoint URL', 'name': 'dhis2_api_url'}
-        ]
-        errors = _validate_required_fields(required_fields)
-        if errors:
+        # Define DHIS2 connection details
+        form_stage = request.form['action']
+        stage_number = int(form_stage.split('_')[-1])
+        data = request.form.to_dict()
+        if form_stage == 'pivot_table_new_2':
+            required_fields = [
+                {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
+                {'label': 'DHIS2 Username', 'name': 'dhis2_username'},
+                {'label': 'DHIS2 API Endpoint URL', 'name': 'dhis2_api_url'}
+            ]
+            errors = _validate_required_fields(required_fields)
+            if errors:
+                data['action'] = 'pivot_table_new_1'
+                return t.render(
+                    'source/pivot_table_new.html',
+                    {'data': data, 'errors': errors}
+                )
+            errors = _validate_dhis2_connection()
+            if errors:
+                data['action'] = 'pivot_table_new_1'
+                return t.render(
+                    'source/pivot_table_new.html',
+                    {'data': data, 'errors': errors}
+                )
             return t.render(
                 'source/pivot_table_new.html',
-                {'data': request.form, 'errors': errors}
+                {'data': request.form, 'errors': {}}
             )
-        # Validate that we can connect to DHIS2
-        errors = _validate_dhis2_connection()
-        if errors:
+        elif form_stage == 'pivot_table_new_3':
             return t.render(
                 'source/pivot_table_new.html',
-                {'data': request.form, 'errors': errors}
+                {'data': data, 'errors': {}}
             )
-        # If validation passes, redirect to next step.
-        return redirect(url_for(
-            'dhis2_harvester.pivot_tables_choose'
-        ))
+        elif form_stage == 'pivot_table_new_4':
+            return t.render(
+                'source/pivot_table_new.html',
+                {'data': data, 'errors': {}}
+            )
     else:
-        # If a simple GET request is made, render an empty form
         return t.render(
             'source/pivot_table_new.html',
-            {'data': {}, 'errors': {}}
+            {'data': {'action': 'pivot_table_new_1'}, 'errors': {}}
         )
-
-
-def pivot_tables_choose():
-    log.warning(request.method)
-    return t.render(
-        'source/pivot_table_choose.html',
-        {'data': {}, 'errors': {}}
-    )
 
 
 ui_blueprint.add_url_rule(
     u'/pivot_tables/new',
     view_func=pivot_tables_new,
-    methods=['GET', 'POST']
-)
-
-ui_blueprint.add_url_rule(
-    u'/pivot_tables/choose',
-    view_func=pivot_tables_choose,
     methods=['GET', 'POST']
 )
