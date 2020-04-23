@@ -76,14 +76,16 @@ def pivot_tables_new():
                     'source/pivot_table_new.html',
                     {'data': data, 'errors': errors}
                 )
-            dhis2_conn = __get_dhis_conn()
-            errors = _validate_dhis2_connection(dhis2_conn)
+            dhis2_conn_ = __get_dhis_conn()
+            errors = _validate_dhis2_connection(dhis2_conn_)
             if errors:
                 data['action'] = 'pivot_table_new_1'
                 return t.render(
                     'source/pivot_table_new.html',
                     {'data': data, 'errors': errors}
                 )
+            pivot_tables = dhis2_conn_.get_pivot_tables()
+            data['pivot_tables'] = pivot_tables
             data['action'] = "pivot_table_new_2"
             return t.render(
                 'source/pivot_table_new.html',

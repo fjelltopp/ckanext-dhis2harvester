@@ -48,6 +48,12 @@
     <div class="hidden">
   {% endif %}
     <h1>Pivot table choose</h1>
+    <select id="pivot_table_id">
+    {% for pivot_table in data.pivot_tables %}
+      <option name="{{ pivot_table.id }}">{{ pivot_table.name }}</option>
+    {% endfor %}
+    </select>
+    <br/>
     <button type="submit" name="action" value="back.pivot_table_new_1">{{_("Previous")}}</button>
     <button type="submit" name="action" value="pivot_table_new_2">{{_("Next")}}</button>
   {% if not data.action or data.action != 'pivot_table_new_2' %}
