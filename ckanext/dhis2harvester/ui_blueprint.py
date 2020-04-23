@@ -25,10 +25,9 @@ def _validate_required_fields(required_fields, errors=None):
     return errors
 
 
-def _validate_dhis2_connection(errors=None):
+def _validate_dhis2_connection(dhis2_conn, errors=None):
     if errors is None:
         errors = defaultdict(list)
-    dhis2_conn = __get_dhis_conn()
     try:
         dhis2_conn.test_connection()
     except Dhis2ConnectionError:
@@ -50,10 +49,21 @@ def __get_dhis_conn():
 def pivot_tables_new():
     if request.method == 'POST':
         # Define DHIS2 connection details
-        form_stage = request.form['action']
-        stage_number = int(form_stage.split('_')[-1])
         data = request.form.to_dict()
-        if form_stage == 'pivot_table_new_2':
+        form_stage = data['action']
+        stage_number = int(form_stage.split('_')[-1])
+        if stage_number > 1:
+            dhis2_conn_ = __get_dhis_conn()
+        elif stage_number > 2:
+            pass
+        if "back" in form_stage:
+            to_form_stage = form_stage.split('.')[-1]
+            data['action'] = to_form_stage
+            return t.render(
+                'source/pivot_table_new.html',
+                {'data': data, 'errors': {}}
+            )
+        elif form_stage == 'pivot_table_new_1':
             required_fields = [
                 {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
                 {'label': 'DHIS2 Username', 'name': 'dhis2_username'},
@@ -66,23 +76,33 @@ def pivot_tables_new():
                     'source/pivot_table_new.html',
                     {'data': data, 'errors': errors}
                 )
-            errors = _validate_dhis2_connection()
+            dhis2_conn = __get_dhis_conn()
+            errors = _validate_dhis2_connection(dhis2_conn)
             if errors:
                 data['action'] = 'pivot_table_new_1'
                 return t.render(
                     'source/pivot_table_new.html',
                     {'data': data, 'errors': errors}
                 )
+            data['action'] = "pivot_table_new_2"
             return t.render(
                 'source/pivot_table_new.html',
-                {'data': request.form, 'errors': {}}
+                {'data': data, 'errors': {}}
+            )
+        elif form_stage == 'pivot_table_new_2':
+            data['action'] = "pivot_table_new_3"
+            return t.render(
+                'source/pivot_table_new.html',
+                {'data': data, 'errors': {}}
             )
         elif form_stage == 'pivot_table_new_3':
+            data['action'] = "pivot_table_new_4"
             return t.render(
                 'source/pivot_table_new.html',
                 {'data': data, 'errors': {}}
             )
         elif form_stage == 'pivot_table_new_4':
+            data['action'] = "pivot_table_new_4"
             return t.render(
                 'source/pivot_table_new.html',
                 {'data': data, 'errors': {}}
