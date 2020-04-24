@@ -54,8 +54,8 @@ def pivot_tables_new():
         stage_number = int(form_stage.split('_')[-1])
         if stage_number > 1:
             dhis2_conn_ = __get_dhis_conn()
-        elif stage_number > 2:
-            pass
+            pivot_tables = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in dhis2_conn_.get_pivot_tables()]
+            data['pivot_tables'] = pivot_tables
         if "back" in form_stage:
             to_form_stage = form_stage.split('.')[-1]
             data['action'] = to_form_stage
@@ -84,7 +84,7 @@ def pivot_tables_new():
                     'source/pivot_table_new.html',
                     {'data': data, 'errors': errors}
                 )
-            pivot_tables = dhis2_conn_.get_pivot_tables()
+            pivot_tables = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in dhis2_conn_.get_pivot_tables()]
             data['pivot_tables'] = pivot_tables
             data['action'] = "pivot_table_new_2"
             return t.render(
@@ -92,12 +92,14 @@ def pivot_tables_new():
                 {'data': data, 'errors': {}}
             )
         elif form_stage == 'pivot_table_new_2':
+            log.debug(data)
             data['action'] = "pivot_table_new_3"
             return t.render(
                 'source/pivot_table_new.html',
                 {'data': data, 'errors': {}}
             )
         elif form_stage == 'pivot_table_new_3':
+            log.debug(data)
             data['action'] = "pivot_table_new_4"
             return t.render(
                 'source/pivot_table_new.html',
