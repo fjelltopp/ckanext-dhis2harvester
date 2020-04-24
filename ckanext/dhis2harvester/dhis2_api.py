@@ -1,4 +1,3 @@
-import urllib
 import urlparse
 
 import logging
@@ -89,13 +88,43 @@ class Dhis2Connection(object):
 
     def get_pivot_tables(self):
         url_ = urlparse.urljoin(self.api_url, self.PIVOT_TABLES_RESOURCE)
-        # r = requests.get(url_, headers=self.__create_dhis2_headers())
         r = requests.get(url_, cookies=self.__create_auth_cookie())
         self.__response_validation("Failed to get pivot tables information", r)
-        pivot_tables = r.json().get(self.PIVOT_TABLES_KEY_NAME)
+        try:
+            pivot_tables = r.json().get(self.PIVOT_TABLES_KEY_NAME)
+        except ValueError:
+            raise Dhis2ConnectionError("Failed to decode response for pivot table")
         result = []
         for table in pivot_tables:
             result.append({k: v for k, v in table.iteritems() if k in self.PIVOT_TABLE_KEYS})
+        return result
+
+    def _get_pivot_table_meta(self, pivot_table_id):
+        url_ = urlparse.urljoin(self.api_url, "{}/{}".format(self.PIVOT_TABLES_KEY_NAME, pivot_table_id))
+        r = requests.get(url_, cookies=self.__create_auth_cookie())
+        self.__response_validation("Failed to get pivot table information for pivot table {}".format(pivot_table_id), r)
+        try:
+            pivot_table_meta = r.json()
+        except ValueError:
+            raise Dhis2ConnectionError("Failed to decode response for pivot table")
+        return pivot_table_meta
+
+    def get_pivot_table_columns(self, pivot_table_id):
+        pivot_table_meta = self._get_pivot_table_meta(pivot_table_id)
+        result = []
+        for column in pivot_table_meta.get("dataDimensionItems"):
+            if column["dataDimensionItemType"] == 'INDICATOR':
+                result.append({
+                    'id': column['indicator']['id'],
+                    'type': 'indicator',
+                    'name': 'indicator_{}'.format(column['indicator']['id'])
+                })
+            elif column["dataDimensionItemType"] == 'DATA_ELEMENT':
+                result.append({
+                    'id': column['dataElement']['id'],
+                    'type': 'data_element',
+                    'name': 'data_element_{}'.format(column['dataElement']['id'])
+                })
         return result
 
 

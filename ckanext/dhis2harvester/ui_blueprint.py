@@ -52,10 +52,14 @@ def pivot_tables_new():
         data = request.form.to_dict()
         form_stage = data['action']
         stage_number = int(form_stage.split('_')[-1])
-        if stage_number > 1:
+        if stage_number >= 2:
             dhis2_conn_ = __get_dhis_conn()
-            pivot_tables = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in dhis2_conn_.get_pivot_tables()]
-            data['pivot_tables'] = pivot_tables
+            pivot_tables_options = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in dhis2_conn_.get_pivot_tables()]
+            data['pivot_tables'] = pivot_tables_options
+            if stage_number >= 3:
+                pivot_table_id = data['pivot_table_id']
+                pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in dhis2_conn_.get_pivot_table_columns(pivot_table_id)]
+
         if "back" in form_stage:
             to_form_stage = form_stage.split('.')[-1]
             data['action'] = to_form_stage
@@ -84,8 +88,17 @@ def pivot_tables_new():
                     'source/pivot_table_new.html',
                     {'data': data, 'errors': errors}
                 )
-            pivot_tables = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in dhis2_conn_.get_pivot_tables()]
-            data['pivot_tables'] = pivot_tables
+            try:
+                pivot_tables = dhis2_conn_.get_pivot_tables()
+            except Dhis2ConnectionError as e:
+                errors = { 'dhis2_api_url': ["Failed to fetch pivot table data from this DHIS2 instance."]}
+                data['action'] = 'pivot_table_new_1'
+                return t.render(
+                    'source/pivot_table_new.html',
+                    {'data': data, 'errors': errors}
+                )
+            pivot_tables_options = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in pivot_tables]
+            data['pivot_tables'] = pivot_tables_options
             data['action'] = "pivot_table_new_2"
             return t.render(
                 'source/pivot_table_new.html',
@@ -93,6 +106,10 @@ def pivot_tables_new():
             )
         elif form_stage == 'pivot_table_new_2':
             log.debug(data)
+            pivot_table_id = data['pivot_table_id']
+            pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in
+                                   dhis2_conn_.get_pivot_table_columns(pivot_table_id)]
+            data['pivot_table_columns'] = pivot_table_columns
             data['action'] = "pivot_table_new_3"
             return t.render(
                 'source/pivot_table_new.html',

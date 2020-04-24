@@ -61,6 +61,7 @@
     <h1>Pivot table categories</h1>
 
     <input name="pivot_table_id" value="{{ data.pivot_table_id }}" >
+    {{ form.select('pivot_table_column', label=_('Select pivot table columns'), options=data.pivot_table_columns, selected=data.pivot_table_columns, error=errors.pivot_table_columns) }}
     <br/>
     <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
     <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
