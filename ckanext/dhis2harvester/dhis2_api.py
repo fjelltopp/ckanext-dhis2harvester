@@ -111,6 +111,40 @@ class Dhis2Connection(object):
 
     def get_pivot_table_columns(self, pivot_table_id):
         pivot_table_meta = self._get_pivot_table_meta(pivot_table_id)
+        ################## categories combos metadata
+        cc_url_ = urlparse.urljoin(self.api_url, "metadata?categoryCombos:fields=id,name,categoryOptionCombos")
+        coc_url_ = urlparse.urljoin(self.api_url, "metadata?categoryOptionCombos:fields=id,name")
+        cc_r = requests.get(cc_url_, cookies=self.__create_auth_cookie())
+        coc_r = requests.get(coc_url_, cookies=self.__create_auth_cookie())
+        category_combos_meta = cc_r.json()["categoryCombos"]
+        category_option_combos_meta = coc_r.json()["categoryOptionCombos"]
+        category_option_combos_map = {c['id']: c['name'] for c in category_option_combos_meta}
+        category_combos_map = {}
+        for category_combo in category_combos_meta:
+            id = category_combo['id']
+            category_options = category_combo['categoryOptionCombos']
+            options = {option['id']: category_option_combos_map[option['id']] for option in category_options}
+            category_combos_map[id] = options
+        ################################################
+        ######### data elements metadata ##############
+        de_url_ = urlparse.urljoin(self.api_url, "metadata?dataElements:fields=id,name,categoryCombo")
+        de_r = requests.get(de_url_, cookies=self.__create_auth_cookie())
+        data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in de_r.json()["dataElements"]}
+        ###############################################
+        def get_data_elements_config(d_id_, data_elements_map={}):
+            if d_id_ not in data_elements_map:
+                d_name_ = data_elements_meta[d_id_]['name']
+                data_element_category_options_ = []
+                cc_id_ = data_elements_meta[d_id_]['category_combo']
+                category_options_ = category_combos_map[cc_id_]
+                for co_id, co_name in category_options_.iteritems():
+                    data_element_category_options_.append({
+                        "id": "_".join([d_id_, co_id]),
+                        "name": "_".join([d_name_, co_name])
+                    })
+                data_elements_map[d_id_] = data_element_category_options_
+            return data_elements_map[d_id_]
+
         result = []
         for column in pivot_table_meta.get("dataDimensionItems"):
             if column["dataDimensionItemType"] == 'INDICATOR':
@@ -120,12 +154,17 @@ class Dhis2Connection(object):
                     'name': 'indicator_{}'.format(column['indicator']['id'])
                 })
             elif column["dataDimensionItemType"] == 'DATA_ELEMENT':
-                result.append({
-                    'id': column['dataElement']['id'],
-                    'type': 'data_element',
-                    'name': 'data_element_{}'.format(column['dataElement']['id'])
-                })
+                d_id_ = column['dataElement']['id']
+                columns = get_data_elements_config(d_id_)
+                for c in columns:
+                    result.append({
+                        'id': c['id'],
+                        'type': 'data_element',
+                        'name': c['name']
+                    })
         return result
+
+
 
 
 class Dhis2ConnectionError(Exception):
