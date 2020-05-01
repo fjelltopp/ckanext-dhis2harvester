@@ -116,6 +116,9 @@ def pivot_tables_new():
                 {'data': data, 'errors': {}}
             )
         elif form_stage == 'pivot_table_new_3':
+            # read col_ age_ gender_ inputs
+            # for k in data:
+            #     if k.split('_')[0] in
             log.debug(data)
             data['action'] = "pivot_table_new_4"
             return t.render(
