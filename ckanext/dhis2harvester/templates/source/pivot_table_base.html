@@ -1,5 +1,10 @@
 {% extends "source/admin_base.html" %}
 
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" type="text/css" href="{{ h.url_for_static('/dhis2_harvester_source_form.css')}}">
+{% endblock %}
+
 {% block breadcrumb_content %}
   <li>{{ h.nav_link(_('Harvest Sources'), named_route='{0}_search'.format(c.dataset_type)) }}</li>
   <li class="active">{{ h.nav_link(_('Create DHIS2 Pivot Table Fetcher'), named_route='{0}_new'.format(c.dataset_type)) }}</li>

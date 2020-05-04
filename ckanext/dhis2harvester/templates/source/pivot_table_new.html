@@ -3,7 +3,7 @@
 {% resource 'harvest-extra-field/main' %}
 
 {% block form_content %}
-<form id="source-new" class="form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" >
+<form id="source-new" class="dhis2-source-new form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" >
   {% block errors %}{{ form.errors(error_summary) }}{% endblock %}
 
   {# if we have a default group then this wants remembering #}
@@ -18,17 +18,11 @@
   {% set show_organizations_selector = organizations_available and (user_is_sysadmin or dataset_is_draft) %}
   {% set selected_org = data.owner_org if data.owner_org else organizations_available[0].value %}
 
-  {% if data.action == 'pivot_table_new_1' %}
-    {% include 'source/pivot_table_new_1.html' %}
-  {% elif data.action == 'pivot_table_new_2' %}
-    {% include 'source/pivot_table_new_2.html' %}
-  {% elif data.action == 'pivot_table_new_3' %}
-    {% include 'source/pivot_table_new_3.html' %}
-  {% elif data.action == 'pivot_table_new_4' %}
-    {% include 'source/pivot_table_new_4.html' %}
-  {% else %}
-    {% include 'source/pivot_table_new_1.html' %}
-  {% endif %}
+
+  {% include 'source/pivot_table_new_1.html' %}
+  {% include 'source/pivot_table_new_2.html' %}
+  {% include 'source/pivot_table_new_3.html' %}
+  {% include 'source/pivot_table_new_4.html' %}
 
 
   {% if data.get('id', None) and h.check_access('harvest_source_delete', {'id': data.id}) and data.get('state', 'none') == 'deleted' %}

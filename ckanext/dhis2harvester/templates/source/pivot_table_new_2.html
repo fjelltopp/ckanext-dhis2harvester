@@ -1,6 +1,58 @@
 {% import 'macros/form.html' as form %}
-<h2>Pivot table choose</h2>
-{{ form.select('pivot_table_id', label=_('Select pivot table'), options=data.pivot_tables, selected=data.pivot_table_id, error=errors.pivot_table_id) }}
+{% resource 'ckanext-dhis2harvester/pivot_tables.js' %}
+
+{% set pivot_table_target_types = [{'value':'naomi-art', 'text': 'Naomi ART Input'}, {'value':'naomi-anc', 'text': 'Naomi ANC Input'}, {'value':'other', 'text': 'Other'}] %}
+
+<div class="pivot-table-new-2 {% if data.action != 'pivot_table_new_2' %}hidden{% endif %}">
+<h2>{{_('Choose your DHIS2 pivot tables')}}</h2>
+<div class='pivot-tables'>
+  <div class="row pivot-table">
+    {{ form.select(
+        'pivot_table_id',
+        id='pivot_table_id',
+        options=data.pivot_tables,
+        selected=data.pivot_table_id,
+        error=errors.pivot_table_id,
+        classes=['pivot-table-selector', 'control-medium', 'no-label', 'col-xs-12', 'col-md-7'],
+        attrs={
+          "data-module": "autocomplete"
+        }
+        )
+    }}
+    {{ form.select(
+        'pivot_table_target_type',
+        id='pivot_table_id',
+        options=pivot_table_target_types,
+        selected=data.pivot_table_id,
+        error=errors.pivot_table_id,
+        classes=['control-medium', 'no-label', 'col-xs-10', 'col-md-4'],
+        )
+    }}
+    <div class="delete-btn form-group control-medium col-xs-2 col-md-1">
+      <button class="btn btn-primary" disabled
+              data-module='pivot_table_delete'
+              data-module-source=".pivot-table-new-2 .row.pivot-table"
+              data-module-delete=".pivot-table-new-2 .row.pivot-table .delete-btn button">
+        <i class="fa fa-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div  class="row">
+  <div class="add-btn form-group control-medium col-xs-2 col-md-1">
+    <button class="btn btn-success"
+            data-module="pivot_table_add"
+            data-module-source=".pivot-table-new-2 .row.pivot-table"
+            data-module-target=".pivot-table-new-2 .pivot-tables"
+            data-module-delete=".pivot-table-new-2 .row.pivot-table .delete-btn button">
+      <i class="fa fa-plus"></i>
+      {{_('Add Pivot Table')}}
+    </button>
+  </div>
+</div>
+
 <br/>
 <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_1">{{_("Previous")}}</button>
 <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_2">{{_("Next")}}</button>
+</div>
