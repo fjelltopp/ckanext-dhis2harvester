@@ -163,18 +163,20 @@ def __go_back(data, form_stage):
 def __data_initialization():
     data = request.form.to_dict()
     form_stage = data['action']
-    stage_number = int(form_stage.split('_')[-1])
-    dhis2_conn_ = None
-    if stage_number >= 2:
-        dhis2_conn_ = __get_dhis_conn()
+    dhis2_conn_ = __get_dhis_conn()
+    try:
+        dhis2_conn_.test_connection()
+    except Dhis2ConnectionError:
+        dhis2_conn_ = None
+    if dhis2_conn_:
         pivot_tables_options = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in
                                 dhis2_conn_.get_pivot_tables()]
         data['pivot_tables'] = pivot_tables_options
-        if stage_number >= 3:
-            pivot_table_id = data['pivot_table_id']
-            pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in
-                                   dhis2_conn_.get_pivot_table_columns(pivot_table_id)]
-            data['pivot_table_columns'] = pivot_table_columns
+    pivot_table_id = data.get('pivot_table_id')
+    if pivot_table_id:
+        pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in
+                               dhis2_conn_.get_pivot_table_columns(pivot_table_id)]
+        data['pivot_table_columns'] = pivot_table_columns
     return data, dhis2_conn_, form_stage
 
 
