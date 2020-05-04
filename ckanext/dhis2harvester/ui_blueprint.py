@@ -69,15 +69,12 @@ def __get_dhis_conn():
 
 
 def __summary_stage(data):
-    data['action'] = "pivot_table_new_4"
-    return t.render(
-        'source/pivot_table_new.html',
-        {'data': data, 'errors': {}}
-    )
-
-
-def __configure_table_columns_stage(data):
-    # read col_ age_ gender_ inputs
+    #### Create complete configuration for DHIS2 Pivot tables:
+    log.debug(data)
+    dhis2_api_url = data['dhis2_api_url']
+    resource_name = 'Pivot Table Export'
+    dataset_name = 'Pivot Table Export'
+    pt_id = data['pivot_table_id']
     column_config = defaultdict(dict)
     for k in data:
         split = k.split('_', 1)
@@ -90,7 +87,27 @@ def __configure_table_columns_stage(data):
                 column_config[id]['age'] = data[k]
             elif prefix_ == 'gender':
                 column_config[id]['gender'] = data[k]
-    log.debug(column_config)
+    harvester_config = {
+        'dhis2_api_url': dhis2_api_url,
+        'pivot_tables': [
+            {
+                'pivot_table_id': pt_id,
+                'resource_name': resource_name,
+                'dataset_name': dataset_name,
+                'column_config': column_config
+            }
+        ]
+    }
+
+    data['action'] = "pivot_table_new_4"
+    return t.render(
+        'source/pivot_table_new.html',
+        {'data': data, 'errors': {}}
+    )
+
+
+def __configure_table_columns_stage(data):
+    # read col_ age_ gender_ inputs
     log.debug(data)
     data['action'] = "pivot_table_new_4"
     return t.render(
