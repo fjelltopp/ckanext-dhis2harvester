@@ -1,0 +1,12 @@
+{% import 'macros/form.html' as form %}
+<h1>Summary</h1>
+{% if show_organizations_selector %}
+  {% if organizations_available|length < 1 %}
+    <input type="hidden" name="owner_org" value="{{organizations_available[0].value}}" >
+  {% else %}
+    {{ form.select('owner_org', id='field-organizations', label=_('Organization'), options=organizations_available, selected=selected_org, error=errors.organization, is_required=True) }}
+  {% endif %}
+{% endif %}
+<input type="hidden" name="source_type" value="dhis2_pivot_table" >
+<button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_3">{{_("Previous")}}</button>
+<button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_4">{{_("Complete")}}</button>

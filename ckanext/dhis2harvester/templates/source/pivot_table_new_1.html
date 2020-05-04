@@ -1,0 +1,21 @@
+{% import 'macros/form.html' as form %}
+
+<H2>
+  {{_('Configure DHIS2 Connection')}}
+</H2>
+{% call form.input('dhis2_api_url', id='field-dhis2-api-url', label=_('DHIS2 URL'), value=data.dhis2_api_url, placeholder="e.g. https://play.dhis2.org/demo/", error=errors.dhis2_api_url, classes=['control-full'], is_required=True) %}
+    <span class="info-block">
+      {{ _('This should include the https:// part of the URL') }}
+    </span>
+{% endcall %}
+{% call form.input("dhis2_username", id="field-dhis2-username", label=_("DHIS2 Username"), placeholder=_("dhis2_username"), value=data.dhis2_username, error=errors.dhis2_username, classes=["control-medium"], is_required=True) %}
+  <span class="info-block">
+    {{ _('The user must have access to read the desired pivot tables') }}
+  </span>
+{% endcall %}
+{% call form.input("dhis2_password", id="field-dhis2-password", label=_("DHIS2 Password"), type="password", value=data.dhis2_password, error=errors.dhis2_password, classes=["control-medium"], is_required=True) %}
+  <span class="info-block">
+    {{ _("Your password won't be stored in ADR but passed straight to the DHIS2 instance for authentication.") }}
+  </span>
+{% endcall %}
+<button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_1">{{_("Next")}}</button>

@@ -1,0 +1,6 @@
+{% import 'macros/form.html' as form %}
+<h2>Pivot table choose</h2>
+{{ form.select('pivot_table_id', label=_('Select pivot table'), options=data.pivot_tables, selected=data.pivot_table_id, error=errors.pivot_table_id) }}
+<br/>
+<button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_1">{{_("Previous")}}</button>
+<button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_2">{{_("Next")}}</button>
