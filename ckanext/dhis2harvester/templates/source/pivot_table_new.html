@@ -59,9 +59,14 @@
     <div class="hidden">
   {% endif %}
     <h1>Pivot table categories</h1>
-
     <input name="pivot_table_id" value="{{ data.pivot_table_id }}" >
-    {{ form.select('pivot_table_column', label=_('Select pivot table columns'), options=data.pivot_table_columns, selected=data.pivot_table_columns, error=errors.pivot_table_columns) }}
+    {%  for column in data.pivot_table_columns %}
+      <p>{{ column['text'] }}</p>
+      {{ form.input("col_{}".format(column['value']), label=_('Column name'), value=data['col_{}'.format(column['value'])]) }}
+      {{ form.input("age_{}".format(column['value']), label=_('Age group')) }}
+      {{ form.input("gender_{}".format(column['value']), label=_('Gender')) }}
+      <br/>
+    {%  endfor %}
     <br/>
     <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
     <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
@@ -72,19 +77,19 @@
     <div class="hidden">
   {% endif %}
     <h1>Summary</h1>
+    {% if show_organizations_selector %}
+      {% if organizations_available|length < 1 %}
+        <input type="hidden" name="owner_org" value="{{organizations_available[0].value}}" >
+      {% else %}
+        {{ form.select('owner_org', id='field-organizations', label=_('Organization'), options=organizations_available, selected=selected_org, error=errors.organization, is_required=True) }}
+      {% endif %}
+    {% endif %}
     <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_3">{{_("Previous")}}</button>
     <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_4">{{_("Complete")}}</button>
   {% if data.action != 'pivot_table_new_4' %}
     </div>
   {% endif %}
 
-  {% if show_organizations_selector %}
-    {% if organizations_available|length < 1 %}
-      <input type="hidden" name="owner_org" value="{{organizations_available[0].value}}" >
-    {% else %}
-      {{ form.select('owner_org', id='field-organizations', label=_('Organization'), options=organizations_available, selected=selected_org, error=errors.organization, is_required=True) }}
-    {% endif %}
-  {% endif %}
 
   {% if data.get('id', None) and h.check_access('harvest_source_delete', {'id': data.id}) and data.get('state', 'none') == 'deleted' %}
     <div class="control-group">

@@ -117,9 +117,20 @@ def pivot_tables_new():
             )
         elif form_stage == 'pivot_table_new_3':
             # read col_ age_ gender_ inputs
-            # for k in data:
-            #     if k.split('_')[0] in
-            log.debug(data)
+            column_config = defaultdict(dict)
+            for k in data:
+                split = k.split('_', 1)
+                if len(split) > 1:
+                    prefix_ = split[0]
+                    id = split[1]
+                    if prefix_ == 'col':
+                        column_config[id]['col'] = data[k]
+                    elif prefix_ == 'age':
+                        column_config[id]['age'] = data[k]
+                    elif prefix_ == 'gender':
+                        column_config[id]['gender'] = data[k]
+
+            log.debug(column_config)
             data['action'] = "pivot_table_new_4"
             return t.render(
                 'source/pivot_table_new.html',
