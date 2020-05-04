@@ -63,8 +63,8 @@
     {%  for column in data.pivot_table_columns %}
       <p>{{ column['text'] }}</p>
       {{ form.input("col_{}".format(column['value']), label=_('Column name'), value=data['col_{}'.format(column['value'])]) }}
-      {{ form.input("age_{}".format(column['value']), label=_('Age group')) }}
-      {{ form.input("gender_{}".format(column['value']), label=_('Gender')) }}
+      {{ form.input("age_{}".format(column['value']), label=_('Age group'), value=data['age_{}'.format(column['value'])]) }}
+      {{ form.input("gender_{}".format(column['value']), label=_('Gender'), value=data['gender_{}'.format(column['value'])]) }}
       <br/>
     {%  endfor %}
     <br/>

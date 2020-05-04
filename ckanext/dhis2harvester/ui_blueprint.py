@@ -59,6 +59,7 @@ def pivot_tables_new():
             if stage_number >= 3:
                 pivot_table_id = data['pivot_table_id']
                 pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in dhis2_conn_.get_pivot_table_columns(pivot_table_id)]
+                data['pivot_table_columns'] = pivot_table_columns
 
         if "back" in form_stage:
             to_form_stage = form_stage.split('.')[-1]
@@ -131,6 +132,7 @@ def pivot_tables_new():
                         column_config[id]['gender'] = data[k]
 
             log.debug(column_config)
+            log.debug(data)
             data['action'] = "pivot_table_new_4"
             return t.render(
                 'source/pivot_table_new.html',
