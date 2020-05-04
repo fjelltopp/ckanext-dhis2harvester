@@ -4,7 +4,7 @@
 {% resource 'harvest-extra-field/main' %}
 {% block form_content %}
 <H2>
-  {{_('Configure DHIS2 Connection')}}
+  {{_('Configure DHIS2 Pivot Table Fetcher')}}
 </H2>
 <form id="source-new" class="form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" >
   {% block errors %}{{ form.errors(error_summary) }}{% endblock %}
@@ -59,7 +59,7 @@
     <div class="hidden">
   {% endif %}
     <h1>Pivot table categories</h1>
-    <input name="pivot_table_id" value="{{ data.pivot_table_id }}" >
+    <input type="hidden" name="pivot_table_id" value="{{ data.pivot_table_id }}" >
     {%  for column in data.pivot_table_columns %}
       <p>{{ column['text'] }}</p>
       {{ form.input("col_{}".format(column['value']), label=_('Column name'), value=data['col_{}'.format(column['value'])]) }}
