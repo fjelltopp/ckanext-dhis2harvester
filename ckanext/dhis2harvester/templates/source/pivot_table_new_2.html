@@ -1,33 +1,44 @@
 {% import 'macros/form.html' as form %}
 {% resource 'ckanext-dhis2harvester/pivot_tables.js' %}
 
-{% set pivot_table_target_types = [{'value':'naomi-art', 'text': 'Naomi ART Input'}, {'value':'naomi-anc', 'text': 'Naomi ANC Input'}, {'value':'other', 'text': 'Other'}] %}
+{% do data.update({'selected_pivot_tables': [{'id': 'qfMh2IjOxvw', 'type': 'naomi-anc'}, {'id': 'bf3TKyiiV19', 'type': 'naomi-art'}]}) %}
+{% do data.update({'column_config': {'naomi-art': {'name': 'Naomi ART Input'}, 'naomi-anc': {'name': 'Naomi ANC Input'}, 'other': {'name': 'Other'}}}) %}
+
+{% set target_type_options = [] %}
+{% for type, config in data.column_config.iteritems() %}
+  {% do target_type_options.append({'value': type, 'text': config['name']}) %}
+{% endfor %}
+
+{% do data.update({'target_types': target_type_options}) %}
+
 
 <div class="pivot-table-new-2 {% if data.action != 'pivot_table_new_2' %}hidden{% endif %}">
 <h2>{{_('Choose your DHIS2 pivot tables')}}</h2>
 <div class='pivot-tables'>
+  {% for pivot_table in data.selected_pivot_tables %}
   <div class="row pivot-table">
     {{ form.select(
         'pivot_table_id',
         id='pivot_table_id',
         options=data.pivot_tables,
-        selected=data.pivot_table_id,
+        selected=pivot_table.id,
         error=errors.pivot_table_id,
         classes=['pivot-table-selector', 'control-medium', 'no-label', 'col-xs-12', 'col-md-7'],
         attrs={
           "data-module": "autocomplete"
         }
-        )
+      )
     }}
     {{ form.select(
         'pivot_table_target_type',
-        id='pivot_table_id',
-        options=pivot_table_target_types,
-        selected=data.pivot_table_id,
+        id='pivot_table_target_type',
+        options=data.target_types,
+        selected=pivot_table.type,
         error=errors.pivot_table_id,
         classes=['control-medium', 'no-label', 'col-xs-10', 'col-md-4'],
         )
     }}
+
     <div class="delete-btn form-group control-medium col-xs-2 col-md-1">
       <button class="btn btn-primary" disabled
               data-module='pivot_table_delete'
@@ -37,6 +48,7 @@
       </button>
     </div>
   </div>
+  {% endfor %}
 </div>
 
 <div  class="row">
