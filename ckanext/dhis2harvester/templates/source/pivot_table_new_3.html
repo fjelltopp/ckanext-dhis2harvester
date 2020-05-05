@@ -1,15 +1,29 @@
 {% import 'macros/form.html' as form %}
 <div class="pivot-table-new-3 {% if data.action != 'pivot_table_new_3' %}hidden{% endif %}">
-<h1>Pivot table categories</h1>
-<input type="hidden" name="pivot_table_id" value="{{ data.pivot_table_id }}" >
-{%  for column in data.pivot_table_columns %}
-  <p>{{ column['text'] }}</p>
-  {{ form.input("col_{}".format(column['value']), label=_('Column name'), value=data['col_{}'.format(column['value'])]) }}
-  {{ form.input("age_{}".format(column['value']), label=_('Age group'), value=data['age_{}'.format(column['value'])]) }}
-  {{ form.input("gender_{}".format(column['value']), label=_('Gender'), value=data['gender_{}'.format(column['value'])]) }}
+<h2>Configure Columns and Categories</h2>
+<ul class="pivot-table-tabs nav nav-tabs">
+  <li class="active"><a href="#">Pivot table 1</a></li>
+  <li><a href="#">Pivot table 2</a></li>
+  <li><a href="#">Pivot Table 3</a></li>
+</ul>
+<div class=".pivot-table-config" pivot_it="{{data.pivot_table_id}}">
+  <input name="pivot_table_id" value="{{ data.pivot_table_id }}" class="hidden" >
+  {%  for column in data.pivot_table_columns %}
+    <div class="deleteable-box">
+      <div class="header">
+        <span class="column-title">{{ column['text'] }}</span>
+        <span class="delete-btn pull-right"><i class="fa fa-trash"></i>Ignore</span>
+      </div>
+      <div class="content">
+        {{ form.input("col_{}".format(column['value']), label=_('Column name'), value=data['col_{}'.format(column['value'])]) }}
+        {{ form.input("age_{}".format(column['value']), label=_('Age group'), value=data['age_{}'.format(column['value'])]) }}
+        {{ form.input("gender_{}".format(column['value']), label=_('Gender'), value=data['gender_{}'.format(column['value'])]) }}
+      </div>
+    </div>
+  {%  endfor %}
   <br/>
-{%  endfor %}
-<br/>
+</div>
 <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
 <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
+
 </div>
