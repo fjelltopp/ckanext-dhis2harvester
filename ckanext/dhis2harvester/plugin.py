@@ -39,8 +39,8 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin):
         add_licenses()
         log.info("DHIS2 Plugin is enabled")
         toolkit.add_template_directory(config, 'templates')
-        p.toolkit.add_public_directory(config, 'public')
-        toolkit.add_resource('fanstatic', 'ckanext-dhis2harvester')
+        toolkit.add_public_directory(config, 'public')
+        toolkit.add_resource('fanstatic', 'dhis2harvester')
 
     def get_blueprint(self):
         return [ui_blueprint, dhis2_data]
