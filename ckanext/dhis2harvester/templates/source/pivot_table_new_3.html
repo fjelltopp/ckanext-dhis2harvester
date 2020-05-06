@@ -2,10 +2,6 @@
 {% resource 'dhis2harvester/tabs.js' %}
 {% resource 'dhis2harvester/toggle_box.js' %}
 
-{% do data.update({'selected_pivot_tables': [{'id': 'qfMh2IjOxvw', 'type': 'naomi-anc', 'text': 'ANC: ANC 1st and 2nd visits at facilities with hierarchy'}, {'id': 'bf3TKyiiV19', 'text': 'ART: ART stage by implementing partner', 'type': 'naomi-art'}]}) %}
-{% do data.update({'target_types': [{'text': 'Naomi ART Input', 'value': 'naomi-art'}, {'text': 'Naomi ANC Input', 'value': 'naomi-anc'}, {'text': 'Other', 'value': 'other'}]}) %}
-{% do data.update({'pivot_table_columns': {'qfMh2IjOxvw': [{'value': 'column1', 'text': 'Column one'}, {'value': 'column2', 'text': 'Column two'}, {'value': 'column3', 'text': 'Column three'}, {'value': 'column4', 'text': 'Column four'}], 'bf3TKyiiV19': [{'value': 'column1', 'text': 'Column one'}, {'value': 'column2', 'text': 'Column two'}, {'value': 'column3', 'text': 'Column three'}, {'value': 'column4', 'text': 'Column four'}]}}) %}
-{% do data.update({'column_config': {'naomi-anc': {'name': 'Naomi ART Input', 'columns': ['anc_clients', 'ancrt_known_pos', 'ancrt_already_art', 'ancrt_tested', 'ancrt_test_pos'],'categories': {'age_group': ['15-49']}},'naomi-art': {'name': 'Naomi ANC Input', 'columns': ['current_art'],'categories': {'gender': ['male', 'female', 'both'],'age_group': ['00-14', '15-49']}}}}) %}
 {% do data.update({'column_values': [{'id': 'qfMh2IjOxvw','columns': [{'id': 'column1','target_column': 'anc_clients','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column2','target_column': 'ancrt_known_pos','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column3','target_column': 'ancrt_tested','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column4','target_column': 'ancrt_test_pos','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column5','target_column': 'ancrt_already_art','enabled': True,'categories': {'age_group': '15-49'}} ]}, {'id': 'bf3TKyiiV19','columns': [{'id': 'column1','target_column': 'current_art','enabled': True,'categories': {'age_group': '15-49','gender': 'male'}}, {'id': 'column2','target_column': 'current_art','enabled': False,'categories': {'age_group': '00-14','gender': 'female'}}, {'id': 'column3','target_column': 'current_art','enabled': True,'categories': {'age_group': '15-49','gender': 'female'}}, {'id': 'column4','target_column': 'current_art','enabled': True,'categories': {'age_group': '00-14','gender': 'male'} }]}]}) %}
 
 <div class="pivot-table-new-3 {% if data.action != 'pivot_table_new_3' %}hidden{% endif %}">
@@ -25,7 +21,6 @@
   {% set target_type = target_type.type %}
   {% set target_type_name = data.target_types|selectattr('value', 'equalto', target_type)|list|first %}
   {% set target_type_name = target_type_name.text %}
-
   <div class="pivot-table-config {% if loop.index > 1 %}hidden{% endif %}" tab_page="{{pivot_table.id}}">
     <div class="header">
       <div class="element row">

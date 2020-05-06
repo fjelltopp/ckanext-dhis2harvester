@@ -1,3 +1,6 @@
+import json
+import os
+
 import logging
 from flask import Blueprint, request, Response, jsonify, redirect, url_for
 import ckan.lib.helpers as h
@@ -117,7 +120,7 @@ def __configure_table_columns_stage(data):
 
 
 def __pivot_table_select_stage(data, dhis2_conn_):
-    log.debug(data)
+    log.debug("Pivot table select stage submit data: " + str(data))
     data['action'] = "pivot_table_new_3"
     return t.render(
         'source/pivot_table_new.html',
@@ -184,6 +187,15 @@ def __data_initialization():
     if not dhis2_conn_:
         return data, dhis2_conn_, form_stage
 
+    # get column config template
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dir_path, 'config/column_configs_template.json'), 'r') as f:
+        column_config_template_ = json.loads(f.read())
+        log.debug("Read JSON column config: " + str(column_config_template_))
+        data['column_config'] = column_config_template_
+        target_types_ = [{'text': type_d['name'], 'value': type_id}
+                         for type_id, type_d in column_config_template_.iteritems()]
+        data['target_types'] = target_types_
     pivot_tables_ = dhis2_conn_.get_pivot_tables()
     pivot_tables_options = [{'value': pt['id'], 'text': pt['name']} for pt in pivot_tables_]
     p_id_to_name_ = {pt['id']: pt['name'] for pt in pivot_tables_}

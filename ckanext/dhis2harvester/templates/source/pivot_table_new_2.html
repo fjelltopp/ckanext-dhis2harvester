@@ -1,15 +1,6 @@
 {% import 'macros/form.html' as form %}
 {% resource 'dhis2harvester/pivot_tables.js' %}
 
-{% do data.update({'column_config': {'naomi-art': {'name': 'Naomi ART Input'}, 'naomi-anc': {'name': 'Naomi ANC Input'}, 'other': {'name': 'Other'}}}) %}
-
-{% set target_type_options = [] %}
-{% for type, config in data.column_config.iteritems() %}
-  {% do target_type_options.append({'value': type, 'text': config['name']}) %}
-{% endfor %}
-
-{% do data.update({'target_types': target_type_options}) %}
-
 
 <div class="pivot-table-new-2 {% if data.action != 'pivot_table_new_2' %}hidden{% endif %}">
 <h2>{{_('Choose your DHIS2 pivot tables')}}</h2>

@@ -1,0 +1,37 @@
+{
+  "naomi-anc": {
+    "name": "Naomi ANC Input",
+    "columns": [
+      "anc_clients",
+      "ancrt_known_pos",
+      "ancrt_already_art",
+      "ancrt_tested",
+      "ancrt_test_pos"
+    ],
+    "categories": {
+      "age_group": [
+        "15-49"
+      ]
+    }
+  },
+  "naomi-art": {
+    "name": "Naomi ART Input",
+    "columns": [
+      "current_art"
+    ],
+    "categories": {
+      "gender": [
+        "male",
+        "female",
+        "both"
+      ],
+      "age_group": [
+        "00-14",
+        "15-49"
+      ]
+    }
+  },
+  "other": {
+    "name": "Other"
+  }
+}
