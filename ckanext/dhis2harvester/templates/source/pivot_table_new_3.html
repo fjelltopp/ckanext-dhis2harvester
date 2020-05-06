@@ -20,7 +20,7 @@
 {% for pivot_table in data.selected_pivot_tables %}
 
   {% set pivot_table_data = data.column_values|selectattr("id", "equalto", pivot_table.id)|list|first %}
-  {% set pivot_table_columns = pivot_table_data.columns %}
+  {% set pivot_table_column_values = pivot_table_data.columns %}
   {% set target_type = data.selected_pivot_tables|selectattr("id", "equalto", pivot_table.id)|list|first %}
   {% set target_type = target_type.type %}
   {% set target_type_name = data.target_types|selectattr('value', 'equalto', target_type)|list|first %}
@@ -41,14 +41,15 @@
         <span class="value col-xs-12 col-sm-9">{{target_type_name}}</span>
       </div>
     </div>
-
     {%  for column in data.pivot_table_columns[pivot_table.id] %}
-      {% set column_data = pivot_table_columns|selectattr("id", "equalto", column["value"])|list|first %}
+      {% set column_data_search = pivot_table_column_values|selectattr("id", "equalto", column["value"])|list %}
+      {% set column_data = column_data_search|first if column_data_search else None %}
+      {% set column_enabled = column_data.enabled if column_data else True %}
       <div class="column-config toggle-box">
         <div class="header">
           <span class="column-title">{{ column['text'] }}</span>
           <span class="toggle-content hidden"> (Excluded) </span>
-          <a href="#" class="toggle-btn pull-right" data-module="toggle_box" {% if not column_data.enabled %}data-module-toggled="true"{% endif %}><i class="fa fa-toggle-on"></i></a>
+          <a href="#" class="toggle-btn pull-right" data-module="toggle_box" {% if not column_enabled %}data-module-toggled="true"{% endif %}><i class="fa fa-toggle-on"></i></a>
           <input type="checkbox" name={{'{}_{}_exclude'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
         </div>
         <div class="content row">
@@ -67,7 +68,7 @@
                 id='pivot_table_{}_{}_column'.format(pivot_table.id, column.value),
                 label='column',
                 options=column_options,
-                selected=column_data.target_column or column_options[0],
+                selected=column_data.target_column if column_data else column_options[0],
                 error=errors.pivot_table_id,
                 classes=['control-medium', 'col-xs-12', 'col-md-4']
                 )
@@ -83,7 +84,7 @@
                   id='pivot_table_{}_{}_{}'.format(pivot_table.id, column.value, category),
                   label=category,
                   options=category_options,
-                  selected=column_data.categories[category] or category_options[0].value,
+                  selected=column_data.categories[category] if column_data else category_options[0].value,
                   error=errors.pivot_table_id,
                   classes=['control-medium', 'col-xs-12', 'col-md-4']
                   )

@@ -118,10 +118,6 @@ def __configure_table_columns_stage(data):
 
 def __pivot_table_select_stage(data, dhis2_conn_):
     log.debug(data)
-    pivot_table_id = data['pivot_table_id']
-    pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in
-                           dhis2_conn_.get_pivot_table_columns(pivot_table_id)]
-    data['pivot_table_columns'] = pivot_table_columns
     data['action'] = "pivot_table_new_3"
     return t.render(
         'source/pivot_table_new.html',
@@ -195,14 +191,19 @@ def __data_initialization():
     pivot_table_ids = request.form.getlist('pivot_table_id')
     pivot_table_types = request.form.getlist('pivot_table_target_type')
     if pivot_table_ids and pivot_table_types:
+        # selected_pivot_tables
         selected_pivot_tables = [{'id': x[0], 'type': x[1], 'text': p_id_to_name_[x[0]]} for x in zip(pivot_table_ids, pivot_table_types)]
         data['selected_pivot_tables'] = selected_pivot_tables
+        log.debug("Selected pivot tables: " + str(selected_pivot_tables))
 
-    pivot_table_id = data.get('pivot_table_id')
-    if pivot_table_id:
-        pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in
-                               dhis2_conn_.get_pivot_table_columns(pivot_table_id)]
-        data['pivot_table_columns'] = pivot_table_columns
+        # pivot table columns
+        pivot_table_columns_ = {}
+        for pt_id in pivot_table_ids:
+            columns_ = dhis2_conn_.get_pivot_table_columns(pt_id)
+            pt_columns_ = [{'value': c['id'], 'text': c['name']} for c in columns_]
+            pivot_table_columns_[pt_id] = pt_columns_
+        data['pivot_table_columns'] = pivot_table_columns_
+        log.debug("Pivot table columns: " + str(pivot_table_columns_))
     return data, dhis2_conn_, form_stage
 
 
