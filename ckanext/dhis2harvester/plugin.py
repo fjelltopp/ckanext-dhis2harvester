@@ -4,7 +4,6 @@ import licenses
 import ckan.model.license as core_licenses
 import ckan.model.package as package
 import ckan.plugins.toolkit as toolkit
-from dhis2_data_blueprint import dhis2_data
 from ui_blueprint import ui_blueprint
 
 log = logging.getLogger(__name__)
@@ -43,7 +42,7 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin):
         toolkit.add_resource('fanstatic', 'dhis2harvester')
 
     def get_blueprint(self):
-        return [ui_blueprint, dhis2_data]
+        return [ui_blueprint]
 
     def get_helpers(self):
         return {
