@@ -185,10 +185,19 @@ def __data_initialization():
         dhis2_conn_.test_connection()
     except Dhis2ConnectionError:
         dhis2_conn_ = None
-    if dhis2_conn_:
-        pivot_tables_options = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in
-                                dhis2_conn_.get_pivot_tables()]
-        data['pivot_tables'] = pivot_tables_options
+    if not dhis2_conn_:
+        return data, dhis2_conn_, form_stage
+
+    pivot_tables_ = dhis2_conn_.get_pivot_tables()
+    pivot_tables_options = [{'value': pt['id'], 'text': pt['name']} for pt in pivot_tables_]
+    p_id_to_name_ = {pt['id']: pt['name'] for pt in pivot_tables_}
+    data['pivot_tables'] = pivot_tables_options
+    pivot_table_ids = request.form.getlist('pivot_table_id')
+    pivot_table_types = request.form.getlist('pivot_table_target_type')
+    if pivot_table_ids and pivot_table_types:
+        selected_pivot_tables = [{'id': x[0], 'type': x[1], 'text': p_id_to_name_[x[0]]} for x in zip(pivot_table_ids, pivot_table_types)]
+        data['selected_pivot_tables'] = selected_pivot_tables
+
     pivot_table_id = data.get('pivot_table_id')
     if pivot_table_id:
         pivot_table_columns = [{'value': column['id'], 'text': column['name']} for column in

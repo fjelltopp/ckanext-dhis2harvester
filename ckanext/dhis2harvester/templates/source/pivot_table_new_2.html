@@ -1,7 +1,6 @@
 {% import 'macros/form.html' as form %}
 {% resource 'dhis2harvester/pivot_tables.js' %}
 
-{% do data.update({'selected_pivot_tables': [{'id': 'qfMh2IjOxvw', 'type': 'naomi-anc'}, {'id': 'bf3TKyiiV19', 'type': 'naomi-art'}]}) %}
 {% do data.update({'column_config': {'naomi-art': {'name': 'Naomi ART Input'}, 'naomi-anc': {'name': 'Naomi ANC Input'}, 'other': {'name': 'Other'}}}) %}
 
 {% set target_type_options = [] %}
@@ -49,6 +48,38 @@
     </div>
   </div>
   {% endfor %}
+  {% if not data.selected_pivot_tables %}
+    <div class="row pivot-table">
+      {{ form.select(
+        'pivot_table_id',
+        id='pivot_table_id',
+        options=data.pivot_tables,
+        error=errors.pivot_table_id,
+        classes=['pivot-table-selector', 'control-medium', 'no-label', 'col-xs-12', 'col-md-7'],
+        attrs={
+          "data-module": "autocomplete"
+        }
+      )
+              }}
+      {{ form.select(
+        'pivot_table_target_type',
+        id='pivot_table_target_type',
+        options=data.target_types,
+        error=errors.pivot_table_id,
+        classes=['control-medium', 'no-label', 'col-xs-10', 'col-md-4']
+        )
+              }}
+
+      <div class="delete-btn form-group control-medium col-xs-2 col-md-1">
+        <button class="btn btn-primary" disabled
+                data-module='pivot_table_delete'
+                data-module-source=".pivot-table-new-2 .row.pivot-table"
+                data-module-delete=".pivot-table-new-2 .row.pivot-table .delete-btn button">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  {% endif %}
 </div>
 
 <div  class="row">

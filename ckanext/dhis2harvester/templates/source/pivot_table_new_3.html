@@ -2,9 +2,7 @@
 {% resource 'dhis2harvester/tabs.js' %}
 {% resource 'dhis2harvester/toggle_box.js' %}
 
-{% do data.update({'selected_pivot_tables': [{'id': 'qfMh2IjOxvw', 'type': 'naomi-anc'}, {'id': 'bf3TKyiiV19', 'type': 'naomi-art'}]}) %}
 {% do data.update({'target_types': [{'text': 'Naomi ART Input', 'value': 'naomi-art'}, {'text': 'Naomi ANC Input', 'value': 'naomi-anc'}, {'text': 'Other', 'value': 'other'}]}) %}
-{% do data.update({'pivot_tables': [{'value': 'qfMh2IjOxvw', 'text': 'ANC: ANC 1st and 2nd visits at facilities with hierarchy'}, {'value': 'bf3TKyiiV19', 'text': 'ART: ART stage by implementing partner'}]}) %}
 {% do data.update({'pivot_table_columns': {'qfMh2IjOxvw': [{'value': 'column1', 'text': 'Column one'}, {'value': 'column2', 'text': 'Column two'}, {'value': 'column3', 'text': 'Column three'}, {'value': 'column4', 'text': 'Column four'}], 'bf3TKyiiV19': [{'value': 'column1', 'text': 'Column one'}, {'value': 'column2', 'text': 'Column two'}, {'value': 'column3', 'text': 'Column three'}, {'value': 'column4', 'text': 'Column four'}]}}) %}
 {% do data.update({'column_config': {'naomi-anc': {'name': 'Naomi ART Input', 'columns': ['anc_clients', 'ancrt_known_pos', 'ancrt_already_art', 'ancrt_tested', 'ancrt_test_pos'],'categories': {'age_group': ['15-49']}},'naomi-art': {'name': 'Naomi ANC Input', 'columns': ['current_art'],'categories': {'gender': ['male', 'female', 'both'],'age_group': ['00-14', '15-49']}}}}) %}
 
@@ -12,17 +10,17 @@
 <h2>Configure Columns and Categories</h2>
 
 <ul class="pivot-table-tabs nav nav-tabs" data-module="tabs" data-module-tab-class=".pivot-table-config">
-  {% for pivot_table in data.pivot_tables %}
-    <li {% if loop.index==1 %} class="active" {% endif %} target_page="{{pivot_table.value}}"><a href="#">{{pivot_table.text[0:20]}}{% if pivot_table.text|length >= 15 %}...{% endif %}</a></li>
+  {% for pivot_table in data.selected_pivot_tables %}
+    <li {% if loop.index==1 %} class="active" {% endif %} target_page="{{pivot_table.id}}"><a href="#">{{pivot_table.text[0:20]}}{% if pivot_table.text|length >= 15 %}...{% endif %}</a></li>
   {% endfor %}
 </ul>
 
-{% for pivot_table in data.pivot_tables %}
-  {% set target_type = data.selected_pivot_tables|selectattr("id", "equalto", pivot_table.value)|list %}
+{% for pivot_table in data.selected_pivot_tables %}
+  {% set target_type = data.selected_pivot_tables|selectattr("id", "equalto", pivot_table.id)|list %}
   {% set target_type = target_type[0].type %}
   {% set target_type_name = data.target_types|selectattr('value', 'equalto', target_type)|list %}
   {% set target_type_name = target_type_name[0].text %}
-  <div class="pivot-table-config {% if loop.index > 1 %}hidden{% endif %}" tab_page="{{pivot_table.value}}">
+  <div class="pivot-table-config {% if loop.index > 1 %}hidden{% endif %}" tab_page="{{pivot_table.id}}">
     <div class="header">
       <div class="element row">
         <span class="label col-xs-12 col-sm-3">Pivot table:</span>
@@ -30,21 +28,20 @@
       </div>
       <div class="element row">
         <span class="label col-xs-12 col-sm-3">DHIS2 ID:</span>
-        <span class="value col-xs-12 col-sm-9">{{pivot_table.value}}</span>
+        <span class="value col-xs-12 col-sm-9">{{pivot_table.id}}</span>
       </div>
       <div class="element row">
         <span class="label col-xs-12 col-sm-3">Target Type:</span>
         <span class="value col-xs-12 col-sm-9">{{target_type_name}}</span>
       </div>
     </div>
-    <input name="pivot_table_id" value="{{ data.pivot_table_id }}" class="hidden" >
-    {%  for column in data.pivot_table_columns[pivot_table.value] %}
+    {%  for column in data.pivot_table_columns[pivot_table.id] %}
       <div class="column-config toggle-box">
         <div class="header">
           <span class="column-title">{{ column['text'] }}</span>
           <span class="toggle-content hidden tooltip--left" data-tooltip="Hey"> (Excluded) </span>
           <a href="#" class="toggle-btn pull-right" data-module="toggle_box"><i class="fa fa-toggle-on"></i></a>
-          <input type="checkbox" name={{'{}_{}_exclude'.format(pivot_table.value, column.value)}} class="toggle-checkbox hidden" value="true">
+          <input type="checkbox" name={{'{}_{}_exclude'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
         </div>
         <div class="content row">
           {% if target_type == 'other' %}
@@ -58,8 +55,8 @@
               {% do column_options.append({'value': column, 'text': column}) %}
             {% endfor %}
             {{ form.select(
-                'pivot_table_{}_{}_column'.format(pivot_table.value, column.value),
-                id='pivot_table_{}_{}_column'.format(pivot_table.value, column.value),
+                'pivot_table_{}_{}_column'.format(pivot_table.id, column.value),
+                id='pivot_table_{}_{}_column'.format(pivot_table.id, column.value),
                 label='column',
                 options=column_options,
                 selected=pivot_table.type,
@@ -74,8 +71,8 @@
                 {% do category_options.append({'value': value, 'text': value}) %}
               {% endfor %}
               {{ form.select(
-                  'pivot_table_{}_{}_{}'.format(pivot_table.value, column.value, category),
-                  id='pivot_table_{}_{}_{}'.format(pivot_table.value, column.value, category),
+                  'pivot_table_{}_{}_{}'.format(pivot_table.id, column.value, category),
+                  id='pivot_table_{}_{}_{}'.format(pivot_table.id, column.value, category),
                   label=category,
                   options=category_options,
                   selected=category_options[0].value,
@@ -94,8 +91,8 @@
     </div>
     <div class="content">
     {{form.textarea(
-        '{}_json_config'.format(pivot_table.value),
-        id='{}_json_config'.format(pivot_table.value),
+        '{}_json_config'.format(pivot_table.id),
+        id='{}_json_config'.format(pivot_table.id),
         label=_('Override with JSON configuration'),
         placeholder="{'json': 'object'}",
         value=""
