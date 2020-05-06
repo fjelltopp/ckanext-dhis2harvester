@@ -6,7 +6,7 @@
 {% do data.update({'target_types': [{'text': 'Naomi ART Input', 'value': 'naomi-art'}, {'text': 'Naomi ANC Input', 'value': 'naomi-anc'}, {'text': 'Other', 'value': 'other'}]}) %}
 {% do data.update({'pivot_tables': [{'value': 'qfMh2IjOxvw', 'text': 'ANC: ANC 1st and 2nd visits at facilities with hierarchy'}, {'value': 'bf3TKyiiV19', 'text': 'ART: ART stage by implementing partner'}]}) %}
 {% do data.update({'pivot_table_columns': {'qfMh2IjOxvw': [{'value': 'column1', 'text': 'Column one'}, {'value': 'column2', 'text': 'Column two'}, {'value': 'column3', 'text': 'Column three'}, {'value': 'column4', 'text': 'Column four'}], 'bf3TKyiiV19': [{'value': 'column1', 'text': 'Column one'}, {'value': 'column2', 'text': 'Column two'}, {'value': 'column3', 'text': 'Column three'}, {'value': 'column4', 'text': 'Column four'}]}}) %}
-{% do data.update({'column_config': {'naomi-anc': {'name': 'Naomi ART Input', 'columns': ['anc_clients', 'ancrt_known_pos', 'ancrt_already_art', 'ancrt_tested', 'ancrt_test_pos'],'categories': {'age_group': ['15-49']}},'naomi-art': {'name': 'Naomi ANC Input', 'columns': ['current_art'],'categories': {'gender': ['male', 'female', 'both'],'age_group': ['00-14', '15-49']}}}}) %}#
+{% do data.update({'column_config': {'naomi-anc': {'name': 'Naomi ART Input', 'columns': ['anc_clients', 'ancrt_known_pos', 'ancrt_already_art', 'ancrt_tested', 'ancrt_test_pos'],'categories': {'age_group': ['15-49']}},'naomi-art': {'name': 'Naomi ANC Input', 'columns': ['current_art'],'categories': {'gender': ['male', 'female', 'both'],'age_group': ['00-14', '15-49']}}}}) %}
 
 <div class="pivot-table-new-3 {% if data.action != 'pivot_table_new_3' %}hidden{% endif %}">
 <h2>Configure Columns and Categories</h2>
