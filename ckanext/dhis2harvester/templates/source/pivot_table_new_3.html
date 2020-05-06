@@ -17,7 +17,7 @@
   {% endfor %}
 </ul>
 
-{% for pivot_table in data.pivot_tables %}
+{% for pivot_table in data.selected_pivot_tables %}
 
   {% set pivot_table_data = data.column_values|selectattr("id", "equalto", pivot_table.id)|list|first %}
   {% set pivot_table_columns = pivot_table_data.columns %}
@@ -49,7 +49,7 @@
           <span class="column-title">{{ column['text'] }}</span>
           <span class="toggle-content hidden tooltip--left" data-tooltip="Hey"> (Excluded) </span>
           <a href="#" class="toggle-btn pull-right" data-module="toggle_box" {% if not column_data.enabled %}data-module-toggled="true"{% endif %}><i class="fa fa-toggle-on"></i></a>
-          <input type="checkbox" name={{'{}_{}_exclude'.format(piviot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
+          <input type="checkbox" name={{'{}_{}_exclude'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
         </div>
         <div class="content row">
           {% if target_type == 'other' %}
