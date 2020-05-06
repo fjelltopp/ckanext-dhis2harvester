@@ -178,7 +178,7 @@ def __go_back(data, form_stage):
 
 def __data_initialization():
     data = request.form.to_dict()
-    form_stage = data['action']
+    form_stage = data.get('action', 'pivot_table_new_1')
     dhis2_conn_ = __get_dhis_conn()
     try:
         dhis2_conn_.test_connection()
