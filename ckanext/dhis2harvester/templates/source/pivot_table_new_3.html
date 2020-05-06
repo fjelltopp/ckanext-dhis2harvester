@@ -47,7 +47,7 @@
       <div class="column-config toggle-box">
         <div class="header">
           <span class="column-title">{{ column['text'] }}</span>
-          <span class="toggle-content hidden tooltip--left" data-tooltip="Hey"> (Excluded) </span>
+          <span class="toggle-content hidden"> (Excluded) </span>
           <a href="#" class="toggle-btn pull-right" data-module="toggle_box" {% if not column_data.enabled %}data-module-toggled="true"{% endif %}><i class="fa fa-toggle-on"></i></a>
           <input type="checkbox" name={{'{}_{}_exclude'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
         </div>
