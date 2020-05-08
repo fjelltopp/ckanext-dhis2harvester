@@ -2,8 +2,6 @@
 {% resource 'dhis2harvester/tabs.js' %}
 {% resource 'dhis2harvester/toggle_box.js' %}
 
-{% do data.update({'column_values': [{'id': 'qfMh2IjOxvw','columns': [{'id': 'column1','target_column': 'anc_clients','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column2','target_column': 'ancrt_known_pos','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column3','target_column': 'ancrt_tested','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column4','target_column': 'ancrt_test_pos','enabled': True,'categories': {'age_group': '15-49'}}, {'id': 'column5','target_column': 'ancrt_already_art','enabled': True,'categories': {'age_group': '15-49'}} ]}, {'id': 'bf3TKyiiV19','columns': [{'id': 'column1','target_column': 'current_art','enabled': True,'categories': {'age_group': '15-49','gender': 'male'}}, {'id': 'column2','target_column': 'current_art','enabled': False,'categories': {'age_group': '00-14','gender': 'female'}}, {'id': 'column3','target_column': 'current_art','enabled': True,'categories': {'age_group': '15-49','gender': 'female'}}, {'id': 'column4','target_column': 'current_art','enabled': True,'categories': {'age_group': '00-14','gender': 'male'} }]}]}) %}
-
 <div class="pivot-table-new-3 {% if data.action != 'pivot_table_new_3' %}hidden{% endif %}">
 <h2>Configure Columns and Categories</h2>
 
@@ -15,8 +13,10 @@
 
 {% for pivot_table in data.selected_pivot_tables %}
 
-  {% set pivot_table_data = data.column_values|selectattr("id", "equalto", pivot_table.id)|list|first %}
-  {% set pivot_table_column_values = pivot_table_data.columns %}
+  {% set pivot_tables_data = data.column_values|selectattr("id", "equalto", pivot_table.id)|list if data.column_values else None%}
+  {% set pivot_table_data = pivot_tables_data|first %}
+  {% set pivot_table_column_values = pivot_table_data.columns if pivot_table_data else None %}
+
   {% set target_type = data.selected_pivot_tables|selectattr("id", "equalto", pivot_table.id)|list|first %}
   {% set target_type = target_type.type %}
   {% set target_type_name = data.target_types|selectattr('value', 'equalto', target_type)|list|first %}
@@ -45,7 +45,7 @@
           <span class="column-title">{{ column['text'] }}</span>
           <span class="toggle-content hidden"> (Excluded) </span>
           <a href="#" class="toggle-btn pull-right" data-module="toggle_box" {% if not column_enabled %}data-module-toggled="true"{% endif %}><i class="fa fa-toggle-on"></i></a>
-          <input type="checkbox" name={{'{}_{}_exclude'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
+          <input type="checkbox" name={{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
         </div>
         <div class="content row">
           {% if target_type == 'other' %}
@@ -59,8 +59,8 @@
               {% do column_options.append({'value': column, 'text': column}) %}
             {% endfor %}
             {{ form.select(
-                'pivot_table_{}_{}_column'.format(pivot_table.id, column.value),
-                id='pivot_table_{}_{}_column'.format(pivot_table.id, column.value),
+                'target_column_{}_{}'.format(pivot_table.id, column.value),
+                id='target_column_{}_{}'.format(pivot_table.id, column.value),
                 label='column',
                 options=column_options,
                 selected=column_data.target_column if column_data else column_options[0],
@@ -75,8 +75,8 @@
                 {% do category_options.append({'value': value, 'text': value}) %}
               {% endfor %}
               {{ form.select(
-                  'pivot_table_{}_{}_{}'.format(pivot_table.id, column.value, category),
-                  id='pivot_table_{}_{}_{}'.format(pivot_table.id, column.value, category),
+                  'category_{}_{}_{}'.format(pivot_table.id, category, column.value),
+                  id='category_{}_{}_{}'.format(pivot_table.id, category, column.value),
                   label=category,
                   options=category_options,
                   selected=column_data.categories[category] if column_data else category_options[0].value,

@@ -179,6 +179,8 @@ def __go_back(data, form_stage):
 def __data_initialization():
     data = request.form.to_dict()
     form_stage = data.get('action', 'pivot_table_new_1')
+
+    # dhis2 connection
     dhis2_conn_ = __get_dhis_conn()
     try:
         dhis2_conn_.test_connection()
@@ -196,6 +198,7 @@ def __data_initialization():
         target_types_ = [{'text': type_d['name'], 'value': type_id}
                          for type_id, type_d in column_config_template_.iteritems()]
         data['target_types'] = target_types_
+
     pivot_tables_ = dhis2_conn_.get_pivot_tables()
     pivot_tables_options = [{'value': pt['id'], 'text': pt['name']} for pt in pivot_tables_]
     p_id_to_name_ = {pt['id']: pt['name'] for pt in pivot_tables_}
@@ -216,6 +219,40 @@ def __data_initialization():
             pivot_table_columns_[pt_id] = pt_columns_
         data['pivot_table_columns'] = pivot_table_columns_
         log.debug("Pivot table columns: " + str(pivot_table_columns_))
+
+        # selected column values
+        column_values = []
+        for pt in selected_pivot_tables:
+            pt_id = pt['id']
+            pt_type = pt['type']
+            pt_column_values_ = {
+                'id': pt_id,
+            }
+            columns_ = defaultdict(dict)
+            for k in data:
+                if k.startswith("target_column_{}".format(pt_id)):
+                    c_id_ = k.split('_')[-1]
+                    target_column_ = data[k]
+                    columns_[c_id_]['target_column'] = target_column_
+                elif k.startswith("category_{}".format(pt_id)):
+                    tc_, c_id_ = k.split('_')[-2:]
+                    tc_value_ = data[k]
+                    if not 'categories' in columns_[c_id_]:
+                        columns_[c_id_]['categories'] = {}
+                    columns_[c_id_]['categories'][tc_] = tc_value_
+                elif k.startswith("column_enabled_{}".format(pt_id)):
+                    c_id_ = k.split('_')[-1]
+                    enabled_ = str(data[k]).lower() == 'true'
+                    columns_[c_id_]['enabled'] = enabled_
+
+            columns_list_ = []
+            for c_id, c_details in columns_.iteritems():
+                c_details['id'] = c_id
+                columns_list_.append(c_details)
+            pt_column_values_['columns'] = columns_list_
+            column_values.append(pt_column_values_)
+        log.debug("Column values: " + str(column_values))
+        data['column_values'] = column_values
     return data, dhis2_conn_, form_stage
 
 

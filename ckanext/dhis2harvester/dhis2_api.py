@@ -139,8 +139,8 @@ class Dhis2Connection(object):
                 category_options_ = category_combos_map[cc_id_]
                 for co_id, co_name in category_options_.iteritems():
                     data_element_category_options_.append({
-                        "id": "_".join([d_id_, co_id]),
-                        "name": "_".join([d_name_, co_name])
+                        "id": "-".join([d_id_, co_id]),
+                        "name": " / ".join([d_name_, co_name])
                     })
                 data_elements_map[d_id_] = data_element_category_options_
             return data_elements_map[d_id_]
