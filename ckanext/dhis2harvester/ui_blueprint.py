@@ -2,7 +2,7 @@ import json
 import os
 
 import logging
-from flask import Blueprint, request, Response, jsonify, redirect, url_for
+from flask import Blueprint, request, Response, jsonify, redirect, url_for, abort
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
 from collections import defaultdict
@@ -32,6 +32,11 @@ def pivot_tables_new():
             return __configure_table_columns_stage(data)
         elif form_stage == 'pivot_table_new_4':
             return __summary_stage(data)
+        elif form_stage == 'pivot_table_new_save':
+            return __save_harvest_source(data)
+        else:
+            abort(400, "Unrecognised action")
+
     else:
         return t.render(
             'source/pivot_table_new.html',
@@ -107,6 +112,10 @@ def __summary_stage(data):
         'source/pivot_table_new.html',
         {'data': data, 'errors': {}}
     )
+
+
+def __save_harvest_source(data):
+    return redirect(h.url_for('harvest'))
 
 
 def __configure_table_columns_stage(data):
