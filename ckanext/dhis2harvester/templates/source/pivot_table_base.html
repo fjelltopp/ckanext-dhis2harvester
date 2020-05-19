@@ -6,8 +6,16 @@
 {% endblock %}
 
 {% block breadcrumb_content %}
-  <li>{{ h.nav_link(_('Harvest Sources'), named_route='{0}_search'.format(c.dataset_type)) }}</li>
-  <li class="active">{{ h.nav_link(_('Create DHIS2 Pivot Table Fetcher'), named_route='{0}_new'.format(c.dataset_type)) }}</li>
+  {% if harvest_source.organization %}
+    {% set org = harvest_source.organization %}
+    <li>{{ h.nav_link(_('Organizations'), named_route='organizations_index') }}</li>
+    <li>{{ h.nav_link(org.title or org.name|truncate(10), named_route='organization_read', id=org.name) }}</li>
+    <li>{{ h.nav_link(_('Harvest Sources'), named_route='{0}_search'.format(c.dataset_type)) }}</li>
+    <li{{ self.breadcrumb_content_root_selected() }}>{{ h.nav_link(harvest_source.title|truncate(10), named_route='{0}_read'.format(c.dataset_type), id=harvest_source.name) }}</li>
+  {% else %}
+    <li>{{ h.nav_link(_('Harvest Sources'), named_route='{0}_search'.format(c.dataset_type)) }}</li>
+    <li class="active">{{ h.nav_link(_('Create DHIS2 Pivot Table Fetcher'), named_route='{0}_new'.format(c.dataset_type)) }}</li>
+  {% endif %}
 {% endblock %}
 
 {% block actions_content %}
