@@ -77,36 +77,6 @@ def __get_dhis_conn():
 
 
 def __summary_stage(data):
-    #### Create complete configuration for DHIS2 Pivot tables:
-    log.debug(data)
-    dhis2_api_url = data['dhis2_api_url']
-    resource_name = 'Pivot Table Export'
-    dataset_name = 'Pivot Table Export'
-    pt_id = data['pivot_table_id']
-    column_config = defaultdict(dict)
-    for k in data:
-        split = k.split('_', 1)
-        if len(split) > 1:
-            prefix_ = split[0]
-            id = split[1]
-            if prefix_ == 'col':
-                column_config[id]['col'] = data[k]
-            elif prefix_ == 'age':
-                column_config[id]['age'] = data[k]
-            elif prefix_ == 'gender':
-                column_config[id]['gender'] = data[k]
-    harvester_config = {
-        'dhis2_api_url': dhis2_api_url,
-        'pivot_tables': [
-            {
-                'pivot_table_id': pt_id,
-                'resource_name': resource_name,
-                'dataset_name': dataset_name,
-                'column_config': column_config
-            }
-        ]
-    }
-
     data['action'] = "pivot_table_new_4"
     return t.render(
         'source/pivot_table_new.html',
@@ -115,6 +85,24 @@ def __summary_stage(data):
 
 
 def __save_harvest_source(data):
+    source_config = {
+        'column_values': data['column_values'],
+        'selected_pivot_tables': data['selected_pivot_tables']
+    }
+    dhis2_url = data['dhis2_api_url'],
+    harvester_title = data['title']
+    harvester_description = data['notes']
+    harvester_name = data['name']
+    owner_org = data['owner_org']
+    import ckanext.harvest.utils as utils
+    from ckan.logic import ValidationError
+    try:
+        result = utils.create_harvest_source(
+            harvester_name, dhis2_url, 'dhis2harvester', harvester_title, True, owner_org, 'manual', json.dumps(source_config)
+        )
+    except ValidationError as e:
+        log.error("An error occurred: {}".format(str(e.error_dict)))
+        raise e
     return redirect(h.url_for('harvest'))
 
 
