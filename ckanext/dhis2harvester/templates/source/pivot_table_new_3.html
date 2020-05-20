@@ -36,6 +36,7 @@
         <span class="value col-xs-12 col-sm-9">{{target_type_name}}</span>
       </div>
     </div>
+    {% if data.pivot_table_columns %}
     {%  for column in data.pivot_table_columns[pivot_table.id] %}
       {% set column_data_search = pivot_table_column_values|selectattr("id", "equalto", column["value"])|list %}
       {% set column_data = column_data_search|first if column_data_search else None %}
@@ -89,6 +90,7 @@
         </div>
       </div>
     {%  endfor %}
+    {%  endif %}
     <div class="advanced-config toggle-box">
     <div class="header">
     <a href="#" class="toggle-btn toggled" data-module="toggle_box" data-module-toggled="true">Advanced Configuration</a>

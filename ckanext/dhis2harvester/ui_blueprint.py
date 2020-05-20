@@ -5,6 +5,9 @@ import logging
 from flask import Blueprint, request, Response, jsonify, redirect, url_for, abort
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
+import ckanext.harvest.utils as harvest_utils
+import ckanext.harvest.helpers as harvest_helpers
+from ckan.logic import ValidationError
 from collections import defaultdict
 from dhis2_api import Dhis2Connection, Dhis2ConnectionError
 
@@ -60,15 +63,30 @@ def pivot_tables_edit(harvest_source_id):
         elif form_stage == 'pivot_table_new_4':
             return __summary_stage(data)
         elif form_stage == 'pivot_table_new_save':
-            return __save_harvest_source(data)
+            return __update_harvest_source(data, harvest_source_id)
         else:
             abort(400, "Unrecognised action")
 
     else:
+        data = {}
+        harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+        data['action'] = 'pivot_table_new_1'
+        harvest_config = json.loads(harvest_source['config'])
+
+        data['column_values'] = harvest_config['column_values']
+        data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
+        data['dhis2_api_url'] = str(harvest_source['url'])
+        data['title'] = str(harvest_source['title'])
+        data['description'] = str(harvest_source['notes'])
+        data['name'] = str(harvest_source['name'])
+        data['owner_org'] = str(harvest_source['owner_org'])
+
+        __get_pt_configs(data)
+
         log.debug("Editing harvest source: " + harvest_source_id)
         return t.render(
-            'source/pivot_table_edit.html',
-            {'data': {'action': 'pivot_table_new_1'}, 'errors': {}}
+            'source/pivot_table_new.html',
+            {'data': data, 'errors': {}}
         )
 
 
@@ -122,16 +140,37 @@ def __save_harvest_source(data):
     harvester_description = data['notes']
     harvester_name = data['name']
     owner_org = data['owner_org']
-    import ckanext.harvest.utils as utils
-    from ckan.logic import ValidationError
     try:
-        result = utils.create_harvest_source(
+        result = harvest_utils.create_harvest_source(
             harvester_name, dhis2_url, 'dhis2harvester', harvester_title, True, owner_org, 'manual', json.dumps(source_config)
         )
     except ValidationError as e:
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
     return redirect(h.url_for('harvest'))
+
+def __update_harvest_source(data, harvest_source_id):
+    source_config = {
+        'column_values': data['column_values'],
+        'selected_pivot_tables': data['selected_pivot_tables']
+    }
+    data_dict = {
+        "name": data['name'],
+        "url": data['dhis2_api_url'],
+        "source_type": 'dhis2harvester',
+        "title": data['title'],
+        "active": True,
+        "owner_org": data['owner_org'],
+        "frequency": 'MANUAL',
+        "config": json.dumps(source_config)
+    }
+    try:
+        source = t.get_action("harvest_source_update")({}, data_dict)
+    except ValidationError as e:
+        log.error("An error occurred: {}".format(str(e.error_dict)))
+        raise e
+    return redirect(h.url_for('harvest'))
+
 
 
 def __configure_table_columns_stage(data):
@@ -214,15 +253,7 @@ def __data_initialization():
     if not dhis2_conn_:
         return data, dhis2_conn_, form_stage
 
-    # get column config template
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dir_path, 'config/column_configs_template.json'), 'r') as f:
-        column_config_template_ = json.loads(f.read())
-        log.debug("Read JSON column config: " + str(column_config_template_))
-        data['column_config'] = column_config_template_
-        target_types_ = [{'text': type_d['name'], 'value': type_id}
-                         for type_id, type_d in column_config_template_.iteritems()]
-        data['target_types'] = target_types_
+    __get_pt_configs(data)
 
     pivot_tables_ = dhis2_conn_.get_pivot_tables()
     pivot_tables_options = [{'value': pt['id'], 'text': pt['name']} for pt in pivot_tables_]
@@ -279,6 +310,18 @@ def __data_initialization():
         log.debug("Column values: " + str(column_values))
         data['column_values'] = column_values
     return data, dhis2_conn_, form_stage
+
+
+def __get_pt_configs(data):
+    # get column config template
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dir_path, 'config/column_configs_template.json'), 'r') as f:
+        column_config_template_ = json.loads(f.read())
+        log.debug("Read JSON column config: " + str(column_config_template_))
+        data['column_config'] = column_config_template_
+        target_types_ = [{'text': type_d['name'], 'value': type_id}
+                         for type_id, type_d in column_config_template_.iteritems()]
+        data['target_types'] = target_types_
 
 
 ui_blueprint.add_url_rule(
