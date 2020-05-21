@@ -154,8 +154,9 @@ def __update_harvest_source(data, harvest_source_id):
         'column_values': data['column_values'],
         'selected_pivot_tables': data['selected_pivot_tables']
     }
+    harvester_name = data['name']
     data_dict = {
-        "name": data['name'],
+        "name": harvester_name,
         "url": data['dhis2_api_url'],
         "source_type": 'dhis2harvester',
         "title": data['title'],
@@ -169,7 +170,7 @@ def __update_harvest_source(data, harvest_source_id):
     except ValidationError as e:
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
-    return redirect(h.url_for('harvest'))
+    return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
 
 
 
@@ -325,7 +326,7 @@ def __get_pt_configs(data):
 
 
 ui_blueprint.add_url_rule(
-    u'/pivot_tables',
+    u'/pivot_tables/new',
     view_func=pivot_tables_new,
     methods=['GET', 'POST']
 )
