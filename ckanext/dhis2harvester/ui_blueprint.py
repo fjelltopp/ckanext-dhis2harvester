@@ -131,25 +131,27 @@ def __summary_stage(data):
 
 
 def __save_harvest_source(data):
-    source_config = {
-        'column_values': data['column_values'],
-        'selected_pivot_tables': data['selected_pivot_tables']
-    }
-    dhis2_url = data['dhis2_api_url'],
-    harvester_title = data['title']
-    harvester_description = data['notes']
-    harvester_name = data['name']
-    owner_org = data['owner_org']
+    data_dict, harvester_name = __prepare_harvester_details(data)
     try:
-        result = harvest_utils.create_harvest_source(
-            harvester_name, dhis2_url, 'dhis2harvester', harvester_title, True, owner_org, 'manual', json.dumps(source_config)
-        )
+        source = t.get_action("harvest_source_create")({}, data_dict)
     except ValidationError as e:
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
+    log.info("Harvest source {} created".format(harvester_name))
+
     return redirect(h.url_for('harvest'))
 
 def __update_harvest_source(data, harvest_source_id):
+    data_dict, harvester_name = __prepare_harvester_details(data)
+    try:
+        source = t.get_action("harvest_source_update")({}, data_dict)
+    except ValidationError as e:
+        log.error("An error occurred: {}".format(str(e.error_dict)))
+        raise e
+    return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+
+
+def __prepare_harvester_details(data):
     source_config = {
         'column_values': data['column_values'],
         'selected_pivot_tables': data['selected_pivot_tables']
@@ -158,20 +160,15 @@ def __update_harvest_source(data, harvest_source_id):
     data_dict = {
         "name": harvester_name,
         "url": data['dhis2_api_url'],
-        "source_type": 'dhis2harvester',
+        "source_type": 'dhis2-pivot-tables',
         "title": data['title'],
+        "notes": data['notes'],
         "active": True,
         "owner_org": data['owner_org'],
         "frequency": 'MANUAL',
         "config": json.dumps(source_config)
     }
-    try:
-        source = t.get_action("harvest_source_update")({}, data_dict)
-    except ValidationError as e:
-        log.error("An error occurred: {}".format(str(e.error_dict)))
-        raise e
-    return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
-
+    return data_dict, harvester_name
 
 
 def __configure_table_columns_stage(data):
