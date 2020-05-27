@@ -22,24 +22,7 @@ ui_blueprint = Blueprint(
 
 def pivot_tables_new():
     if request.method == 'POST':
-        # Define DHIS2 connection details
-        data, dhis2_conn_, form_stage = __data_initialization()
-
-        if "back" in form_stage:
-            return __go_back(data, form_stage)
-        elif form_stage == 'pivot_table_new_1':
-            return __dhis2_connection_stage(data)
-        elif form_stage == 'pivot_table_new_2':
-            return __pivot_table_select_stage(data, dhis2_conn_)
-        elif form_stage == 'pivot_table_new_3':
-            return __configure_table_columns_stage(data)
-        elif form_stage == 'pivot_table_new_4':
-            return __summary_stage(data)
-        elif form_stage == 'pivot_table_new_save':
-            return __save_harvest_source(data)
-        else:
-            abort(400, "Unrecognised action")
-
+        return __ui_state_machine()
     else:
         return t.render(
             'source/pivot_table_new.html',
@@ -49,24 +32,7 @@ def pivot_tables_new():
 
 def pivot_tables_edit(harvest_source_id):
     if request.method == 'POST':
-        # Define DHIS2 connection details
-        data, dhis2_conn_, form_stage = __data_initialization()
-
-        if "back" in form_stage:
-            return __go_back(data, form_stage)
-        elif form_stage == 'pivot_table_new_1':
-            return __dhis2_connection_stage(data)
-        elif form_stage == 'pivot_table_new_2':
-            return __pivot_table_select_stage(data, dhis2_conn_)
-        elif form_stage == 'pivot_table_new_3':
-            return __configure_table_columns_stage(data)
-        elif form_stage == 'pivot_table_new_4':
-            return __summary_stage(data)
-        elif form_stage == 'pivot_table_new_save':
-            return __update_harvest_source(data, harvest_source_id)
-        else:
-            abort(400, "Unrecognised action")
-
+        return __ui_state_machine()
     else:
         data = {}
         harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
@@ -88,6 +54,26 @@ def pivot_tables_edit(harvest_source_id):
             'source/pivot_table_new.html',
             {'data': data, 'errors': {}}
         )
+
+
+def __ui_state_machine():
+    # Define DHIS2 connection details
+    data, dhis2_conn_, form_stage = __data_initialization()
+
+    if "back" in form_stage:
+        return __go_back(data, form_stage)
+    elif form_stage == 'pivot_table_new_1':
+        return __dhis2_connection_stage(data)
+    elif form_stage == 'pivot_table_new_2':
+        return __pivot_table_select_stage(data, dhis2_conn_)
+    elif form_stage == 'pivot_table_new_3':
+        return __configure_table_columns_stage(data)
+    elif form_stage == 'pivot_table_new_4':
+        return __summary_stage(data)
+    elif form_stage == 'pivot_table_new_save':
+        return __save_harvest_source(data)
+    else:
+        abort(400, "Unrecognised action")
 
 
 def _validate_required_fields(required_fields, errors=None):
