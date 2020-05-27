@@ -141,6 +141,7 @@ def __save_harvest_source(data):
 
     return redirect(h.url_for('harvest'))
 
+
 def __update_harvest_source(data, harvest_source_id):
     data_dict, harvester_name = __prepare_harvester_details(data)
     try:
@@ -261,7 +262,8 @@ def __data_initialization():
     pivot_table_types = request.form.getlist('pivot_table_target_type')
     if pivot_table_ids and pivot_table_types:
         # selected_pivot_tables
-        selected_pivot_tables = [{'id': x[0], 'type': x[1], 'text': p_id_to_name_[x[0]]} for x in zip(pivot_table_ids, pivot_table_types)]
+        selected_pivot_tables = [{'id': x[0], 'type': x[1], 'text': p_id_to_name_[x[0]]} for x in
+                                 zip(pivot_table_ids, pivot_table_types)]
         data['selected_pivot_tables'] = selected_pivot_tables
         log.debug("Selected pivot tables: " + str(selected_pivot_tables))
 
