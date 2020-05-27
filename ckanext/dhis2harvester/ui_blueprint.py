@@ -75,7 +75,7 @@ def pivot_tables_edit(harvest_source_id):
 
         data['column_values'] = harvest_config['column_values']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
-        data['dhis2_api_url'] = str(harvest_source['url'])
+        data['dhis2_url'] = str(harvest_source['url'])
         data['title'] = str(harvest_source['title'])
         data['description'] = str(harvest_source['notes'])
         data['name'] = str(harvest_source['name'])
@@ -110,12 +110,12 @@ def _validate_dhis2_connection(dhis2_conn, errors=None):
         error_message = 'Failed to connect to DHIS2, please check credentials'
         errors['dhis2_password'] = [error_message]
         errors['dhis2_username'] = [error_message]
-        errors['dhis2_api_url'] = [error_message]
+        errors['dhis2_url'] = [error_message]
     return errors
 
 
 def __get_dhis_conn():
-    dhis2_url = request.form.get('dhis2_api_url')
+    dhis2_url = request.form.get('dhis2_url')
     dhis2_username = request.form.get('dhis2_username')
     dhis2_password = request.form.get('dhis2_password')
     dhis2_conn = Dhis2Connection(dhis2_url, dhis2_username, dhis2_password)
@@ -160,7 +160,7 @@ def __prepare_harvester_details(data):
     harvester_name = data['name']
     data_dict = {
         "name": harvester_name,
-        "url": data['dhis2_api_url'],
+        "url": data['dhis2_url'],
         "source_type": 'dhis2-pivot-tables',
         "title": data['title'],
         "notes": data['notes'],
@@ -195,7 +195,7 @@ def __dhis2_connection_stage(data):
     required_fields = [
         {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
         {'label': 'DHIS2 Username', 'name': 'dhis2_username'},
-        {'label': 'DHIS2 API Endpoint URL', 'name': 'dhis2_api_url'}
+        {'label': 'DHIS2 API Endpoint URL', 'name': 'dhis2_url'}
     ]
     errors = _validate_required_fields(required_fields)
     if errors:
@@ -215,7 +215,7 @@ def __dhis2_connection_stage(data):
     try:
         pivot_tables = dhis2_conn_.get_pivot_tables()
     except Dhis2ConnectionError as e:
-        errors = {'dhis2_api_url': ["Failed to fetch pivot table data from this DHIS2 instance."]}
+        errors = {'dhis2_url': ["Failed to fetch pivot table data from this DHIS2 instance."]}
         data['action'] = 'pivot_table_new_1'
         return t.render(
             'source/pivot_table_new.html',
