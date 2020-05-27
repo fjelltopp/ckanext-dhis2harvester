@@ -1,4 +1,17 @@
+import logging
+
 from ckanext.harvest.harvesters import HarvesterBase
+from ckanext.harvest.model import HarvestObject
+from ckan.logic import NotFound
+from ckan import model
+from ckan.plugins import toolkit as t
+from werkzeug.datastructures import FileStorage as FlaskFileStorage
+from slugify import slugify
+import uuid
+import json
+
+log = logging.getLogger(__name__)
+
 
 class PivotTablesHarvester(HarvesterBase):
 
@@ -22,6 +35,7 @@ class PivotTablesHarvester(HarvesterBase):
         :param harvest_object_id: Config string coming from the form
         :returns: A string with the validated configuration options
         '''
+        return config
 
     def get_original_url(self, harvest_object_id):
         '''
@@ -66,6 +80,17 @@ class PivotTablesHarvester(HarvesterBase):
         :param harvest_job: HarvestJob object
         :returns: A list of HarvestObject ids
         '''
+        log.info("Harvester Gather Stage")
+        dhis2_data = {
+            "data": [{"a": 3, "b": 4}, {"a": 1, "b": 2}]
+        }
+
+        obj = HarvestObject(guid="test",
+                            job=harvest_job,
+                            content=json.dumps(dhis2_data))
+        obj.save()
+        return [obj.id]
+
 
     def fetch_stage(self, harvest_object):
         '''
@@ -85,6 +110,8 @@ class PivotTablesHarvester(HarvesterBase):
         :returns: True if successful, 'unchanged' if nothing to import after
                   all, False if not successful
         '''
+        log.info("Harvester fetch stage")
+        return True
 
     def import_stage(self, harvest_object):
         '''
@@ -112,3 +139,44 @@ class PivotTablesHarvester(HarvesterBase):
         :returns: True if the action was done, "unchanged" if the object didn't
                   need harvesting after all or False if there were errors.
         '''
+
+        log.info("DHIS2 harvester import stage")
+
+        context = {'model': model, 'session': model.Session,
+                   'user': self._get_user_name()}
+
+        source_package = t.get_action('package_show')(
+            context,
+            {"id": harvest_object.harvest_source_id}
+        )
+        org = source_package["organization"]
+
+        config = json.loads(harvest_object.source.config)
+        log.debug("Config: " + config)
+
+        package_data = {
+            "name": "tomek-dataset",
+            "title": "Tomek's dataset",
+            "type": "dataset",
+            "owner_org": org["id"],
+            "extras": [
+                {"key": "harvest_source_id",
+                 "value": harvest_object.job.source.id}]
+        }
+
+        try:
+            existing_package = t.get_action('package_show')(context, { "id": package_data["name"] })
+            # TODO : if the package is in a deleted state we should activate it
+            existing_package.update(package_data)
+            new_package = t.get_action('package_update')(context, existing_package)
+        except NotFound:
+            log.info("Creating new package")
+            context = {'model': model, 'session': model.Session,
+                       'user': self._get_user_name()}
+            package_data["id"] = str(uuid.uuid4())
+            new_package = t.get_action('package_create')(context, package_data)
+        harvest_object.package_id = new_package['id']
+        harvest_object.current = True
+        harvest_object.save()
+
+        return True
