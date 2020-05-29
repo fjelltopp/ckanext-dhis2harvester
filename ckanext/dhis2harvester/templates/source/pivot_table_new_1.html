@@ -8,15 +8,20 @@
       {{ _('This should include the https:// part of the URL') }}
     </span>
 {% endcall %}
-{% call form.input("dhis2_username", id="field-dhis2-username", label=_("DHIS2 Username"), placeholder=_("dhis2_username"), value=data.dhis2_username, error=errors.dhis2_username, classes=["control-medium"], is_required=True) %}
-  <span class="info-block">
-    {{ _('The user must have access to read the desired pivot tables') }}
-  </span>
-{% endcall %}
-{% call form.input("dhis2_password", id="field-dhis2-password", label=_("DHIS2 Password"), type="password", value=data.dhis2_password, error=errors.dhis2_password, classes=["control-medium"], is_required=True) %}
-  <span class="info-block">
-    {{ _("Your password won't be stored in ADR but passed straight to the DHIS2 instance for authentication.") }}
-  </span>
-{% endcall %}
+{% if data.dhis2_auth_token %}
+  {{ form.info(text=_('Auth token saved')) }}
+{% else %}
+  {% call form.input("dhis2_username", id="field-dhis2-username", label=_("DHIS2 Username"), placeholder=_("dhis2_username"), value=data.dhis2_username, error=errors.dhis2_username, classes=["control-medium"], is_required=True) %}
+    <span class="info-block">
+      {{ _('The user must have access to read the desired pivot tables') }}
+    </span>
+  {% endcall %}
+  {% call form.input("dhis2_password", id="field-dhis2-password", label=_("DHIS2 Password"), type="password", value=data.dhis2_password, error=errors.dhis2_password, classes=["control-medium"], is_required=True) %}
+    <span class="info-block">
+      {{ _("Your password won't be stored in ADR but passed straight to the DHIS2 instance for authentication.") }}
+    </span>
+  {% endcall %}
+{% endif %}
+<input type="hidden" name="dhis2_auth_token" value="{{data.dhis2_auth_token}}" >
 <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_1">{{_("Next")}}</button>
 </div>

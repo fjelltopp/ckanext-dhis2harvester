@@ -41,7 +41,14 @@ def pivot_tables_edit(harvest_source_id):
 
         data['column_values'] = harvest_config['column_values']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
-        data['dhis2_url'] = str(harvest_source['url'])
+        data['dhis2_url'] = str(harvest_config['dhis2_url'])
+        data['dhis2_auth_token'] = str(harvest_config['dhis2_auth_token'])
+        dhis2_conn = Dhis2Connection(data['dhis2_url'], auth_token=data['dhis2_auth_token'])
+        try:
+            dhis2_conn.test_connection()
+        except Dhis2ConnectionError:
+            log.info("Outdated auth token for url: {}".format(data['dhis2_url']))
+            data['dhis2_auth_token'] = ''
         data['title'] = str(harvest_source['title'])
         data['description'] = str(harvest_source['notes'])
         data['name'] = str(harvest_source['name'])
@@ -101,10 +108,14 @@ def _validate_dhis2_connection(dhis2_conn, errors=None):
 
 
 def __get_dhis_conn():
+    dhis2_kwargs = {}
     dhis2_url = request.form.get('dhis2_url')
-    dhis2_username = request.form.get('dhis2_username')
-    dhis2_password = request.form.get('dhis2_password')
-    dhis2_conn = Dhis2Connection(dhis2_url, dhis2_username, dhis2_password)
+    if request.form.get('dhis2_auth_token'):
+        dhis2_kwargs['auth_token'] = request.form.get('dhis2_auth_token')
+    else:
+        dhis2_kwargs['username'] = request.form.get('dhis2_username')
+        dhis2_kwargs['password'] = request.form.get('dhis2_password')
+    dhis2_conn = Dhis2Connection(dhis2_url, **dhis2_kwargs)
     return dhis2_conn
 
 
@@ -141,7 +152,9 @@ def __update_harvest_source(data, harvest_source_id):
 def __prepare_harvester_details(data):
     source_config = {
         'column_values': data['column_values'],
-        'selected_pivot_tables': data['selected_pivot_tables']
+        'selected_pivot_tables': data['selected_pivot_tables'],
+        'dhis2_url': data['dhis2_url'],
+        'dhis2_auth_token': data['dhis2_auth_token']
     }
     harvester_name = data['name']
     data_dict = {
@@ -178,18 +191,19 @@ def __pivot_table_select_stage(data, dhis2_conn_):
 
 
 def __dhis2_connection_stage(data):
-    required_fields = [
-        {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
-        {'label': 'DHIS2 Username', 'name': 'dhis2_username'},
-        {'label': 'DHIS2 API Endpoint URL', 'name': 'dhis2_url'}
-    ]
-    errors = _validate_required_fields(required_fields)
-    if errors:
-        data['action'] = 'pivot_table_new_1'
-        return t.render(
-            'source/pivot_table_new.html',
-            {'data': data, 'errors': errors}
-        )
+    if not data['dhis2_auth_token']:
+        required_fields = [
+            {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
+            {'label': 'DHIS2 Username', 'name': 'dhis2_username'},
+            {'label': 'DHIS2 API Endpoint URL', 'name': 'dhis2_url'}
+        ]
+        errors = _validate_required_fields(required_fields)
+        if errors:
+            data['action'] = 'pivot_table_new_1'
+            return t.render(
+                'source/pivot_table_new.html',
+                {'data': data, 'errors': errors}
+            )
     dhis2_conn_ = __get_dhis_conn()
     errors = _validate_dhis2_connection(dhis2_conn_)
     if errors:
@@ -198,6 +212,7 @@ def __dhis2_connection_stage(data):
             'source/pivot_table_new.html',
             {'data': data, 'errors': errors}
         )
+    data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
     try:
         pivot_tables = dhis2_conn_.get_pivot_tables()
     except Dhis2ConnectionError as e:

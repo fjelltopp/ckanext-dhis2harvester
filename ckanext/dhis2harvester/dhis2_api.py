@@ -5,6 +5,7 @@ from base64 import b64encode
 
 import requests
 from requests import ConnectionError
+from requests.exceptions import MissingSchema
 
 import request_util
 
@@ -73,6 +74,9 @@ class Dhis2Connection(object):
             msg_ = "Failed to connect to DHIS2 with provided credentials."
             log.debug(msg_)
             raise (Dhis2ConnectionError(msg_))
+        except MissingSchema as ms:
+            log.debug(ms.message)
+            raise (Dhis2ConnectionError(ms.message))
 
     def get_auth_token(self):
         if not self.auth_token:
