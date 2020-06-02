@@ -2,10 +2,9 @@ import json
 import os
 
 import logging
-from flask import Blueprint, request, Response, jsonify, redirect, url_for, abort
+from flask import Blueprint, request, redirect, abort
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
-import ckanext.harvest.utils as harvest_utils
 import ckanext.harvest.helpers as harvest_helpers
 from ckan.logic import ValidationError
 from collections import defaultdict
