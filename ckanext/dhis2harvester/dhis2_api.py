@@ -13,6 +13,7 @@ import request_util
 log = logging.getLogger(__name__)
 
 class Dhis2Connection(object):
+    DEFAULT_API_VERSION = '29'
     PIVOT_TABLES_RESOURCE = 'reportTables.json?fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&order=name:asc&paging=false'
     PIVOT_TABLES_KEY_NAME = "reportTables"
     PIVOT_TABLE_KEYS = ["lastUpdated", "created", "id", "name"]
@@ -30,11 +31,11 @@ class Dhis2Connection(object):
             url += '/'
         return url
 
-    def __api_url(self, url, version=None):
+    def __api_url(self, url, version=DEFAULT_API_VERSION):
         url = self.__add_trailing_slash(url)
+        url += 'api/'
         if version:
             url += version + "/"
-        url += 'api/'
         return url
 
     def __create_dhis2_headers(self, headers=None):
@@ -59,7 +60,7 @@ class Dhis2Connection(object):
         ok = request_util.check_if_response_is_ok(r)
         if not ok:
             raise (Dhis2ConnectionError(msg))
-        elif "<html class=\"loginPage\">" in r.text:
+        elif "<html class=\"loginPage\"" in r.text:
             msg_ = "Failed with DHIS2 authentication"
             log.debug(msg_)
             raise (Dhis2ConnectionError(msg))
@@ -67,7 +68,8 @@ class Dhis2Connection(object):
     def test_connection(self):
         try:
             cookies = self.__create_auth_cookie()
-            r = requests.get(self.api_url, cookies=cookies)
+            test_url = urlparse.urljoin(self.api_url, 'organisationUnits')
+            r = requests.get(test_url, cookies=cookies)
             self.__response_validation("Failed to authenticate to DHIS2", r)
             return True
         except ConnectionError:
