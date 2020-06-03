@@ -16,6 +16,14 @@ class Dhis2Connection(object):
     DEFAULT_API_VERSION = '29'
     PIVOT_TABLES_RESOURCE = 'reportTables.json?fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&order=name:asc&paging=false'
     PIVOT_TABLES_KEY_NAME = "reportTables"
+    PIVOT_TABLES_CSV_RESOURCE = 'analytics.csv?' \
+                                'dimension=dx:{data_elements}&' \
+                                'dimension=pe:{periods}&' \
+                                'dimension=co&' \
+                                'dimension=ou:{organisation_units}&' \
+                                'displayProperty=NAME&' \
+                                'hierarchyMeta=true&' \
+                                'outputIdScheme=UID'
     PIVOT_TABLE_KEYS = ["lastUpdated", "created", "id", "name"]
     SECURITY_LOGIN_ACTION = 'dhis-web-commons-security/login.action'
 
@@ -171,6 +179,29 @@ class Dhis2Connection(object):
         return result
 
 
+    def get_pivot_table_configuration(self, pivot_table_id):
+        pivot_table_metadata = self._get_pivot_table_meta(pivot_table_id)
+        ou_levels = [x['id'] for x in pivot_table_metadata.get('organisationUnits', [])]
+        meta_ou_levels = pivot_table_metadata.get('organisationUnitLevels', [])
+        ou_levels += ["LEVEL-{}".format(ou_level) for ou_level in meta_ou_levels]
+        meta_periods = pivot_table_metadata.get('periods', [])
+        if len(meta_periods) < 1:
+            periods = ['LAST_YEAR', 'THIS_YEAR']
+        else:
+            periods = [x['id'] for x in pivot_table_metadata['periods']]
+        display_name = pivot_table_metadata['displayName']
+        return {
+            "name": display_name,
+            "ou_levels": ou_levels,
+            "periods": periods
+        }
+
+
+    def get_pivot_table_csv_resource(self, data_elements, ou_levels, periods):
+        des = ";".join(data_elements)
+        ous = ";".join(ou_levels)
+        ps = ";".join(periods)
+        return self.PIVOT_TABLES_CSV_RESOURCE.format(data_elements=des, periods=ps, organisation_units=ous)
 
 
 class Dhis2ConnectionError(Exception):

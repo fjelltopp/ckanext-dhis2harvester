@@ -1,7 +1,9 @@
 import logging
 
 from ckanext.harvest.harvesters import HarvesterBase
-from ckanext.harvest.model import HarvestObject
+from ckanext.harvest.model import (HarvestSource, HarvestJob, HarvestObject,
+                                   HarvestGatherError, HarvestObjectError)
+import ckanext.dhis2harvester.dhis2_api as dhis2_api
 from ckan.logic import NotFound
 from ckan import model
 from ckan.plugins import toolkit as t
@@ -80,17 +82,41 @@ class PivotTablesHarvester(HarvesterBase):
         :param harvest_job: HarvestJob object
         :returns: A list of HarvestObject ids
         '''
+        config = json.loads(harvest_job.source.config)
         log.info("Harvester Gather Stage")
-        dhis2_data = {
-            "data": [{"a": 3, "b": 4}, {"a": 1, "b": 2}]
-        }
+        dhis2_connection = self._get_dhis2_connection(config)
+        try:
+            dhis2_connection.test_connection()
+        except dhis2_api.Dhis2ConnectionError as e:
+            raise HarvestGatherError(message=e.message, job=harvest_job)
+        obj_ids = []
+        for pt in config['column_values']:
+            pt_id = pt['id']
+            pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
+            data_elements = [c['id'].split('-')[0] for c in pt['columns']]
+            csv_resource_name = dhis2_connection.get_pivot_table_csv_resource(
+                data_elements, pt_config['ou_levels'], pt_config['periods'])
+            harvest_object_data = {
+                'dhis2_url': config['dhis2_url'],
+                'dhis2_auth_token': dhis2_connection.get_auth_token(),
+                'dhis2_api_full_resource': csv_resource_name,
+                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
+                'output_resource_name': pt_config['name']
 
-        obj = HarvestObject(guid="test",
-                            job=harvest_job,
-                            content=json.dumps(dhis2_data))
-        obj.save()
-        return [obj.id]
+            }
+            pass
 
+            obj = HarvestObject(guid="pivot_table",
+                                job=harvest_job,
+                                content=json.dumps(harvest_object_data))
+            obj.save()
+            obj_ids.append(obj.id)
+        return obj_ids
+
+    def _get_dhis2_connection(self, config):
+        dhis2_url = config['dhis2_url']
+        dhis2_auth_token = config['dhis2_auth_token']
+        return dhis2_api.Dhis2Connection(dhis2_url, auth_token=dhis2_auth_token)
 
     def fetch_stage(self, harvest_object):
         '''
@@ -152,7 +178,7 @@ class PivotTablesHarvester(HarvesterBase):
         org = source_package["organization"]
 
         config = json.loads(harvest_object.source.config)
-        log.debug("Config: " + config)
+        log.debug("Config: {}".format(config))
 
         package_data = {
             "name": "tomek-dataset",
