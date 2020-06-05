@@ -34,6 +34,9 @@ class Dhis2Connection(object):
         self.password = password
         self.auth_token = auth_token
 
+    def __str__(self):
+        return "Dhis2Connection(api_url={self.api_url})".format(self=self)
+
     def __add_trailing_slash(self, url):
         if not url.endswith('/'):
             url += '/'

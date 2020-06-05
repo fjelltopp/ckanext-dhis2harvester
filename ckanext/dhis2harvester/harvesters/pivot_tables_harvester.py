@@ -16,6 +16,8 @@ log = logging.getLogger(__name__)
 
 
 class PivotTablesHarvester(HarvesterBase):
+    _save_gather_error = HarvestGatherError.create
+    _save_object_error = HarvestObjectError.create
 
     def info(self):
         return {
@@ -82,13 +84,22 @@ class PivotTablesHarvester(HarvesterBase):
         :param harvest_job: HarvestJob object
         :returns: A list of HarvestObject ids
         '''
+        if not harvest_job:
+            log.error('No harvest job received')
+            return None
+        if harvest_job.source.config is None:
+            self._save_gather_error('Unable to get source config for: {}'.format(harvest_job.source), harvest_job)
+            return False
+
         config = json.loads(harvest_job.source.config)
         log.info("Harvester Gather Stage")
         dhis2_connection = self._get_dhis2_connection(config)
         try:
             dhis2_connection.test_connection()
         except dhis2_api.Dhis2ConnectionError as e:
-            raise HarvestGatherError(message=e.message, job=harvest_job)
+            self._save_gather_error('Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
+                                    harvest_job)
+            return None
         obj_ids = []
         for pt in config['column_values']:
             pt_id = pt['id']
