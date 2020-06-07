@@ -9,8 +9,15 @@ from ckan import model
 from ckan.plugins import toolkit as t
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from slugify import slugify
+import pandas as pd
 import uuid
 import json
+
+import sys
+if sys.version_info[0] < 3:
+    from StringIO import StringIO
+else:
+    from io import StringIO
 
 log = logging.getLogger(__name__)
 
@@ -112,11 +119,10 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
                 'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
-                'output_resource_name': pt_config['name']
+                'output_resource_name': pt_config['name'],
+                'pivot_table_column_config': pt['columns']
 
             }
-            pass
-
             obj = HarvestObject(guid="pivot_table",
                                 job=harvest_job,
                                 content=json.dumps(harvest_object_data))
@@ -147,7 +153,55 @@ class PivotTablesHarvester(HarvesterBase):
         :returns: True if successful, 'unchanged' if nothing to import after
                   all, False if not successful
         '''
-        log.info("Harvester fetch stage")
+        log.debug('Fetch stage for harvest object: %r', harvest_object)
+
+        if not harvest_object:
+            log.error('No harvest object received')
+            return False
+
+        if harvest_object.content is None:
+            self._save_object_error('Empty content for object {}'.format(harvest_object.id) ,harvest_object, 'Fetch')
+            return False
+
+        content = json.loads(harvest_object.content)
+        dhis2_connection = self._get_dhis2_connection(content)
+        try:
+            dhis2_connection.test_connection()
+        except dhis2_api.Dhis2ConnectionError as e:
+            self._save_object_error_error('Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
+                                    harvest_object, 'Fetch')
+            return None
+        dhis2_api_full_resource = content['dhis2_api_full_resource']
+        pivot_table_column_config = content['pivot_table_column_config']
+        try:
+            ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
+        except dhis2_api.Dhis2ConnectionError as e:
+            self._save_object_error_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e.message),
+                                          harvest_object, 'Fetch')
+            return None
+        try:
+            pt_csv = dhis2_connection.get_api_resource(dhis2_api_full_resource)
+        except dhis2_api.Dhis2ConnectionError as e:
+            self._save_object_error_error('Unable to get dhis2 data: {}: {}: {}'
+                                              .format(dhis2_api_full_resource, dhis2_connection, e.message),
+                                          harvest_object, 'Fetch')
+            return None
+
+        csv_stream = StringIO(pt_csv.text)
+
+        pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
+
+        categories_map = {}
+        for cc in pivot_table_column_config:
+            categories_map[cc['id']] = {
+                "target_column": cc['target_column'],
+                "categories": cc['categories']
+            }
+        _org_unit_col = 'Organisation unit'
+        pt_df[_org_unit_col] = pt_df[_org_unit_col].map(ou_id_name_map)
+
+        content['csv'] = pt_df.to_csv()
+        harvest_object.content = json.dumps(content)
         return True
 
     def import_stage(self, harvest_object):
@@ -177,7 +231,15 @@ class PivotTablesHarvester(HarvesterBase):
                   need harvesting after all or False if there were errors.
         '''
 
-        log.info("DHIS2 harvester import stage")
+        log.debug('Import stage for harvest object: %r', harvest_object)
+
+        if not harvest_object:
+            log.error('No harvest object received')
+            return False
+
+        if harvest_object.content is None:
+            self._save_object_error('Empty content for object {}'.format(harvest_object.id) ,harvest_object, 'Fetch')
+            return False
 
         context = {'model': model, 'session': model.Session,
                    'user': self._get_user_name()}
@@ -189,11 +251,14 @@ class PivotTablesHarvester(HarvesterBase):
         org = source_package["organization"]
 
         config = json.loads(harvest_object.source.config)
-        log.debug("Config: {}".format(config))
+        content = json.loads(harvest_object.content)
+        dataset_name = content['output_dataset_name']
+        resource_name = content['output_resource_name']
+        csv_string = content['csv']
 
         package_data = {
-            "name": "tomek-dataset",
-            "title": "Tomek's dataset",
+            "name": slugify(dataset_name),
+            "title": dataset_name,
             "type": "dataset",
             "owner_org": org["id"],
             "extras": [
@@ -212,6 +277,39 @@ class PivotTablesHarvester(HarvesterBase):
                        'user': self._get_user_name()}
             package_data["id"] = str(uuid.uuid4())
             new_package = t.get_action('package_create')(context, package_data)
+
+        csv_stream = StringIO(csv_string)
+        csv_filename = "{}.csv".format(slugify(resource_name))
+        resource = {
+            "name": resource_name,
+            "description": "Data pulled from DHIS2",
+            "url_type": "upload",
+            "upload": FlaskFileStorage(
+                stream=csv_stream,
+                filename=csv_filename
+                ),
+            "package_id": new_package["id"]
+        }
+        found = False
+        for existing_resource in new_package["resources"]:
+            if existing_resource["name"] == resource["name"]:
+                existing_resource = t.get_action('resource_show')(
+                    context,
+                    {"id": existing_resource["id"]}
+                )
+
+                existing_resource.update(resource)
+                t.get_action('resource_update')(
+                    context,
+                    existing_resource
+                )
+                found = True
+        if not found:
+            t.get_action('resource_create')(
+                context,
+                resource
+            )
+
         harvest_object.package_id = new_package['id']
         harvest_object.current = True
         harvest_object.save()

@@ -58,17 +58,18 @@ def pivot_tables_edit(harvest_source_id):
         log.debug("Editing harvest source: " + harvest_source_id)
         return t.render(
             'source/pivot_table_new.html',
-            {'data': data, 'errors': {}}
+            {'data': data, 'edit_configuration': True, 'errors': {}}
         )
 
 
 def __ui_state_machine(harvest_source_id=None):
     data, dhis2_conn_, form_stage = __data_initialization()
+    edit_configuration = harvest_source_id is not None
 
     if "back" in form_stage:
-        return __go_back(data, form_stage)
+        return __go_back(data, form_stage, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_1':
-        return __dhis2_connection_stage(data)
+        return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_2':
         return __pivot_table_select_stage(data, dhis2_conn_)
     elif form_stage == 'pivot_table_new_3':
@@ -191,7 +192,7 @@ def __pivot_table_select_stage(data, dhis2_conn_):
     )
 
 
-def __dhis2_connection_stage(data):
+def __dhis2_connection_stage(data, edit_configuration=False):
     if not data['dhis2_auth_token']:
         required_fields = [
             {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
@@ -203,7 +204,7 @@ def __dhis2_connection_stage(data):
             data['action'] = 'pivot_table_new_1'
             return t.render(
                 'source/pivot_table_new.html',
-                {'data': data, 'errors': errors}
+                {'data': data, 'edit_configuration': edit_configuration, 'errors': errors}
             )
     dhis2_conn_ = __get_dhis_conn()
     errors = _validate_dhis2_connection(dhis2_conn_)
@@ -211,7 +212,7 @@ def __dhis2_connection_stage(data):
         data['action'] = 'pivot_table_new_1'
         return t.render(
             'source/pivot_table_new.html',
-            {'data': data, 'errors': errors}
+            {'data': data, 'edit_configuration': edit_configuration, 'errors': errors}
         )
     data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
     try:
@@ -221,23 +222,23 @@ def __dhis2_connection_stage(data):
         data['action'] = 'pivot_table_new_1'
         return t.render(
             'source/pivot_table_new.html',
-            {'data': data, 'errors': errors}
+            {'data': data, 'edit_configuration': edit_configuration, 'errors': errors}
         )
     pivot_tables_options = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in pivot_tables]
     data['pivot_tables'] = pivot_tables_options
     data['action'] = "pivot_table_new_2"
     return t.render(
         'source/pivot_table_new.html',
-        {'data': data, 'errors': {}}
+        {'data': data, 'edit_configuration': edit_configuration, 'errors': {}}
     )
 
 
-def __go_back(data, form_stage):
+def __go_back(data, form_stage, edit_configuration=False):
     to_form_stage = form_stage.split('.')[-1]
     data['action'] = to_form_stage
     return t.render(
         'source/pivot_table_new.html',
-        {'data': data, 'errors': {}}
+        {'data': data, 'edit_configuration': edit_configuration, 'errors': {}}
     )
 
 

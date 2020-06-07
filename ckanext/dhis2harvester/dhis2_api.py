@@ -1,3 +1,4 @@
+import json
 import urlparse
 
 import logging
@@ -26,6 +27,7 @@ class Dhis2Connection(object):
                                 'outputIdScheme=UID'
     PIVOT_TABLE_KEYS = ["lastUpdated", "created", "id", "name"]
     SECURITY_LOGIN_ACTION = 'dhis-web-commons-security/login.action'
+    ORG_UNIT_RESOURCE = "organisationUnits?paging=false&fields=id,name"
 
     def __init__(self, url, username=None, password=None, auth_token=None):
         self.url = self.__add_trailing_slash(url)
@@ -206,6 +208,19 @@ class Dhis2Connection(object):
         ps = ";".join(periods)
         return self.PIVOT_TABLES_CSV_RESOURCE.format(data_elements=des, periods=ps, organisation_units=ous)
 
+    def get_organisation_unit_name_id_map(self):
+        ou_url_ = urlparse.urljoin(self.api_url, self.ORG_UNIT_RESOURCE)
+        ou_r = requests.get(ou_url_, cookies=self.__create_auth_cookie())
+        self.__response_validation("Failed to get organisation unit information", ou_r)
+        ou_list = json.loads(ou_r.text)['organisationUnits']
+        id_name_map = {ou['id']: ou['name'] for ou in ou_list}
+
+        return id_name_map
+
+    def get_api_resource(self, api_resource):
+        url_ = urlparse.urljoin(self.api_url, api_resource)
+        response = requests.get(url_, cookies=self.__create_auth_cookie())
+        return response
 
 class Dhis2ConnectionError(Exception):
     pass
