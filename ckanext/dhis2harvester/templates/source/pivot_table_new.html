@@ -24,6 +24,10 @@
   {% include 'source/pivot_table_new_3.html' %}
   {% include 'source/pivot_table_new_4.html' %}
 
+  {%  if edit_configuration %}
+    <br/>
+    <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_save">{{_("Save changes")}}</button>
+  {% endif %}
 
   {% if data.get('id', None) and h.check_access('harvest_source_delete', {'id': data.id}) and data.get('state', 'none') == 'deleted' %}
     <div class="control-group">
