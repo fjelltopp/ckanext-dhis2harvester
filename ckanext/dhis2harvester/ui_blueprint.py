@@ -40,6 +40,9 @@ def pivot_tables_edit(harvest_source_id):
 
         data['column_values'] = harvest_config['column_values']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
+        data['pivot_tables'] = harvest_config['pivot_tables']
+        data['pivot_table_columns'] = harvest_config['pivot_table_columns']
+        data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
         data['dhis2_url'] = str(harvest_config['dhis2_url'])
         data['dhis2_auth_token'] = str(harvest_config['dhis2_auth_token'])
         dhis2_conn = Dhis2Connection(data['dhis2_url'], auth_token=data['dhis2_auth_token'])
@@ -154,6 +157,9 @@ def __update_harvest_source(data, harvest_source_id):
 def __prepare_harvester_details(data):
     source_config = {
         'column_values': data['column_values'],
+        'selected_pivot_tables': data['selected_pivot_tables'],
+        'pivot_tables': data['pivot_tables'],
+        'pivot_table_columns': data['pivot_table_columns'],
         'selected_pivot_tables': data['selected_pivot_tables'],
         'dhis2_url': data['dhis2_url'],
         'dhis2_auth_token': data['dhis2_auth_token']
