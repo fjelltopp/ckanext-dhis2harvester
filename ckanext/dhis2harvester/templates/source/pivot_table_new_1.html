@@ -1,8 +1,13 @@
 {% import 'macros/form.html' as form %}
+{% block visibility %}
 <div class="pivot-table-new-1 {% if not data.action or data.action != 'pivot_table_new_1' %}hidden{% endif %}">
+{% endblock %}
+{% block title %}
 <H2>
   {{_('Configure DHIS2 Connection')}}
 </H2>
+{% endblock %}
+{% block connection_details %}
 {% call form.input('dhis2_url', id='field-dhis2-url', label=_('DHIS2 URL'), value=data.dhis2_url, placeholder="e.g. https://play.dhis2.org/demo/", error=errors.dhis2_url, classes=['control-full'], is_required=True) %}
     <span class="info-block">
       {{ _('This should include the https:// part of the URL') }}
@@ -23,5 +28,8 @@
   {% endcall %}
 {% endif %}
 <input type="hidden" name="dhis2_auth_token" value="{{data.dhis2_auth_token}}" >
-<button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_1">{{_("Next")}}</button>
+{% endblock %}
+{% block actions %}
+  <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_1">{{_("Next")}}</button>
+{% endblock %}
 </div>

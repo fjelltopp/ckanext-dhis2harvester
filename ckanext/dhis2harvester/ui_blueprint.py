@@ -6,6 +6,7 @@ from flask import Blueprint, request, redirect, abort
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
 import ckanext.harvest.helpers as harvest_helpers
+import ckanext.harvest.utils as harvest_utils
 from ckan.logic import ValidationError
 from collections import defaultdict
 from dhis2_api import Dhis2Connection, Dhis2ConnectionError
@@ -43,14 +44,9 @@ def pivot_tables_edit(harvest_source_id):
         data['pivot_tables'] = harvest_config['pivot_tables']
         data['pivot_table_columns'] = harvest_config['pivot_table_columns']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
-        data['dhis2_url'] = str(harvest_config['dhis2_url'])
-        data['dhis2_auth_token'] = str(harvest_config['dhis2_auth_token'])
-        dhis2_conn = Dhis2Connection(data['dhis2_url'], auth_token=data['dhis2_auth_token'])
-        try:
-            dhis2_conn.test_connection()
-        except Dhis2ConnectionError:
-            log.info("Outdated auth token for url: {}".format(data['dhis2_url']))
-            data['dhis2_auth_token'] = ''
+        (dhis2_url, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(harvest_config)
+        data['dhis2_url'] = dhis2_url
+        data['dhis2_auth_token'] = dhis2_auth_token
         data['title'] = str(harvest_source['title'])
         data['description'] = str(harvest_source['notes'])
         data['name'] = str(harvest_source['name'])
@@ -62,6 +58,58 @@ def pivot_tables_edit(harvest_source_id):
         return t.render(
             'source/pivot_table_new.html',
             {'data': data, 'edit_configuration': True, 'errors': {}}
+        )
+
+
+def __get_dhis2_connection_details_from_harvest_source(harvest_config):
+    dhis2_url = str(harvest_config['dhis2_url'])
+    dhis2_auth_token = str(harvest_config['dhis2_auth_token'])
+    dhis2_conn = Dhis2Connection(dhis2_url, auth_token=dhis2_auth_token)
+    try:
+        dhis2_conn.test_connection()
+    except Dhis2ConnectionError:
+        log.info("Outdated auth token for url: {}".format(dhis2_url))
+        return dhis2_url, ''
+    return dhis2_url, dhis2_auth_token
+
+
+def pivot_tables_refresh(harvest_source_id):
+    harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+    source_config = json.loads(harvest_source['config'])
+    data = request.form.to_dict()
+    if data:
+        dhis2_conn_ = __get_dhis_conn()
+        errors = _validate_dhis2_connection(dhis2_conn_)
+        if errors:
+            return t.render(
+                'source/pivot_table_refresh.html',
+                {'data': {}, 'harvest_source_id': harvest_source_id, 'errors': errors}
+            )
+        source_config.update({
+            'dhis2_url': data['dhis2_url'],
+            'dhis2_auth_token': dhis2_conn_.get_auth_token()
+        })
+        harvester_name = harvest_source['name']
+        harvest_source['config'] = json.dumps(source_config)
+        try:
+            source = t.get_action("harvest_source_update")({}, harvest_source)
+        except ValidationError as e:
+            log.error("An error occurred: {}".format(str(e.error_dict)))
+            raise e
+        try:
+            harvest_utils.create_job(harvest_source_id)
+        except ValidationError as e:
+            log.error("An error occurred: {}".format(str(e)))
+            raise e
+        return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+    else:
+        data = {}
+        (dhis2_url, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(source_config)
+        data['dhis2_url'] = dhis2_url
+        data['dhis2_auth_token'] = dhis2_auth_token
+        return t.render(
+            'source/pivot_table_refresh.html',
+            {'data': data, 'harvest_source_id': harvest_source_id, 'errors': {}}
         )
 
 
@@ -343,4 +391,10 @@ ui_blueprint.add_url_rule(
     u'/pivot_tables/<harvest_source_id>',
     view_func=pivot_tables_edit,
     methods=['GET', 'POST']
+)
+
+ui_blueprint.add_url_rule(
+    u'/pivot_tables/refresh/<harvest_source_id>',
+    view_func=pivot_tables_refresh,
+    methods=['POST']
 )
