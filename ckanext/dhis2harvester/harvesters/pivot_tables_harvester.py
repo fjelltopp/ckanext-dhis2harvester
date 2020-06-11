@@ -164,6 +164,7 @@ class PivotTablesHarvester(HarvesterBase):
             return False
 
         content = json.loads(harvest_object.content)
+
         dhis2_connection = self._get_dhis2_connection(content)
         try:
             dhis2_connection.test_connection()
@@ -174,22 +175,23 @@ class PivotTablesHarvester(HarvesterBase):
         dhis2_api_full_resource = content['dhis2_api_full_resource']
         pivot_table_column_config = content['pivot_table_column_config']
         try:
-            ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
-        except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e.message),
-                                          harvest_object, 'Fetch')
-            return None
-        try:
             pt_csv = dhis2_connection.get_api_resource(dhis2_api_full_resource)
         except dhis2_api.Dhis2ConnectionError as e:
             self._save_object_error_error('Unable to get dhis2 data: {}: {}: {}'
                                               .format(dhis2_api_full_resource, dhis2_connection, e.message),
                                           harvest_object, 'Fetch')
             return None
-
         csv_stream = StringIO(pt_csv.text)
-
         pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
+
+        try:
+            ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
+        except dhis2_api.Dhis2ConnectionError as e:
+            self._save_object_error_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e.message),
+                                          harvest_object, 'Fetch')
+            return None
+        _org_unit_col = 'Organisation unit'
+        pt_df[_org_unit_col] = pt_df[_org_unit_col].map(ou_id_name_map)
 
         categories_map = {}
         for cc in pivot_table_column_config:
@@ -197,8 +199,6 @@ class PivotTablesHarvester(HarvesterBase):
                 "target_column": cc['target_column'],
                 "categories": cc['categories']
             }
-        _org_unit_col = 'Organisation unit'
-        pt_df[_org_unit_col] = pt_df[_org_unit_col].map(ou_id_name_map)
 
         content['csv'] = pt_df.to_csv()
         harvest_object.content = json.dumps(content)
