@@ -205,7 +205,6 @@ def __update_harvest_source(data, harvest_source_id):
 def __prepare_harvester_details(data):
     source_config = {
         'column_values': data['column_values'],
-        'selected_pivot_tables': data['selected_pivot_tables'],
         'pivot_tables': data['pivot_tables'],
         'pivot_table_columns': data['pivot_table_columns'],
         'selected_pivot_tables': data['selected_pivot_tables'],

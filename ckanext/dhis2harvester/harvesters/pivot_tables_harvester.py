@@ -91,6 +91,7 @@ class PivotTablesHarvester(HarvesterBase):
         :param harvest_job: HarvestJob object
         :returns: A list of HarvestObject ids
         '''
+        log.debug('Gather stage for harvest job: %r', harvest_job.id)
         if not harvest_job:
             log.error('No harvest job received')
             return None
@@ -99,7 +100,6 @@ class PivotTablesHarvester(HarvesterBase):
             return False
 
         config = json.loads(harvest_job.source.config)
-        log.info("Harvester Gather Stage")
         dhis2_connection = self._get_dhis2_connection(config)
         try:
             dhis2_connection.test_connection()
@@ -153,7 +153,7 @@ class PivotTablesHarvester(HarvesterBase):
         :returns: True if successful, 'unchanged' if nothing to import after
                   all, False if not successful
         '''
-        log.debug('Fetch stage for harvest object: %r', harvest_object)
+        log.debug('Fetch stage for harvest object: %r', harvest_object.id)
 
         if not harvest_object:
             log.error('No harvest object received')
@@ -191,15 +191,50 @@ class PivotTablesHarvester(HarvesterBase):
                                           harvest_object, 'Fetch')
             return None
         _org_unit_col = 'Organisation unit'
-        pt_df[_org_unit_col] = pt_df[_org_unit_col].map(ou_id_name_map)
+        _area_name_col = 'area_name'
+        _area_id_col = 'area_id'
+        pt_df[_area_name_col] = pt_df[_org_unit_col].map(ou_id_name_map)
+        pt_df[_area_id_col] = pt_df[_org_unit_col]
+
+        _period_col = 'Period'
+        _year_col = 'year'
+        pt_df[_year_col] = pt_df[_period_col]
 
         categories_map = {}
+        disabled_categories = []
         for cc in pivot_table_column_config:
+            if not cc.get('enabled', False):
+                disabled_categories.append(cc['id'])
+            target_column_ = cc['target_column']
+            if not isinstance(target_column_, list):
+                target_column_ = [target_column_]
             categories_map[cc['id']] = {
-                "target_column": cc['target_column'],
+                "target_column": target_column_,
                 "categories": cc['categories']
             }
+        _category_column = 'Category option combo'
+        _data_element_column = 'Data'
 
+        pt_df['de_cat'] = pt_df[_data_element_column] + "-" + pt_df[_category_column]
+        # drop disabled categories
+        pt_df = pt_df[~pt_df['de_cat'].isin(disabled_categories)]
+        # map categories
+        _cat_cols = set()
+        _data_cols = set()
+        for i, row in pt_df.iterrows():
+            de_cat = row['de_cat']
+            c = categories_map[de_cat]
+            for tc in c['target_column']:
+                _data_cols.add(tc)
+                pt_df.loc[i, tc] = row['Value']
+            for cat, cat_val in c['categories'].iteritems():
+                _cat_cols.add(cat)
+                pt_df.loc[i, cat] = cat_val
+
+        # create final columns output
+        pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
+        # group by orgs and periods and categories
+        pt_df = pt_df.groupby([_area_id_col, _area_name_col, _year_col] + list(_cat_cols)).sum().reset_index()
         content['csv'] = pt_df.to_csv()
         harvest_object.content = json.dumps(content)
         return True
@@ -231,7 +266,7 @@ class PivotTablesHarvester(HarvesterBase):
                   need harvesting after all or False if there were errors.
         '''
 
-        log.debug('Import stage for harvest object: %r', harvest_object)
+        log.debug('Import stage for harvest object: %r', harvest_object.id)
 
         if not harvest_object:
             log.error('No harvest object received')
