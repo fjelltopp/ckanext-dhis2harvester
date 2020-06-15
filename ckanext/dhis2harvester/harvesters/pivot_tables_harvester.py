@@ -235,7 +235,12 @@ class PivotTablesHarvester(HarvesterBase):
         pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
         # group by orgs and periods and categories
         pt_df = pt_df.groupby([_area_id_col, _area_name_col, _year_col] + list(_cat_cols)).sum().reset_index()
-        content['csv'] = pt_df.to_csv()
+        # sort by area names
+        pt_df.sort_values(by=[_area_name_col, _year_col]).reset_index(drop=True)
+        # trim period strings
+        pt_df[_year_col] = pt_df[_year_col].str[:4]
+        # save csv output for import stage
+        content['csv'] = pt_df.to_csv(index=False)
         harvest_object.content = json.dumps(content)
         return True
 
