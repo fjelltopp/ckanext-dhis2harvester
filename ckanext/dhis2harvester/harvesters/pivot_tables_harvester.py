@@ -238,7 +238,7 @@ class PivotTablesHarvester(HarvesterBase):
         # sort by area names
         pt_df.sort_values(by=[_area_name_col, _year_col]).reset_index(drop=True)
         # trim period strings
-        pt_df[_year_col] = pt_df[_year_col].str[:4]
+        pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
         # save csv output for import stage
         content['csv'] = pt_df.to_csv(index=False)
         harvest_object.content = json.dumps(content)
