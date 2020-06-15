@@ -14,7 +14,7 @@ import request_util
 log = logging.getLogger(__name__)
 
 class Dhis2Connection(object):
-    DEFAULT_API_VERSION = '29'
+    DEFAULT_API_VERSION = '26'
     PIVOT_TABLES_RESOURCE = 'reportTables.json?fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&order=name:asc&paging=false'
     PIVOT_TABLES_KEY_NAME = "reportTables"
     PIVOT_TABLES_CSV_RESOURCE = 'analytics.csv?' \
