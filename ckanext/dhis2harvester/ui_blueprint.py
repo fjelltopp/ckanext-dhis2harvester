@@ -24,10 +24,8 @@ def pivot_tables_new():
     if request.method == 'POST':
         return __ui_state_machine()
     else:
-        return t.render(
-            'source/pivot_table_new.html',
-            {'data': {'action': 'pivot_table_new_1'}, 'errors': {}}
-        )
+        data = {'action': 'pivot_table_new_1'}
+        return __render_pivot_table_template(data, {})
 
 
 def pivot_tables_edit(harvest_source_id):
@@ -52,10 +50,7 @@ def pivot_tables_edit(harvest_source_id):
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
-        return t.render(
-            'source/pivot_table_new.html',
-            {'data': data, 'edit_configuration': True, 'errors': {}}
-        )
+        return __render_pivot_table_template(data, {}, edit_configuration=True)
 
 
 def __get_dhis2_connection_details_from_harvest_source(harvest_config):
@@ -172,10 +167,7 @@ def __get_dhis_conn():
 
 def __summary_stage(data):
     data['action'] = "pivot_table_new_4"
-    return t.render(
-        'source/pivot_table_new.html',
-        {'data': data, 'errors': {}}
-    )
+    return __render_pivot_table_template(data, {})
 
 
 def __save_harvest_source(data):
@@ -224,17 +216,21 @@ def __prepare_harvester_details(data):
 
 def __configure_table_columns_stage(data):
     data['action'] = "pivot_table_new_4"
-    return t.render(
-        'source/pivot_table_new.html',
-        {'data': data, 'errors': {}}
-    )
+    return __render_pivot_table_template(data, {})
 
 
 def __pivot_table_select_stage(data, dhis2_conn_):
     data['action'] = "pivot_table_new_3"
+    errors = {}
+    return __render_pivot_table_template(data, errors)
+
+
+def __render_pivot_table_template(data, errors, **kwargs):
+    params_ = {'data': data, 'errors': errors}
+    params_.update(kwargs)
     return t.render(
         'source/pivot_table_new.html',
-        {'data': data, 'errors': {}}
+        params_
     )
 
 
@@ -248,18 +244,12 @@ def __dhis2_connection_stage(data, edit_configuration=False):
         errors = _validate_required_fields(required_fields)
         if errors:
             data['action'] = 'pivot_table_new_1'
-            return t.render(
-                'source/pivot_table_new.html',
-                {'data': data, 'edit_configuration': edit_configuration, 'errors': errors}
-            )
+            return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
     dhis2_conn_ = __get_dhis_conn()
     errors = _validate_dhis2_connection(dhis2_conn_)
     if errors:
         data['action'] = 'pivot_table_new_1'
-        return t.render(
-            'source/pivot_table_new.html',
-            {'data': data, 'edit_configuration': edit_configuration, 'errors': errors}
-        )
+        return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
     data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
 
     try:
@@ -267,26 +257,17 @@ def __dhis2_connection_stage(data, edit_configuration=False):
     except Dhis2ConnectionError as e:
         errors = {'dhis2_url': ["Failed to fetch pivot table data from this DHIS2 instance."]}
         data['action'] = 'pivot_table_new_1'
-        return t.render(
-            'source/pivot_table_new.html',
-            {'data': data, 'edit_configuration': edit_configuration, 'errors': errors}
-        )
+        return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
     pivot_tables_options = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in pivot_tables]
     data['pivot_tables'] = pivot_tables_options
     data['action'] = "pivot_table_new_2"
-    return t.render(
-        'source/pivot_table_new.html',
-        {'data': data, 'edit_configuration': edit_configuration, 'errors': {}}
-    )
+    return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
 
 
 def __go_back(data, form_stage, edit_configuration=False):
     to_form_stage = form_stage.split('.')[-1]
     data['action'] = to_form_stage
-    return t.render(
-        'source/pivot_table_new.html',
-        {'data': data, 'edit_configuration': edit_configuration, 'errors': {}}
-    )
+    return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
 
 
 def __data_initialization(edit=False):
