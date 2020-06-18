@@ -120,6 +120,7 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_api_full_resource': csv_resource_name,
                 'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
                 'output_resource_name': pt_config['name'],
+                'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns']
 
             }
@@ -164,6 +165,7 @@ class PivotTablesHarvester(HarvesterBase):
             return False
 
         content = json.loads(harvest_object.content)
+        pivot_table_id = content.get("pivot_table_id", "Unknown")
 
         dhis2_connection = self._get_dhis2_connection(content)
         try:
@@ -182,63 +184,71 @@ class PivotTablesHarvester(HarvesterBase):
                                           harvest_object, 'Fetch')
             return None
         csv_stream = StringIO(pt_csv.text)
-        pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
-
         try:
-            ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
-        except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e.message),
+            pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
+
+            try:
+                ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
+            except dhis2_api.Dhis2ConnectionError as e:
+                self._save_object_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e.message),
+                                              harvest_object, 'Fetch')
+                return None
+            _org_unit_col = 'Organisation unit'
+            _area_name_col = 'area_name'
+            _area_id_col = 'area_id'
+            pt_df[_area_name_col] = pt_df[_org_unit_col].map(ou_id_name_map)
+            pt_df[_area_id_col] = pt_df[_org_unit_col]
+
+            _period_col = 'Period'
+            _year_col = 'year'
+            pt_df[_year_col] = pt_df[_period_col]
+
+            categories_map = {}
+            disabled_categories = []
+            for cc in pivot_table_column_config:
+                if not cc.get('enabled', False):
+                    disabled_categories.append(cc['id'])
+                target_column_ = cc['target_column']
+                if not isinstance(target_column_, list):
+                    target_column_ = [target_column_]
+                categories_map[cc['id']] = {
+                    "target_column": target_column_,
+                    "categories": cc['categories']
+                }
+            _category_column = 'Category option combo'
+            _data_element_column = 'Data'
+
+            pt_df['de_cat'] = pt_df[_data_element_column] + "-" + pt_df[_category_column]
+            # drop disabled categories
+            pt_df = pt_df[~pt_df['de_cat'].isin(disabled_categories)]
+            # map categories
+            _cat_cols = set()
+            _data_cols = set()
+            for i, row in pt_df.iterrows():
+                de_cat = row['de_cat']
+                c = categories_map[de_cat]
+                for tc in c['target_column']:
+                    _data_cols.add(tc)
+                    pt_df.loc[i, tc] = row['Value']
+                for cat, cat_val in c['categories'].iteritems():
+                    _cat_cols.add(cat)
+                    pt_df.loc[i, cat] = cat_val
+
+            # create final columns output
+            pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
+            # group by orgs and periods and categories
+            pt_df = pt_df.groupby([_area_id_col, _area_name_col, _year_col] + list(_cat_cols)).sum().reset_index()
+            # sort by area names
+            pt_df.sort_values(by=[_area_name_col, _year_col]).reset_index(drop=True)
+            # trim period strings
+            pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
+        except Exception as e:
+            exc_type, value, traceback = sys.exc_info()
+            self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}, {}:{}'
+                                          .format(pivot_table_id, dhis2_connection, exc_type, value),
                                           harvest_object, 'Fetch')
             return None
-        _org_unit_col = 'Organisation unit'
-        _area_name_col = 'area_name'
-        _area_id_col = 'area_id'
-        pt_df[_area_name_col] = pt_df[_org_unit_col].map(ou_id_name_map)
-        pt_df[_area_id_col] = pt_df[_org_unit_col]
 
-        _period_col = 'Period'
-        _year_col = 'year'
-        pt_df[_year_col] = pt_df[_period_col]
-
-        categories_map = {}
-        disabled_categories = []
-        for cc in pivot_table_column_config:
-            if not cc.get('enabled', False):
-                disabled_categories.append(cc['id'])
-            target_column_ = cc['target_column']
-            if not isinstance(target_column_, list):
-                target_column_ = [target_column_]
-            categories_map[cc['id']] = {
-                "target_column": target_column_,
-                "categories": cc['categories']
-            }
-        _category_column = 'Category option combo'
-        _data_element_column = 'Data'
-
-        pt_df['de_cat'] = pt_df[_data_element_column] + "-" + pt_df[_category_column]
-        # drop disabled categories
-        pt_df = pt_df[~pt_df['de_cat'].isin(disabled_categories)]
-        # map categories
-        _cat_cols = set()
-        _data_cols = set()
-        for i, row in pt_df.iterrows():
-            de_cat = row['de_cat']
-            c = categories_map[de_cat]
-            for tc in c['target_column']:
-                _data_cols.add(tc)
-                pt_df.loc[i, tc] = row['Value']
-            for cat, cat_val in c['categories'].iteritems():
-                _cat_cols.add(cat)
-                pt_df.loc[i, cat] = cat_val
-
-        # create final columns output
-        pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
-        # group by orgs and periods and categories
-        pt_df = pt_df.groupby([_area_id_col, _area_name_col, _year_col] + list(_cat_cols)).sum().reset_index()
-        # sort by area names
-        pt_df.sort_values(by=[_area_name_col, _year_col]).reset_index(drop=True)
-        # trim period strings
-        pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
         # save csv output for import stage
         content['csv'] = pt_df.to_csv(index=False)
         harvest_object.content = json.dumps(content)
