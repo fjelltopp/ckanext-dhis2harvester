@@ -19,6 +19,7 @@
   {% set selected_org = data.owner_org if data.owner_org else organizations_available[0].value %}
 
 
+  {% include 'source/pivot_table_data.html' %}
   {% include 'source/dhis2_credentials.html' %}
   {% include 'source/pivot_table_new_2.html' %}
   {% include 'source/pivot_table_new_3.html' %}

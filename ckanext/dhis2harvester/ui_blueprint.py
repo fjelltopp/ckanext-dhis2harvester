@@ -41,9 +41,6 @@ def pivot_tables_edit(harvest_source_id):
 
         data['column_values'] = harvest_config['column_values']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
-        data['pivot_tables'] = harvest_config['pivot_tables']
-        data['pivot_table_columns'] = harvest_config['pivot_table_columns']
-        data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
         (dhis2_url, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(harvest_config)
         data['dhis2_url'] = dhis2_url
         data['dhis2_auth_token'] = dhis2_auth_token
@@ -114,7 +111,8 @@ def pivot_tables_refresh(harvest_source_id):
 
 
 def __ui_state_machine(harvest_source_id=None):
-    data, dhis2_conn_, form_stage = __data_initialization()
+    edit = harvest_source_id is not None
+    data, dhis2_conn_, form_stage = __data_initialization(edit=edit)
     edit_configuration = harvest_source_id is not None
 
     if "back" in form_stage:
@@ -205,8 +203,6 @@ def __update_harvest_source(data, harvest_source_id):
 def __prepare_harvester_details(data):
     source_config = {
         'column_values': data['column_values'],
-        'pivot_tables': data['pivot_tables'],
-        'pivot_table_columns': data['pivot_table_columns'],
         'selected_pivot_tables': data['selected_pivot_tables'],
         'dhis2_url': data['dhis2_url'],
         'dhis2_auth_token': data['dhis2_auth_token']
@@ -227,8 +223,6 @@ def __prepare_harvester_details(data):
 
 
 def __configure_table_columns_stage(data):
-    # read col_ age_ gender_ inputs
-    log.debug(data)
     data['action'] = "pivot_table_new_4"
     return t.render(
         'source/pivot_table_new.html',
@@ -237,7 +231,6 @@ def __configure_table_columns_stage(data):
 
 
 def __pivot_table_select_stage(data, dhis2_conn_):
-    log.debug("Pivot table select stage submit data: " + str(data))
     data['action'] = "pivot_table_new_3"
     return t.render(
         'source/pivot_table_new.html',
@@ -268,6 +261,7 @@ def __dhis2_connection_stage(data, edit_configuration=False):
             {'data': data, 'edit_configuration': edit_configuration, 'errors': errors}
         )
     data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
+
     try:
         pivot_tables = dhis2_conn_.get_pivot_tables()
     except Dhis2ConnectionError as e:
@@ -295,7 +289,7 @@ def __go_back(data, form_stage, edit_configuration=False):
     )
 
 
-def __data_initialization():
+def __data_initialization(edit=False):
     data = request.form.to_dict()
     form_stage = data.get('action', 'pivot_table_new_1')
 
@@ -361,10 +355,24 @@ def __data_initialization():
             for c_id, c_details in columns_.iteritems():
                 c_details['id'] = c_id
                 columns_list_.append(c_details)
-            pt_column_values_['columns'] = columns_list_
+
+            if edit and not columns_list_:
+                old_column_values = {cv['id']: cv['columns'] for cv in json.loads(data['column_values'])}
+                if pt_id in old_column_values:
+                    pt_column_values_['columns'] = old_column_values[pt_id]
+                else:
+                    pt_column_values_['columns'] = []
+            else:
+                pt_column_values_['columns'] = columns_list_
             column_values.append(pt_column_values_)
         log.debug("Column values: " + str(column_values))
-        data['column_values'] = column_values
+        if edit and not column_values:
+            data['column_values'] = json.loads(data['column_values'])
+        else:
+            data['column_values'] = column_values
+    elif edit:
+        data['selected_pivot_tables'] = json.loads(data['selected_pivot_tables'])
+        data['column_values'] = json.loads(data['column_values'])
     return data, dhis2_conn_, form_stage
 
 
@@ -397,3 +405,9 @@ ui_blueprint.add_url_rule(
     view_func=pivot_tables_refresh,
     methods=['POST']
 )
+
+@ui_blueprint.app_template_filter()
+def json_dumps(json_obj):
+    if not json_obj:
+        return '{}'
+    return json.dumps(json_obj)
