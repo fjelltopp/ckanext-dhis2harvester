@@ -139,6 +139,21 @@ def _validate_required_fields(required_fields, errors=None):
             )
     return errors
 
+def _validate_area_map_resource_id(field_name, errors=None):
+    if errors is None:
+        errors = defaultdict(list)
+    if not request.form.get(field_name):
+        return errors
+    r_id = request.form.get(field_name)
+    try:
+        resource = t.get_action('resource_show')({}, { "id": r_id })
+    except Exception as e:
+        log.debug("Failed to get resource {}", e)
+        errors[field_name].append(
+            "Couldn't get the resource. Please verify resource id is correct."
+        )
+    return errors
+
 
 def _validate_dhis2_connection(dhis2_conn, errors=None):
     if errors is None:
@@ -197,7 +212,8 @@ def __prepare_harvester_details(data):
         'column_values': data['column_values'],
         'selected_pivot_tables': data['selected_pivot_tables'],
         'dhis2_url': data['dhis2_url'],
-        'dhis2_auth_token': data['dhis2_auth_token']
+        'dhis2_auth_token': data['dhis2_auth_token'],
+        'area_map_resource_id': data['area_map_resource_id']
     }
     harvester_name = data['name']
     data_dict = {
@@ -220,6 +236,13 @@ def __configure_table_columns_stage(data):
 
 
 def __pivot_table_select_stage(data, dhis2_conn_):
+    required_fields = [
+        {'label': 'Resource id for area map', 'name': 'area_map_resource_id'},
+    ]
+    errors = _validate_required_fields(required_fields)
+    errors = _validate_area_map_resource_id('area_map_resource_id', errors)
+    if errors:
+        return __render_pivot_table_template(data, errors)
     data['action'] = "pivot_table_new_3"
     errors = {}
     return __render_pivot_table_template(data, errors)
@@ -386,6 +409,7 @@ ui_blueprint.add_url_rule(
     view_func=pivot_tables_refresh,
     methods=['POST']
 )
+
 
 @ui_blueprint.app_template_filter()
 def json_dumps(json_obj):
