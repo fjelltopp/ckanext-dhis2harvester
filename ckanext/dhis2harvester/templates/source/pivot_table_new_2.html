@@ -87,7 +87,8 @@
 </div>
 
 <div class="row">
-  {{ form.input("area_map_resource_id", value=data.area_map_resource_id, error=errors.area_map_resource_id) }}
+  {{ form.input("area_map_resource_id", label=_("Area ID Crosswalk Table"),
+  value=data.area_map_resource_id, error=errors.area_map_resource_id, is_required=True) }}
 </div>
 
 <br/>

@@ -39,6 +39,7 @@ def pivot_tables_edit(harvest_source_id):
 
         data['column_values'] = harvest_config['column_values']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
+        data['area_map_resource_id'] = harvest_config['area_map_resource_id']
         (dhis2_url, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(harvest_config)
         data['dhis2_url'] = dhis2_url
         data['dhis2_auth_token'] = dhis2_auth_token
