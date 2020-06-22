@@ -1,4 +1,5 @@
 import logging
+from ckan.lib import uploader
 
 from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import (HarvestSource, HarvestJob, HarvestObject,
@@ -118,6 +119,7 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_url': config['dhis2_url'],
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
+                'area_map_resource_id': config['area_map_resource_id'],
                 'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
                 'output_resource_name': pt_config['name'],
                 'pivot_table_id': pt_id,
@@ -242,6 +244,26 @@ class PivotTablesHarvester(HarvesterBase):
             pt_df.sort_values(by=[_area_name_col, _year_col]).reset_index(drop=True)
             # trim period strings
             pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
+            # map area ids
+            context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
+            r_id = content['area_map_resource_id']
+            resource = t.get_action('resource_show')(
+                context,
+                {"id": r_id}
+            )
+            upload = uploader.get_resource_uploader(resource)
+            if not isinstance(upload, uploader.ResourceUpload):
+                self._save_object_error('Failed to process area id csv resource: {}'
+                                        .format(r_id),
+                                        harvest_object, 'Fetch')
+                return None
+            source = upload.get_path(resource[u'id'])
+            area_map_df = pd.read_csv(source)
+            if 'map_id' in list(area_map_df):
+                mapping_column_name = 'map_id'
+            else:
+                mapping_column_name = 'dhis2_id'
+            pt_df['area_id'] = pt_df['area_id'].replace(area_map_df.set_index(mapping_column_name)['area_id'])
         except Exception as e:
             exc_type, value, traceback = sys.exc_info()
             self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}, {}:{}'
