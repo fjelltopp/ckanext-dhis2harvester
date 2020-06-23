@@ -94,6 +94,9 @@ class Dhis2Connection(object):
             log.debug(ms.message)
             raise (Dhis2ConnectionError(ms.message))
 
+    def get_details(self):
+        return self.url, self.api_version, self.get_auth_token()
+
     def get_auth_token(self):
         if not self.auth_token:
             session = requests.session()
