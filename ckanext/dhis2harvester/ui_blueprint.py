@@ -40,8 +40,9 @@ def pivot_tables_edit(harvest_source_id):
         data['column_values'] = harvest_config['column_values']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
         data['area_map_resource_id'] = harvest_config['area_map_resource_id']
-        (dhis2_url, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(harvest_config)
+        (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(harvest_config)
         data['dhis2_url'] = dhis2_url
+        data['dhis2_api_version'] = dhis2_api_version
         data['dhis2_auth_token'] = dhis2_auth_token
         data['title'] = str(harvest_source['title'])
         data['description'] = str(harvest_source['notes'])
@@ -70,6 +71,8 @@ def pivot_tables_refresh(harvest_source_id):
     harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
     source_config = json.loads(harvest_source['config'])
     data = request.form.to_dict()
+    # Both view and submit are POST requests due to ckan-harvest flow
+    # if data is empty display the form
     if data:
         dhis2_conn_ = __get_dhis_conn()
         errors = _validate_dhis2_connection(dhis2_conn_)
@@ -80,6 +83,7 @@ def pivot_tables_refresh(harvest_source_id):
             )
         source_config.update({
             'dhis2_url': data['dhis2_url'],
+            'dhis2_api_version': data['dhis2_api_version'],
             'dhis2_auth_token': dhis2_conn_.get_auth_token()
         })
         harvester_name = harvest_source['name']
@@ -96,9 +100,11 @@ def pivot_tables_refresh(harvest_source_id):
             raise e
         return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
     else:
+        # this is
         data = {}
-        (dhis2_url, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(source_config)
+        (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(source_config)
         data['dhis2_url'] = dhis2_url
+        data['dhis2_api_version'] = dhis2_api_version
         data['dhis2_auth_token'] = dhis2_auth_token
         return t.render(
             'source/pivot_table_refresh.html',
@@ -213,6 +219,7 @@ def __prepare_harvester_details(data):
         'column_values': data['column_values'],
         'selected_pivot_tables': data['selected_pivot_tables'],
         'dhis2_url': data['dhis2_url'],
+        'dhis2_api_version': data['dhis2_api_version'],
         'dhis2_auth_token': data['dhis2_auth_token'],
         'area_map_resource_id': data['area_map_resource_id']
     }
