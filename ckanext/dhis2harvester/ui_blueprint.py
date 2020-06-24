@@ -123,9 +123,9 @@ def __ui_state_machine(harvest_source_id=None):
     elif form_stage == 'pivot_table_new_1':
         return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_2':
-        return __pivot_table_select_stage(data, dhis2_conn_)
+        return __pivot_table_select_stage(data, dhis2_conn_, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_3':
-        return __configure_table_columns_stage(data)
+        return __configure_table_columns_stage(data, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_4':
         return __summary_stage(data)
     elif form_stage == 'pivot_table_new_save':
@@ -240,22 +240,22 @@ def __prepare_harvester_details(data):
     return data_dict, harvester_name
 
 
-def __configure_table_columns_stage(data):
+def __configure_table_columns_stage(data, edit_configuration=False):
     data['action'] = "pivot_table_new_4"
-    return __render_pivot_table_template(data, {})
+    return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
 
 
-def __pivot_table_select_stage(data, dhis2_conn_):
+def __pivot_table_select_stage(data, dhis2_conn_, edit_configuration=False):
     required_fields = [
         {'label': 'Resource id for area map', 'name': 'area_map_resource_id'},
     ]
     errors = _validate_required_fields(required_fields)
     errors = _validate_area_map_resource_id('area_map_resource_id', errors)
     if errors:
-        return __render_pivot_table_template(data, errors)
+        return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
     data['action'] = "pivot_table_new_3"
     errors = {}
-    return __render_pivot_table_template(data, errors)
+    return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
 
 
 def __render_pivot_table_template(data, errors, **kwargs):
