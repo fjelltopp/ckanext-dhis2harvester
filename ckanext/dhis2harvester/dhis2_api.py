@@ -29,22 +29,23 @@ class Dhis2Connection(object):
     SECURITY_LOGIN_ACTION = 'dhis-web-commons-security/login.action'
     ORG_UNIT_RESOURCE = "organisationUnits?paging=false&fields=id,name"
 
-    def __init__(self, url, username=None, password=None, auth_token=None):
+    def __init__(self, url, username=None, password=None, auth_token=None, api_version=DEFAULT_API_VERSION):
         self.url = self.__add_trailing_slash(url)
-        self.api_url = self.__api_url(self.url)
+        self.api_version = api_version
+        self.api_url = self.__api_url(self.url, self.api_version)
         self.username = username
         self.password = password
         self.auth_token = auth_token
 
     def __str__(self):
-        return "Dhis2Connection(api_url={self.api_url})".format(self=self)
+        return "Dhis2Connection(api_url={self.api_url}, username={self.username})".format(self=self)
 
     def __add_trailing_slash(self, url):
         if not url.endswith('/'):
             url += '/'
         return url
 
-    def __api_url(self, url, version=DEFAULT_API_VERSION):
+    def __api_url(self, url, version):
         url = self.__add_trailing_slash(url)
         url += 'api/'
         if version:
@@ -92,6 +93,9 @@ class Dhis2Connection(object):
         except MissingSchema as ms:
             log.debug(ms.message)
             raise (Dhis2ConnectionError(ms.message))
+
+    def get_details(self):
+        return self.url, self.api_version, self.get_auth_token()
 
     def get_auth_token(self):
         if not self.auth_token:

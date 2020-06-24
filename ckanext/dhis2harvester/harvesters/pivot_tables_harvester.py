@@ -117,6 +117,7 @@ class PivotTablesHarvester(HarvesterBase):
                 data_elements, pt_config['ou_levels'], pt_config['periods'])
             harvest_object_data = {
                 'dhis2_url': config['dhis2_url'],
+                'dhis2_api_version': config['dhis2_api_version'],
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
                 'area_map_resource_id': config['area_map_resource_id'],
@@ -135,8 +136,9 @@ class PivotTablesHarvester(HarvesterBase):
 
     def _get_dhis2_connection(self, config):
         dhis2_url = config['dhis2_url']
+        dhis2_api_version = config['dhis2_api_version']
         dhis2_auth_token = config['dhis2_auth_token']
-        return dhis2_api.Dhis2Connection(dhis2_url, auth_token=dhis2_auth_token)
+        return dhis2_api.Dhis2Connection(dhis2_url, api_version=dhis2_api_version, auth_token=dhis2_auth_token)
 
     def fetch_stage(self, harvest_object):
         '''
