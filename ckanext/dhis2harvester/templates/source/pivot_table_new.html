@@ -25,10 +25,7 @@
   {% include 'source/pivot_table_new_3.html' %}
   {% include 'source/pivot_table_new_4.html' %}
 
-  {%  if edit_configuration %}
-    <br/>
-    <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_save">{{_("Save changes")}}</button>
-  {% endif %}
+
 
   {% if data.get('id', None) and h.check_access('harvest_source_delete', {'id': data.id}) and data.get('state', 'none') == 'deleted' %}
     <div class="control-group">
@@ -42,7 +39,10 @@
     </div>
   {% endif %}
 
-  <p class="form-actions">
+  <div class="form-actions">
+    {%  if edit_configuration %}
+        <button class="btn btn-default" type="submit" name="action" value="pivot_table_new_save">{{_("Save & Close")}}</button>
+    {% endif %}
     {% block delete_button %}
       {% if data.get('id', None) and h.check_access('harvest_source_delete', {'id': data.id}) and not data.get('state', 'none') == 'deleted' %}
         {% set locale_delete = h.dump_json({'content': _('This will flag the source as deleted but keep all its datasets and previous jobs. Are you sure you want to delete this harvest source?')}) %}
@@ -67,6 +67,6 @@
         </div>
       {% endif %}
     {% endblock %}
-  </p>
+  </div>
 </form>
 {% endblock %}
