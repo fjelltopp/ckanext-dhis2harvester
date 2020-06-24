@@ -246,11 +246,7 @@ def __configure_table_columns_stage(data, edit_configuration=False):
 
 
 def __pivot_table_select_stage(data, dhis2_conn_, edit_configuration=False):
-    required_fields = [
-        {'label': 'Resource id for area map', 'name': 'area_map_resource_id'},
-    ]
-    errors = _validate_required_fields(required_fields)
-    errors = _validate_area_map_resource_id('area_map_resource_id', errors)
+    errors = _validate_area_map_resource_id('area_map_resource_id')
     if errors:
         return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
     data['action'] = "pivot_table_new_3"

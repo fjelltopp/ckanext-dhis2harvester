@@ -228,16 +228,21 @@ class PivotTablesHarvester(HarvesterBase):
             # map categories
             _cat_cols = set()
             _data_cols = set()
+            _index_to_drop = []
             for i, row in pt_df.iterrows():
                 de_cat = row['de_cat']
-                c = categories_map[de_cat]
+                try:
+                    c = categories_map[de_cat]
+                except KeyError:
+                    _index_to_drop.append(i)
+                    continue
                 for tc in c['target_column']:
                     _data_cols.add(tc)
                     pt_df.loc[i, tc] = row['Value']
                 for cat, cat_val in c['categories'].iteritems():
                     _cat_cols.add(cat)
                     pt_df.loc[i, cat] = cat_val
-
+            pt_df = pt_df.drop(_index_to_drop)
             # create final columns output
             pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
             # group by orgs and periods and categories
@@ -247,25 +252,26 @@ class PivotTablesHarvester(HarvesterBase):
             # trim period strings
             pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
             # map area ids
-            context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
             r_id = content['area_map_resource_id']
-            resource = t.get_action('resource_show')(
-                context,
-                {"id": r_id}
-            )
-            upload = uploader.get_resource_uploader(resource)
-            if not isinstance(upload, uploader.ResourceUpload):
-                self._save_object_error('Failed to process area id csv resource: {}'
-                                        .format(r_id),
-                                        harvest_object, 'Fetch')
-                return None
-            source = upload.get_path(resource[u'id'])
-            area_map_df = pd.read_csv(source)
-            if 'map_id' in list(area_map_df):
-                mapping_column_name = 'map_id'
-            else:
-                mapping_column_name = 'dhis2_id'
-            pt_df['area_id'] = pt_df['area_id'].replace(area_map_df.set_index(mapping_column_name)['area_id'])
+            if r_id:
+                context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
+                resource = t.get_action('resource_show')(
+                    context,
+                    {"id": r_id}
+                )
+                upload = uploader.get_resource_uploader(resource)
+                if not isinstance(upload, uploader.ResourceUpload):
+                    self._save_object_error('Failed to process area id csv resource: {}'
+                                            .format(r_id),
+                                            harvest_object, 'Fetch')
+                    return None
+                source = upload.get_path(resource[u'id'])
+                area_map_df = pd.read_csv(source)
+                if 'map_id' in list(area_map_df):
+                    mapping_column_name = 'map_id'
+                else:
+                    mapping_column_name = 'dhis2_id'
+                pt_df['area_id'] = pt_df['area_id'].replace(area_map_df.set_index(mapping_column_name)['area_id'])
         except Exception as e:
             exc_type, value, traceback = sys.exc_info()
             self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}, {}:{}'
