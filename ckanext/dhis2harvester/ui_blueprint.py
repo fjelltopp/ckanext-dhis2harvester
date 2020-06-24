@@ -47,12 +47,12 @@ def pivot_tables_edit(harvest_source_id):
         data['title'] = str(harvest_source['title'])
         data['description'] = str(harvest_source['notes'])
         data['name'] = str(harvest_source['name'])
-        data['owner_org'] = str(harvest_source['owner_org'])
+        data['owner_org'] = h.get_organization(harvest_source['owner_org'])
 
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
-        return __render_pivot_table_template(data, {}, edit_configuration=True)
+        return __render_pivot_table_template(data, {}, edit_configuration=True, c=harvest_source)
 
 
 def __get_dhis2_connection_details_from_harvest_source(harvest_config):
@@ -76,9 +76,10 @@ def pivot_tables_refresh(harvest_source_id):
         dhis2_conn_ = __get_dhis_conn(request.form)
         errors = _validate_dhis2_connection(dhis2_conn_)
         if errors:
+            _data = {'owner_org' :h.get_organization(harvest_source['owner_org'])}
             return t.render(
                 'source/pivot_table_refresh.html',
-                {'data': {}, 'harvest_source_id': harvest_source_id, 'errors': errors}
+                {'data': _data, 'c': harvest_source, 'errors': errors}
             )
         source_config.update({
             'dhis2_url': data['dhis2_url'],
@@ -105,9 +106,10 @@ def pivot_tables_refresh(harvest_source_id):
         data['dhis2_url'] = dhis2_url
         data['dhis2_api_version'] = dhis2_api_version
         data['dhis2_auth_token'] = dhis2_auth_token
+        data['owner_org'] = h.get_organization(harvest_source['owner_org'])
         return t.render(
             'source/pivot_table_refresh.html',
-            {'data': data, 'harvest_source_id': harvest_source_id, 'errors': {}}
+            {'data': data, 'c': harvest_source, 'errors': {}}
         )
 
 
