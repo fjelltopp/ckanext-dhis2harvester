@@ -25,11 +25,10 @@
     <div class="header">
       <div class="element row">
         <span class="label col-xs-12 col-sm-3">Pivot table:</span>
-        <span class="value col-xs-12 col-sm-9">{{pivot_table.text}}</span>
-      </div>
-      <div class="element row">
-        <span class="label col-xs-12 col-sm-3">DHIS2 ID:</span>
-        <span class="value col-xs-12 col-sm-9">{{pivot_table.id}}</span>
+        <div class="col-xs-12 col-sm-9">
+          <span class="value">{{pivot_table.text}}</span><br />
+          <span class="small">({{_('DHIS2 ID:')}} {{pivot_table.id}})</span>
+        </div>
       </div>
       <div class="element row">
         <span class="label col-xs-12 col-sm-3">Target Type:</span>
@@ -43,8 +42,7 @@
       {% set column_enabled = column_data.enabled if column_data else True %}
       <div class="column-config toggle-box">
         <div class="header">
-          <span class="column-title">{{ column['text'] }}</span>
-          <span class="toggle-content hidden"> (Excluded) </span>
+          <span class="column-title">{{ column['text'] }} <span class="toggle-content hidden"> (Excluded) </span></span>
           <a href="#" class="toggle-btn pull-right" data-module="toggle_box" {% if not column_enabled %}data-module-toggled="true"{% endif %}><i class="fa fa-toggle-on"></i></a>
           <input type="checkbox" name={{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
         </div>
@@ -108,7 +106,8 @@
   </div>
 {% endfor %}
 
-<button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
-<button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
-
+  <div class="form-nav">
+    <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
+    <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
+  </div>
 </div>
