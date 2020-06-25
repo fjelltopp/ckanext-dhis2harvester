@@ -132,6 +132,26 @@ class PivotTablesHarvester(HarvesterBase):
                                 content=json.dumps(harvest_object_data))
             obj.save()
             obj_ids.append(obj.id)
+        r_id = config['area_map_resource_id']
+        if r_id:
+            try:
+                context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
+                source = get_csv_resource_source(r_id, context)
+            except ResourceTypeError:
+                self._save_gather_error('Failed to process area id csv resource: {}'.format(r_id), harvest_job)
+                return None
+            area_map_df = pd.read_csv(source)
+            harvest_object_data = {
+                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
+                'output_resource_name': 'Area ID Crosswalk Table',
+                'csv': area_map_df.to_csv(index=False)
+            }
+            obj = HarvestObject(guid="pivot_table",
+                                job=harvest_job,
+                                content=json.dumps(harvest_object_data))
+            obj.save()
+            obj_ids.append(obj.id)
+
         return obj_ids
 
     def _get_dhis2_connection(self, config):
@@ -169,6 +189,11 @@ class PivotTablesHarvester(HarvesterBase):
             return False
 
         content = json.loads(harvest_object.content)
+
+        if 'csv' in content:
+            # csv stream already present skip to import stage
+            return True
+
         pivot_table_id = content.get("pivot_table_id", "Unknown")
 
         dhis2_connection = self._get_dhis2_connection(content)
@@ -255,12 +280,9 @@ class PivotTablesHarvester(HarvesterBase):
             r_id = content['area_map_resource_id']
             if r_id:
                 context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
-                resource = t.get_action('resource_show')(
-                    context,
-                    {"id": r_id}
-                )
-                upload = uploader.get_resource_uploader(resource)
-                if not isinstance(upload, uploader.ResourceUpload):
+                try:
+                    source = get_csv_resource_source(r_id, context)
+                except ResourceTypeError:
                     self._save_object_error('Failed to process area id csv resource: {}'
                                             .format(r_id),
                                             harvest_object, 'Fetch')
@@ -395,3 +417,19 @@ class PivotTablesHarvester(HarvesterBase):
         harvest_object.save()
 
         return True
+
+
+class ResourceTypeError(Exception):
+    pass
+
+
+def get_csv_resource_source(resource_id, context):
+    resource = t.get_action('resource_show')(
+        context,
+        {"id": resource_id}
+    )
+    upload = uploader.get_resource_uploader(resource)
+    if not isinstance(upload, uploader.ResourceUpload):
+        raise ResourceTypeError
+    source = upload.get_path(resource[u'id'])
+    return source
