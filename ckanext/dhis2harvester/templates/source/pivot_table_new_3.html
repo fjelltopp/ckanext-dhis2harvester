@@ -7,14 +7,14 @@
 
 <ul class="pivot-table-tabs nav nav-tabs" data-module="tabs" data-module-tab-class=".pivot-table-config">
   {% for pivot_table in data.selected_pivot_tables %}
-    <li {% if loop.index==1 %} class="active" {% endif %} target_page="{{pivot_table.id}}"><a href="#">{{pivot_table.text[0:20]}}{% if pivot_table.text|length >= 15 %}...{% endif %}</a></li>
+    <li {% if loop.index==1 %} class="active" {% endif %} target_page="{{pivot_table.id}}"><a href="#">{{pivot_table.text|truncate(20)}}</a></li>
   {% endfor %}
 </ul>
 
 {% for pivot_table in data.selected_pivot_tables %}
 
   {% set pivot_tables_data = data.column_values|selectattr("id", "equalto", pivot_table.id)|list if data.column_values else None%}
-  {% set pivot_table_data = pivot_tables_data|first %}
+  {% set pivot_table_data = pivot_tables_data|first if pivot_tables_data else None%}
   {% set pivot_table_column_values = pivot_table_data.columns if pivot_table_data else None %}
 
   {% set target_type = data.selected_pivot_tables|selectattr("id", "equalto", pivot_table.id)|list|first %}
