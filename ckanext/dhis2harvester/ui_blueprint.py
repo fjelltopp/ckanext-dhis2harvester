@@ -180,11 +180,11 @@ def __get_dhis_conn(data_dict):
     dhis2_kwargs = {}
     dhis2_url = data_dict.get('dhis2_url')
     dhis2_kwargs['api_version'] = data_dict.get('dhis2_api_version')
-    if data_dict.get('dhis2_auth_token'):
-        dhis2_kwargs['auth_token'] = data_dict.get('dhis2_auth_token')
-    else:
+    if all([data_dict.get(x) for x in ('dhis2_username', 'dhis2_password')]):
         dhis2_kwargs['username'] = data_dict.get('dhis2_username')
         dhis2_kwargs['password'] = data_dict.get('dhis2_password')
+    else:
+        dhis2_kwargs['auth_token'] = data_dict.get('dhis2_auth_token')
     dhis2_conn = Dhis2Connection(dhis2_url, **dhis2_kwargs)
     return dhis2_conn
 
@@ -279,6 +279,8 @@ def __dhis2_connection_stage(data, edit_configuration=False):
     if errors:
         data['action'] = 'pivot_table_new_1'
         return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
+    data['dhis2_username'] = ''
+    data['dhis2_password'] = ''
     data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
 
     try:
@@ -303,15 +305,21 @@ def __data_initialization(edit=False):
     data = request.form.to_dict()
     form_stage = data.get('action', 'pivot_table_new_1')
 
-    # dhis2 connection
-    dhis2_conn_ = __get_dhis_conn(request.form)
+    if edit:
+        data['selected_pivot_tables'] = json.loads(data['selected_pivot_tables'])
+        data['column_values'] = json.loads(data['column_values'])
+        __get_pt_configs(data)
+
+    dhis2_conn_ = __get_dhis_conn(data)
     try:
         dhis2_conn_.test_connection()
     except Dhis2ConnectionError:
         dhis2_conn_ = None
     if not dhis2_conn_:
         return data, dhis2_conn_, form_stage
-
+    data['dhis2_username'] = ''
+    data['dhis2_password'] = ''
+    data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
     __get_pt_configs(data)
 
     pivot_tables_ = dhis2_conn_.get_pivot_tables()
@@ -367,7 +375,7 @@ def __data_initialization(edit=False):
                 columns_list_.append(c_details)
 
             if edit and not columns_list_:
-                old_column_values = {cv['id']: cv['columns'] for cv in json.loads(data['column_values'])}
+                old_column_values = {cv['id']: cv['columns'] for cv in data['column_values']}
                 if pt_id in old_column_values:
                     pt_column_values_['columns'] = old_column_values[pt_id]
                 else:
@@ -376,13 +384,6 @@ def __data_initialization(edit=False):
                 pt_column_values_['columns'] = columns_list_
             column_values.append(pt_column_values_)
         log.debug("Column values: " + str(column_values))
-        if edit and not column_values:
-            data['column_values'] = json.loads(data['column_values'])
-        else:
-            data['column_values'] = column_values
-    elif edit:
-        data['selected_pivot_tables'] = json.loads(data['selected_pivot_tables'])
-        data['column_values'] = json.loads(data['column_values'])
     return data, dhis2_conn_, form_stage
 
 
