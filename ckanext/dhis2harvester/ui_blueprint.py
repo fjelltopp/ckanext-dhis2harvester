@@ -68,6 +68,7 @@ def __get_dhis2_connection_details_from_harvest_source(harvest_config):
 
 def pivot_tables_refresh(harvest_source_id):
     harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+    harvester_name = harvest_source['name']
     source_config = json.loads(harvest_source['config'])
     data = request.form.to_dict()
     # Both view and submit are POST requests due to ckan-harvest flow
@@ -86,7 +87,6 @@ def pivot_tables_refresh(harvest_source_id):
             'dhis2_api_version': data['dhis2_api_version'],
             'dhis2_auth_token': dhis2_conn_.get_auth_token()
         })
-        harvester_name = harvest_source['name']
         harvest_source['config'] = json.dumps(source_config)
         try:
             source = t.get_action("harvest_source_update")({}, harvest_source)
@@ -103,6 +103,12 @@ def pivot_tables_refresh(harvest_source_id):
         # this is
         data = {}
         (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(source_config)
+        if dhis2_auth_token:
+            try:
+                harvest_utils.create_job(harvest_source_id)
+                return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+            except ValidationError as e:
+                log.error("An error occurred: {}".format(str(e)))
         data['dhis2_url'] = dhis2_url
         data['dhis2_api_version'] = dhis2_api_version
         data['dhis2_auth_token'] = dhis2_auth_token
