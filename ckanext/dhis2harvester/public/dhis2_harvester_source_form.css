@@ -225,3 +225,17 @@
   position: relative;
   top: 1px;
 }
+
+.formnav-stages{
+  margin-bottom: 50px;
+}
+
+.formnav-stages i {
+  margin-left: 15px;
+  font-weight: bold;
+  font-size: 120%;
+}
+
+.formnav-stages button{
+  border: none;
+}
