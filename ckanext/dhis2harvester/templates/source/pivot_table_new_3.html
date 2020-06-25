@@ -7,7 +7,7 @@
 
 <ul class="pivot-table-tabs nav nav-tabs" data-module="tabs" data-module-tab-class=".pivot-table-config">
   {% for pivot_table in data.selected_pivot_tables %}
-    <li {% if loop.index==1 %} class="active" {% endif %} target_page="{{pivot_table.id}}"><a href="#">{{pivot_table.text[0:20]}}{% if pivot_table.text|length >= 15 %}...{% endif %}</a></li>
+    <li {% if loop.index==1 %} class="active" {% endif %} target_page="{{pivot_table.id}}"><a href="#">{{pivot_table.text|truncate(20)}}</a></li>
   {% endfor %}
 </ul>
 
