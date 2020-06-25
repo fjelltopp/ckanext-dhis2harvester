@@ -11,7 +11,6 @@ this.ckan.module('toggle_box', function ($) {
       $.proxyAll(this, /_on/);
       this.el.on('click', this._onClick);
       if( this.options.toggled == true ){
-        console.log("clicking");
         this.el.click();
       }
     },
