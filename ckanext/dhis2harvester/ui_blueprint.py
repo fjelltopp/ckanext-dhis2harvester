@@ -338,56 +338,58 @@ def __data_initialization(edit=False):
                                  zip(pivot_table_ids, pivot_table_types)]
         data['selected_pivot_tables'] = selected_pivot_tables
         log.debug("Selected pivot tables: " + str(selected_pivot_tables))
+    elif not pivot_table_ids:
+        pivot_table_ids = [x['id'] for x in data['selected_pivot_tables']]
 
-        # pivot table columns
-        pivot_table_columns_ = {}
-        for pt_id in pivot_table_ids:
-            columns_ = dhis2_conn_.get_pivot_table_columns(pt_id)
-            pt_columns_ = [{'value': c['id'], 'text': c['name']} for c in columns_]
-            pivot_table_columns_[pt_id] = pt_columns_
-        data['pivot_table_columns'] = pivot_table_columns_
-        log.debug("Pivot table columns: " + str(pivot_table_columns_))
+    # pivot table columns
+    pivot_table_columns_ = {}
+    for pt_id in pivot_table_ids:
+        columns_ = dhis2_conn_.get_pivot_table_columns(pt_id)
+        pt_columns_ = [{'value': c['id'], 'text': c['name']} for c in columns_]
+        pivot_table_columns_[pt_id] = pt_columns_
+    data['pivot_table_columns'] = pivot_table_columns_
+    log.debug("Pivot table columns: " + str(pivot_table_columns_))
 
-        # selected column values
-        column_values = []
-        for pt in selected_pivot_tables:
-            pt_id = pt['id']
-            pt_type = pt['type']
-            pt_column_values_ = {
-                'id': pt_id,
-            }
-            columns_ = defaultdict(dict)
-            for k in data:
-                if k.startswith("target_column_{}".format(pt_id)):
-                    c_id_ = k.split('_')[-1]
-                    target_column_ = data[k]
-                    columns_[c_id_]['target_column'] = target_column_
-                elif k.startswith("category_{}".format(pt_id)):
-                    tc_, c_id_ = k.split('_')[-2:]
-                    tc_value_ = data[k]
-                    if not 'categories' in columns_[c_id_]:
-                        columns_[c_id_]['categories'] = {}
-                    columns_[c_id_]['categories'][tc_] = tc_value_
-                elif k.startswith("column_enabled_{}".format(pt_id)):
-                    c_id_ = k.split('_')[-1]
-                    enabled_ = str(data[k]).lower() == 'true'
-                    columns_[c_id_]['enabled'] = enabled_
+    # selected column values
+    column_values = []
+    for pt in data['selected_pivot_tables']:
+        pt_id = pt['id']
+        pt_type = pt['type']
+        pt_column_values_ = {
+            'id': pt_id,
+        }
+        columns_ = defaultdict(dict)
+        for k in data:
+            if k.startswith("target_column_{}".format(pt_id)):
+                c_id_ = k.split('_')[-1]
+                target_column_ = data[k]
+                columns_[c_id_]['target_column'] = target_column_
+            elif k.startswith("category_{}".format(pt_id)):
+                tc_, c_id_ = k.split('_')[-2:]
+                tc_value_ = data[k]
+                if not 'categories' in columns_[c_id_]:
+                    columns_[c_id_]['categories'] = {}
+                columns_[c_id_]['categories'][tc_] = tc_value_
+            elif k.startswith("column_enabled_{}".format(pt_id)):
+                c_id_ = k.split('_')[-1]
+                enabled_ = str(data[k]).lower() == 'true'
+                columns_[c_id_]['enabled'] = enabled_
 
-            columns_list_ = []
-            for c_id, c_details in columns_.iteritems():
-                c_details['id'] = c_id
-                columns_list_.append(c_details)
+        columns_list_ = []
+        for c_id, c_details in columns_.iteritems():
+            c_details['id'] = c_id
+            columns_list_.append(c_details)
 
-            if edit and not columns_list_:
-                old_column_values = {cv['id']: cv['columns'] for cv in data['column_values']}
-                if pt_id in old_column_values:
-                    pt_column_values_['columns'] = old_column_values[pt_id]
-                else:
-                    pt_column_values_['columns'] = []
+        if edit and not columns_list_:
+            old_column_values = {cv['id']: cv['columns'] for cv in data['column_values']}
+            if pt_id in old_column_values:
+                pt_column_values_['columns'] = old_column_values[pt_id]
             else:
-                pt_column_values_['columns'] = columns_list_
-            column_values.append(pt_column_values_)
-        log.debug("Column values: " + str(column_values))
+                pt_column_values_['columns'] = []
+        else:
+            pt_column_values_['columns'] = columns_list_
+        column_values.append(pt_column_values_)
+    log.debug("Column values: " + str(column_values))
     return data, dhis2_conn_, form_stage
 
 
