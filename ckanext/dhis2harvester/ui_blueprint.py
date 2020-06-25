@@ -305,10 +305,9 @@ def __data_initialization(edit=False):
     data = request.form.to_dict()
     form_stage = data.get('action', 'pivot_table_new_1')
 
-    if edit:
-        data['selected_pivot_tables'] = json.loads(data['selected_pivot_tables'])
-        data['column_values'] = json.loads(data['column_values'])
-        __get_pt_configs(data)
+    data['selected_pivot_tables'] = json.loads(data.get('selected_pivot_tables', '{}'))
+    data['column_values'] = json.loads(data.get('column_values', '{}'))
+    __get_pt_configs(data)
 
     dhis2_conn_ = __get_dhis_conn(data)
     try:
@@ -320,7 +319,6 @@ def __data_initialization(edit=False):
     data['dhis2_username'] = ''
     data['dhis2_password'] = ''
     data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
-    __get_pt_configs(data)
 
     pivot_tables_ = dhis2_conn_.get_pivot_tables()
     pivot_tables_options = [{'value': pt['id'], 'text': pt['name']} for pt in pivot_tables_]

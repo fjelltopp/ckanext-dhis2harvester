@@ -14,7 +14,7 @@
 {% for pivot_table in data.selected_pivot_tables %}
 
   {% set pivot_tables_data = data.column_values|selectattr("id", "equalto", pivot_table.id)|list if data.column_values else None%}
-  {% set pivot_table_data = pivot_tables_data|first %}
+  {% set pivot_table_data = pivot_tables_data|first if pivot_tables_data else None%}
   {% set pivot_table_column_values = pivot_table_data.columns if pivot_table_data else None %}
 
   {% set target_type = data.selected_pivot_tables|selectattr("id", "equalto", pivot_table.id)|list|first %}
