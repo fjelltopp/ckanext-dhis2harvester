@@ -15,6 +15,7 @@ import uuid
 import json
 
 import sys
+
 if sys.version_info[0] < 3:
     from StringIO import StringIO
 else:
@@ -132,6 +133,26 @@ class PivotTablesHarvester(HarvesterBase):
                                 content=json.dumps(harvest_object_data))
             obj.save()
             obj_ids.append(obj.id)
+        r_id = config['area_map_resource_id']
+        if r_id:
+            try:
+                context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
+                source = get_csv_resource_source(r_id, context)
+            except ResourceTypeError:
+                self._save_gather_error('Failed to process area id csv resource: {}'.format(r_id), harvest_job)
+                return None
+            area_map_df = pd.read_csv(source)
+            harvest_object_data = {
+                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
+                'output_resource_name': 'Area ID Crosswalk Table',
+                'csv': area_map_df.to_csv(index=False)
+            }
+            obj = HarvestObject(guid="pivot_table",
+                                job=harvest_job,
+                                content=json.dumps(harvest_object_data))
+            obj.save()
+            obj_ids.append(obj.id)
+
         return obj_ids
 
     def _get_dhis2_connection(self, config):
@@ -165,18 +186,24 @@ class PivotTablesHarvester(HarvesterBase):
             return False
 
         if harvest_object.content is None:
-            self._save_object_error('Empty content for object {}'.format(harvest_object.id) ,harvest_object, 'Fetch')
+            self._save_object_error('Empty content for object {}'.format(harvest_object.id), harvest_object, 'Fetch')
             return False
 
         content = json.loads(harvest_object.content)
+
+        if 'csv' in content:
+            # csv stream already present skip to import stage
+            return True
+
         pivot_table_id = content.get("pivot_table_id", "Unknown")
 
         dhis2_connection = self._get_dhis2_connection(content)
         try:
             dhis2_connection.test_connection()
         except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error_error('Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
-                                    harvest_object, 'Fetch')
+            self._save_object_error_error(
+                'Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
+                harvest_object, 'Fetch')
             return None
         dhis2_api_full_resource = content['dhis2_api_full_resource']
         pivot_table_column_config = content['pivot_table_column_config']
@@ -184,7 +211,7 @@ class PivotTablesHarvester(HarvesterBase):
             pt_csv = dhis2_connection.get_api_resource(dhis2_api_full_resource)
         except dhis2_api.Dhis2ConnectionError as e:
             self._save_object_error_error('Unable to get dhis2 data: {}: {}: {}'
-                                              .format(dhis2_api_full_resource, dhis2_connection, e.message),
+                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
                                           harvest_object, 'Fetch')
             return None
         csv_stream = StringIO(pt_csv.text)
@@ -195,7 +222,7 @@ class PivotTablesHarvester(HarvesterBase):
                 ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
             except dhis2_api.Dhis2ConnectionError as e:
                 self._save_object_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e.message),
-                                              harvest_object, 'Fetch')
+                                        harvest_object, 'Fetch')
                 return None
             _org_unit_col = 'Organisation unit'
             _area_name_col = 'area_name'
@@ -255,17 +282,13 @@ class PivotTablesHarvester(HarvesterBase):
             r_id = content['area_map_resource_id']
             if r_id:
                 context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
-                resource = t.get_action('resource_show')(
-                    context,
-                    {"id": r_id}
-                )
-                upload = uploader.get_resource_uploader(resource)
-                if not isinstance(upload, uploader.ResourceUpload):
+                try:
+                    source = get_csv_resource_source(r_id, context)
+                except ResourceTypeError:
                     self._save_object_error('Failed to process area id csv resource: {}'
                                             .format(r_id),
                                             harvest_object, 'Fetch')
                     return None
-                source = upload.get_path(resource[u'id'])
                 area_map_df = pd.read_csv(source)
                 if 'map_id' in list(area_map_df):
                     mapping_column_name = 'map_id'
@@ -275,8 +298,8 @@ class PivotTablesHarvester(HarvesterBase):
         except Exception as e:
             exc_type, value, traceback = sys.exc_info()
             self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}, {}:{}'
-                                          .format(pivot_table_id, dhis2_connection, exc_type, value),
-                                          harvest_object, 'Fetch')
+                                    .format(pivot_table_id, dhis2_connection, exc_type, value),
+                                    harvest_object, 'Fetch')
             return None
 
         # save csv output for import stage
@@ -318,7 +341,7 @@ class PivotTablesHarvester(HarvesterBase):
             return False
 
         if harvest_object.content is None:
-            self._save_object_error('Empty content for object {}'.format(harvest_object.id) ,harvest_object, 'Fetch')
+            self._save_object_error('Empty content for object {}'.format(harvest_object.id), harvest_object, 'Fetch')
             return False
 
         context = {'model': model, 'session': model.Session,
@@ -347,7 +370,7 @@ class PivotTablesHarvester(HarvesterBase):
         }
 
         try:
-            existing_package = t.get_action('package_show')(context, { "id": package_data["name"] })
+            existing_package = t.get_action('package_show')(context, {"id": package_data["name"]})
             # TODO : if the package is in a deleted state we should activate it
             existing_package.update(package_data)
             new_package = t.get_action('package_update')(context, existing_package)
@@ -367,7 +390,7 @@ class PivotTablesHarvester(HarvesterBase):
             "upload": FlaskFileStorage(
                 stream=csv_stream,
                 filename=csv_filename
-                ),
+            ),
             "package_id": new_package["id"]
         }
         found = False
@@ -395,3 +418,19 @@ class PivotTablesHarvester(HarvesterBase):
         harvest_object.save()
 
         return True
+
+
+class ResourceTypeError(Exception):
+    pass
+
+
+def get_csv_resource_source(resource_id, context):
+    resource = t.get_action('resource_show')(
+        context,
+        {"id": resource_id}
+    )
+    upload = uploader.get_resource_uploader(resource)
+    if not isinstance(upload, uploader.ResourceUpload):
+        raise ResourceTypeError
+    source = upload.get_path(resource[u'id'])
+    return source
