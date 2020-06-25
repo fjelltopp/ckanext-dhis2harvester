@@ -239,3 +239,16 @@
 .formnav-stages button{
   border: none;
 }
+
+.pivot-table-new-1 .toggle-box.dhis2-api,
+.pivot-table-new-1 .toggle-box.dhis2-login{
+  margin: 0px;
+}
+
+.pivot-table-new-1 .toggle-box.dhis2-api .header{
+  padding-bottom: 0px;
+}
+
+.pivot-table-new-1 .toggle-box.dhis2-login .header{
+  padding-left: 15px;
+}
