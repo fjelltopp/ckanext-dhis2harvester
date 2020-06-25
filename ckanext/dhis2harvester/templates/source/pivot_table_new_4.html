@@ -1,7 +1,7 @@
 {% import 'macros/form.html' as form %}
 <div class="pivot-table-new-4 {% if data.action != 'pivot_table_new_4' %}hidden{% endif %}">
-<h1>Harvester details</h1>
-{{ form.input('title', id='field-title', label=_('Title'), placeholder=_('eg. A descriptive title'), value=data.title, error=errors.title, classes=['control-full'], attrs={'data-module': 'slug-preview-target'}) }}
+<h1>{{_('Finalise Harvester')}}</h1>
+{{ form.input('title', id='field-title', label=_('Title'), placeholder=_('eg. A descriptive title'), value=data.title, error=errors.title, classes=['control-full'], attrs={'data-module': 'slug-preview-target', 'class': 'form-control'}) }}
 
 {% set prefix = 'harvest' %}
 {% set domain = h.url_for('harvest_read', id='', qualified=true) %}
@@ -19,6 +19,13 @@
     {{ form.select('owner_org', id='field-organizations', label=_('Organization'), options=organizations_available, selected=selected_org, error=errors.organization, is_required=True) }}
   {% endif %}
 {% endif %}
+
+<div class="row area_id_mapping">
+  {{ form.image_upload(data, errors, field_url='area_id_map_url', field_upload='area_id_map_upload', field_clear='clear_upload',
+     is_upload_enabled=h.uploads_enabled(), is_url=data.url and not is_upload, is_upload=is_upload,
+     upload_label=_('Optional Area ID Mapping File'), url_label=_('Optional Area ID Mapping File URL'), placeholder=_('http://example.com/external-data.csv'), field_name='name') }}
+</div>
+
 
 <input type="hidden" name="source_type" value="dhis2_pivot_table" >
 <div class="form-nav">
