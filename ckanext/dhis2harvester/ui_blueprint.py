@@ -120,9 +120,13 @@ def pivot_tables_refresh(harvest_source_id):
 
 
 def __ui_state_machine(harvest_source_id=None):
-    edit = harvest_source_id is not None
-    data, dhis2_conn_, form_stage = __data_initialization(edit=edit)
     edit_configuration = harvest_source_id is not None
+    try:
+        data, dhis2_conn_, form_stage = __data_initialization(edit=edit_configuration)
+    except Dhis2ConnectionError as e:
+        h.flash_error('Failed to connect DHIS2: {}'.format(e.message))
+        return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
+
 
     if "back" in form_stage:
         return __go_back(data, form_stage, edit_configuration=edit_configuration)
@@ -135,10 +139,14 @@ def __ui_state_machine(harvest_source_id=None):
     elif form_stage == 'pivot_table_new_4':
         return __summary_stage(data)
     elif form_stage == 'pivot_table_new_save':
-        if harvest_source_id:
-            return __update_harvest_source(data, harvest_source_id)
-        else:
-            return __save_harvest_source(data)
+        try:
+            if harvest_source_id:
+                return __update_harvest_source(data, harvest_source_id)
+            else:
+                return __save_harvest_source(data)
+        except Exception as e:
+            h.flash_error('Error while saving the harvest source: {}'.format(e.message))
+            return __summary_stage(data)
     else:
         abort(400, "Unrecognised action")
 
