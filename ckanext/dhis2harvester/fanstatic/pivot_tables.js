@@ -12,13 +12,10 @@ this.ckan.module('pivot_table_add', function ($) {
     },
     initialize: function () {
       $.proxyAll(this, /_on/);
-      console.log(this.options)
       this.el.on('click', this._onClick);
-      console.log($(this.options.delete));
     },
     _onClick: function (event) {
       event.preventDefault();
-      console.log("Clicked")
       $('.pivot-tables [data-module]').each(function(index){
         $(this).select2('destroy');
       });
@@ -48,7 +45,6 @@ this.ckan.module('pivot_table_delete', function ($) {
     },
     initialize: function () {
       $.proxyAll(this, /_on/);
-      console.log(this.options)
       this.el.on('click', this._onClick);
     },
     _onClick: function (event) {

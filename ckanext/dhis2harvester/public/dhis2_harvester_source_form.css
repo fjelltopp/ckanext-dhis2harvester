@@ -253,6 +253,36 @@
   padding-left: 15px;
 }
 
+.throbber-overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    background: rgba(200,200,200,0.8);
+    display: inline-block;
+}
+
+.throbber-box {
+    width: 20%;
+    min-width: 100px;
+    margin: auto;
+    border-radius: 10px;
+    background: rgba(255,255,255,1);
+    margin-top: 150px;
+    font-size: 100px;
+    line-height: 100px;
+    color: #e31837;
+    text-align: center;
+    padding: 20px;
+}
+
+.throbber-message {
+    font-size: 20px;
+    line-height: 25px;
+    margin: 20px 0 0;
+}
+
 .area_id_mapping{
   margin: 0px;
 }

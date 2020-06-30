@@ -10,7 +10,6 @@ this.ckan.module('tabs', function ($) {
     },
     initialize: function () {
       $.proxyAll(this, /_on/);
-      console.log(this.el);
       this.el.find('li').on('click', this._onClick);
     },
     _onClick: function (event) {

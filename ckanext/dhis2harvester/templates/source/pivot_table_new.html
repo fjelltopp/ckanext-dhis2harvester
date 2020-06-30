@@ -4,6 +4,7 @@
 
 
 {% block form_content %}
+{% resource 'dhis2harvester/throbber.js' %}
 
 <form id="source-new" class="dhis2-source-new form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" enctype='multipart/form-data' >
 
@@ -80,4 +81,10 @@
     {% endblock %}
   </div>
 </form>
+<div class="throbber-overlay" data-module="throbber" style="display: none;">
+  <div class="throbber-box">
+    <div class="fa fa-circle-o-notch fa-spin"></div>
+    <div class="throbber-message">{{_('Talking to DHIS2')}}</div>
+  </div>
+</div>
 {% endblock %}
