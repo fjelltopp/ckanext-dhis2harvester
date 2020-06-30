@@ -21,7 +21,6 @@ setup(
     entry_points="""
     [ckan.plugins]
     dhis2harvester_plugin=ckanext.dhis2harvester.plugin:DHIS2HarvesterPlugin
-    dhis2harvester=ckanext.dhis2harvester.harvesters.dhis2harvester:DHIS2Harvester
     dhis2_pivot_tables_harvester=ckanext.dhis2harvester.harvesters.pivot_tables_harvester:PivotTablesHarvester
     """,
 )
