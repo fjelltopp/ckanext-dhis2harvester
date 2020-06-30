@@ -6,7 +6,7 @@ import logging
 import requests
 import pandas as pd
 from flask import Blueprint, request, redirect, abort
-from ckan.common import _
+from ckan.common import _, g
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
 import ckanext.harvest.helpers as harvest_helpers
@@ -33,11 +33,15 @@ def pivot_tables_new():
 
 
 def pivot_tables_edit(harvest_source_id):
+    if harvest_source_id:
+        harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+        g.id = harvest_source['id']
+        g.title = harvest_source['title']
+        g.owner_org = h.get_organization(harvest_source['owner_org'])
     if request.method == 'POST':
         return __ui_state_machine(harvest_source_id)
     else:
         data = {}
-        harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
         data['action'] = 'pivot_table_new_1'
         harvest_config = json.loads(harvest_source['config'])
 
@@ -51,12 +55,12 @@ def pivot_tables_edit(harvest_source_id):
         data['title'] = str(harvest_source['title'])
         data['description'] = str(harvest_source['notes'])
         data['name'] = str(harvest_source['name'])
-        data['owner_org'] = h.get_organization(harvest_source['owner_org'])
+        data['owner_org'] = str(harvest_source['owner_org'])
 
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
-        return __render_pivot_table_template(data, {}, edit_configuration=True, c=harvest_source)
+        return __render_pivot_table_template(data, {}, edit_configuration=True)
 
 
 def __get_dhis2_connection_details_from_harvest_source(harvest_config):
@@ -125,21 +129,24 @@ def pivot_tables_refresh(harvest_source_id):
 
 def __ui_state_machine(harvest_source_id=None):
     edit_configuration = harvest_source_id is not None
+    data = {}
+    kwargs = {
+        "edit_configuration": edit_configuration
+    }
     try:
-        data, dhis2_conn_, form_stage = __data_initialization(edit=edit_configuration)
+        data, dhis2_conn_, form_stage = __data_initialization(**kwargs)
     except Dhis2ConnectionError as e:
         h.flash_error('Failed to connect DHIS2: {}'.format(e.message))
-        return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
-
+        return __dhis2_connection_stage(data, **kwargs)
 
     if "back" in form_stage:
-        return __go_back(data, form_stage, edit_configuration=edit_configuration)
+        return __go_back(data, form_stage, **kwargs)
     elif form_stage == 'pivot_table_new_1':
-        return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
+        return __dhis2_connection_stage(data, **kwargs)
     elif form_stage == 'pivot_table_new_2':
-        return __pivot_table_select_stage(data, dhis2_conn_, edit_configuration=edit_configuration)
+        return __pivot_table_select_stage(data, **kwargs)
     elif form_stage == 'pivot_table_new_3':
-        return __configure_table_columns_stage(data, edit_configuration=edit_configuration)
+        return __configure_table_columns_stage(data, **kwargs)
     elif form_stage == 'pivot_table_new_4':
         return __summary_stage(data)
     elif form_stage == 'pivot_table_new_save':
@@ -282,7 +289,7 @@ def __configure_table_columns_stage(data, edit_configuration=False):
     return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
 
 
-def __pivot_table_select_stage(data, dhis2_conn_, edit_configuration=False):
+def __pivot_table_select_stage(data, edit_configuration=False):
     errors = _validate_area_map_resource_id('area_map_resource_id')
     if errors:
         return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
@@ -338,7 +345,7 @@ def __go_back(data, form_stage, edit_configuration=False):
     return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
 
 
-def __data_initialization(edit=False):
+def __data_initialization(edit_configuration=False):
     data = request.form.to_dict()
     form_stage = data.get('action', 'pivot_table_new_1')
 
@@ -411,7 +418,7 @@ def __data_initialization(edit=False):
             c_details['id'] = c_id
             columns_list_.append(c_details)
 
-        if edit and not columns_list_:
+        if edit_configuration and not columns_list_:
             old_column_values = {cv['id']: cv['columns'] for cv in data['column_values']}
             if pt_id in old_column_values:
                 pt_column_values_['columns'] = old_column_values[pt_id]
