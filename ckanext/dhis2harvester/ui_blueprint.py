@@ -141,7 +141,7 @@ def __ui_state_machine(harvest_source_id=None):
     elif form_stage == 'pivot_table_new_1':
         return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_2':
-        return __pivot_table_select_stage(data, dhis2_conn_, edit_configuration=edit_configuration)
+        return __pivot_table_select_stage(data, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_3':
         return __configure_table_columns_stage(data, edit_configuration=edit_configuration)
     elif form_stage == 'pivot_table_new_4':
@@ -286,7 +286,7 @@ def __configure_table_columns_stage(data, edit_configuration=False):
     return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
 
 
-def __pivot_table_select_stage(data, dhis2_conn_, edit_configuration=False):
+def __pivot_table_select_stage(data, edit_configuration=False):
     errors = _validate_area_map_resource_id('area_map_resource_id')
     if errors:
         return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
