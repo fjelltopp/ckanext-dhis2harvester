@@ -129,21 +129,24 @@ def pivot_tables_refresh(harvest_source_id):
 
 def __ui_state_machine(harvest_source_id=None):
     edit_configuration = harvest_source_id is not None
+    data = {}
+    kwargs = {
+        "edit_configuration": edit_configuration
+    }
     try:
-        data, dhis2_conn_, form_stage = __data_initialization(edit=edit_configuration)
+        data, dhis2_conn_, form_stage = __data_initialization(**kwargs)
     except Dhis2ConnectionError as e:
         h.flash_error('Failed to connect DHIS2: {}'.format(e.message))
-        return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
-
+        return __dhis2_connection_stage(data, **kwargs)
 
     if "back" in form_stage:
-        return __go_back(data, form_stage, edit_configuration=edit_configuration)
+        return __go_back(data, form_stage, **kwargs)
     elif form_stage == 'pivot_table_new_1':
-        return __dhis2_connection_stage(data, edit_configuration=edit_configuration)
+        return __dhis2_connection_stage(data, **kwargs)
     elif form_stage == 'pivot_table_new_2':
-        return __pivot_table_select_stage(data, edit_configuration=edit_configuration)
+        return __pivot_table_select_stage(data, **kwargs)
     elif form_stage == 'pivot_table_new_3':
-        return __configure_table_columns_stage(data, edit_configuration=edit_configuration)
+        return __configure_table_columns_stage(data, **kwargs)
     elif form_stage == 'pivot_table_new_4':
         return __summary_stage(data)
     elif form_stage == 'pivot_table_new_save':
@@ -342,7 +345,7 @@ def __go_back(data, form_stage, edit_configuration=False):
     return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
 
 
-def __data_initialization(edit=False):
+def __data_initialization(edit_configuration=False):
     data = request.form.to_dict()
     form_stage = data.get('action', 'pivot_table_new_1')
 
@@ -415,7 +418,7 @@ def __data_initialization(edit=False):
             c_details['id'] = c_id
             columns_list_.append(c_details)
 
-        if edit and not columns_list_:
+        if edit_configuration and not columns_list_:
             old_column_values = {cv['id']: cv['columns'] for cv in data['column_values']}
             if pt_id in old_column_values:
                 pt_column_values_['columns'] = old_column_values[pt_id]
