@@ -6,7 +6,7 @@ import logging
 import requests
 import pandas as pd
 from flask import Blueprint, request, redirect, abort
-from ckan.common import _
+from ckan.common import _, g
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
 import ckanext.harvest.helpers as harvest_helpers
@@ -33,11 +33,15 @@ def pivot_tables_new():
 
 
 def pivot_tables_edit(harvest_source_id):
+    if harvest_source_id:
+        harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+        g.id = harvest_source['id']
+        g.title = harvest_source['title']
+        g.owner_org = h.get_organization(harvest_source['owner_org'])
     if request.method == 'POST':
         return __ui_state_machine(harvest_source_id)
     else:
         data = {}
-        harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
         data['action'] = 'pivot_table_new_1'
         harvest_config = json.loads(harvest_source['config'])
 
@@ -51,12 +55,12 @@ def pivot_tables_edit(harvest_source_id):
         data['title'] = str(harvest_source['title'])
         data['description'] = str(harvest_source['notes'])
         data['name'] = str(harvest_source['name'])
-        data['owner_org'] = h.get_organization(harvest_source['owner_org'])
+        data['owner_org'] = str(harvest_source['owner_org'])
 
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
-        return __render_pivot_table_template(data, {}, edit_configuration=True, c=harvest_source)
+        return __render_pivot_table_template(data, {}, edit_configuration=True)
 
 
 def __get_dhis2_connection_details_from_harvest_source(harvest_config):
