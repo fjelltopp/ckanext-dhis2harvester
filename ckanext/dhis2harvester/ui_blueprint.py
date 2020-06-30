@@ -1,8 +1,12 @@
 import json
 import os
+from StringIO import StringIO
 
 import logging
+import requests
+import pandas as pd
 from flask import Blueprint, request, redirect, abort
+from ckan.common import _
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
 import ckanext.harvest.helpers as harvest_helpers
@@ -39,7 +43,7 @@ def pivot_tables_edit(harvest_source_id):
 
         data['column_values'] = harvest_config['column_values']
         data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
-        data['area_map_resource_id'] = harvest_config['area_map_resource_id']
+        data['area_id_map_url'] = harvest_config['area_id_map_url']
         (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(harvest_config)
         data['dhis2_url'] = dhis2_url
         data['dhis2_api_version'] = dhis2_api_version
@@ -139,12 +143,29 @@ def __ui_state_machine(harvest_source_id=None):
     elif form_stage == 'pivot_table_new_4':
         return __summary_stage(data)
     elif form_stage == 'pivot_table_new_save':
+        area_id_map_url = data.get('area_id_map_url')
+        if area_id_map_url:
+            try:
+                area_csv = requests.get(area_id_map_url)
+                if area_csv.status_code != 200:
+                    raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(area_csv.status_code))
+            except Exception as e:
+                errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
+                return __summary_stage(data, errors)
+            try:
+                csv_stream = StringIO(area_csv.text)
+                pd.read_csv(csv_stream)
+            except Exception as e:
+                errors = {"area_id_map_url": [_("Incorrect csv file format.")]}
+                return __summary_stage(data, errors)
+
         try:
             if harvest_source_id:
                 return __update_harvest_source(data, harvest_source_id)
             else:
                 return __save_harvest_source(data)
         except Exception as e:
+            log.exception(e.message)
             h.flash_error('Error while saving the harvest source: {}'.format(e.message))
             return __summary_stage(data)
     else:
@@ -203,9 +224,11 @@ def __get_dhis_conn(data_dict):
     return dhis2_conn
 
 
-def __summary_stage(data):
+def __summary_stage(data, errors=None):
+    if not errors:
+        errors = {}
     data['action'] = "pivot_table_new_4"
-    return __render_pivot_table_template(data, {})
+    return __render_pivot_table_template(data, errors)
 
 
 def __save_harvest_source(data):
@@ -237,7 +260,7 @@ def __prepare_harvester_details(data):
         'dhis2_url': data['dhis2_url'],
         'dhis2_api_version': data['dhis2_api_version'],
         'dhis2_auth_token': data['dhis2_auth_token'],
-        'area_map_resource_id': data['area_map_resource_id']
+        'area_id_map_url': data.get('area_id_map_url')
     }
     harvester_name = data['name']
     data_dict = {
@@ -398,6 +421,7 @@ def __data_initialization(edit=False):
             pt_column_values_['columns'] = columns_list_
         column_values.append(pt_column_values_)
     log.debug("Column values: " + str(column_values))
+
     return data, dhis2_conn_, form_stage
 
 
