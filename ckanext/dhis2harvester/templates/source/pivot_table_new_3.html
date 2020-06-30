@@ -89,20 +89,6 @@
       </div>
     {%  endfor %}
     {%  endif %}
-    <div class="advanced-config toggle-box">
-    <div class="header">
-    <a href="#" class="toggle-btn toggled" data-module="toggle_box" data-module-toggled="true">Advanced Configuration</a>
-    </div>
-    <div class="content">
-    {{form.textarea(
-        '{}_json_config'.format(pivot_table.id),
-        id='{}_json_config'.format(pivot_table.id),
-        label=_('Override with JSON configuration'),
-        placeholder="{'json': 'object'}",
-        value=pivot_table_data.json
-    )}}
-    </div>
-    </div>
   </div>
 {% endfor %}
 
