@@ -1,4 +1,5 @@
 import logging
+import requests
 from ckan.lib import uploader
 
 from ckanext.harvest.harvesters import HarvesterBase
@@ -101,6 +102,8 @@ class PivotTablesHarvester(HarvesterBase):
             self._save_gather_error('Unable to get source config for: {}'.format(harvest_job.source), harvest_job)
             return False
 
+        obj_ids = []
+
         config = json.loads(harvest_job.source.config)
         dhis2_connection = self._get_dhis2_connection(config)
         try:
@@ -109,7 +112,26 @@ class PivotTablesHarvester(HarvesterBase):
             self._save_gather_error('Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
                                     harvest_job)
             return None
-        obj_ids = []
+        area_id_map_url = config['area_id_map_url']
+        if area_id_map_url:
+            try:
+                area_csv = requests.get(area_id_map_url)
+                if area_csv.status_code != 200:
+                    raise ValueError("Error while getting response, code {}".format(area_csv.status_code))
+            except Exception as e:
+                self._save_gather_error('Failed to process area id csv resource: {}, {}'
+                                        .format(area_id_map_url, e.message), harvest_job)
+                return None
+            harvest_object_data = {
+                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
+                'output_resource_name': 'Area ID Crosswalk Table',
+                'csv': area_csv.text
+            }
+            obj = HarvestObject(guid="pivot_table",
+                                job=harvest_job,
+                                content=json.dumps(harvest_object_data))
+            obj.save()
+            obj_ids.append(obj.id)
         for pt in config['column_values']:
             pt_id = pt['id']
             pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
@@ -121,38 +143,19 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_api_version': config['dhis2_api_version'],
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
-                'area_map_resource_id': config['area_map_resource_id'],
                 'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
                 'output_resource_name': pt_config['name'],
                 'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns']
-
             }
+            if area_id_map_url:
+                harvest_object_data['area_id_map_csv_str'] = area_csv.text
+
             obj = HarvestObject(guid="pivot_table",
                                 job=harvest_job,
                                 content=json.dumps(harvest_object_data))
             obj.save()
             obj_ids.append(obj.id)
-        r_id = config['area_map_resource_id']
-        if r_id:
-            try:
-                context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
-                source = get_csv_resource_source(r_id, context)
-            except ResourceTypeError:
-                self._save_gather_error('Failed to process area id csv resource: {}'.format(r_id), harvest_job)
-                return None
-            area_map_df = pd.read_csv(source)
-            harvest_object_data = {
-                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
-                'output_resource_name': 'Area ID Crosswalk Table',
-                'csv': area_map_df.to_csv(index=False)
-            }
-            obj = HarvestObject(guid="pivot_table",
-                                job=harvest_job,
-                                content=json.dumps(harvest_object_data))
-            obj.save()
-            obj_ids.append(obj.id)
-
         return obj_ids
 
     def _get_dhis2_connection(self, config):
@@ -279,21 +282,20 @@ class PivotTablesHarvester(HarvesterBase):
             # trim period strings
             pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
             # map area ids
-            r_id = content['area_map_resource_id']
-            if r_id:
-                context = {'model': model, 'session': model.Session, 'user': self._get_user_name()}
-                try:
-                    source = get_csv_resource_source(r_id, context)
-                except ResourceTypeError:
-                    self._save_object_error('Failed to process area id csv resource: {}'
-                                            .format(r_id),
-                                            harvest_object, 'Fetch')
-                    return None
-                area_map_df = pd.read_csv(source)
+            if 'area_id_map_csv_str' in content:
+                area_id_map_csv_str = content['area_id_map_csv_str']
+                area_csv_stream = StringIO(area_id_map_csv_str)
+                area_map_df = pd.read_csv(area_csv_stream)
                 if 'map_id' in list(area_map_df):
                     mapping_column_name = 'map_id'
-                else:
+                elif 'dhis2_id' in list(area_map_df):
                     mapping_column_name = 'dhis2_id'
+                else:
+                    self._save_object_error('Invalid format of area id map: {} @ {}'
+                                            .format(pivot_table_id, dhis2_connection),
+                                            harvest_object, 'Fetch')
+                    return None
+
                 pt_df['area_id'] = pt_df['area_id'].replace(area_map_df.set_index(mapping_column_name)['area_id'])
         except Exception as e:
             exc_type, value, traceback = sys.exc_info()
