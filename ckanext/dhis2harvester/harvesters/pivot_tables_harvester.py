@@ -273,6 +273,11 @@ class PivotTablesHarvester(HarvesterBase):
                     _cat_cols.add(cat)
                     pt_df.loc[i, cat] = cat_val
             pt_df = pt_df.drop(_index_to_drop)
+            if pt_df.empty:
+                self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}. No data matching column configuration.'
+                                        .format(pivot_table_id, dhis2_connection),
+                                        harvest_object, 'Fetch')
+                return None
             # create final columns output
             pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
             # group by orgs and periods and categories
