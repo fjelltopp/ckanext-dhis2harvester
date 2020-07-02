@@ -427,6 +427,7 @@ def __data_initialization(edit_configuration=False):
         else:
             pt_column_values_['columns'] = columns_list_
         column_values.append(pt_column_values_)
+    data['column_values'] = column_values
     log.debug("Column values: " + str(column_values))
 
     return data, dhis2_conn_, form_stage
