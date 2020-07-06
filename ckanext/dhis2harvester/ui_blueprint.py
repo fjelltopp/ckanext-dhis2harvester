@@ -36,6 +36,7 @@ def pivot_tables_edit(harvest_source_id):
     if harvest_source_id:
         harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
         g.id = harvest_source['id']
+        g.name = harvest_source['name']
         g.title = harvest_source['title']
         g.owner_org = h.get_organization(harvest_source['owner_org'])
     if request.method == 'POST':
