@@ -115,7 +115,11 @@ class PivotTablesHarvester(HarvesterBase):
         area_id_map_url = config['area_id_map_url']
         if area_id_map_url:
             try:
-                area_csv = requests.get(area_id_map_url)
+                area_map_owner = config['area_id_map_owner']
+                user = model.User.get(area_map_owner)
+                api_key = user.apikey
+                headers = {'Authorization': api_key}
+                area_csv = requests.get(area_id_map_url, headers=headers)
                 if area_csv.status_code != 200:
                     raise ValueError("Error while getting response, code {}".format(area_csv.status_code))
             except Exception as e:
