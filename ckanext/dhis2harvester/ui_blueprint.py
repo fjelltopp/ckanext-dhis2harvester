@@ -152,10 +152,15 @@ def __ui_state_machine(harvest_source_id=None):
     elif form_stage == 'pivot_table_new_save':
         area_id_map_url = data.get('area_id_map_url')
         if area_id_map_url:
+            current_user = g.userobj
+            api_key = current_user.apikey
             try:
-                area_csv = requests.get(area_id_map_url)
+                headers = {'Authorization': api_key}
+                area_csv = requests.get(area_id_map_url, headers=headers)
                 if area_csv.status_code != 200:
                     raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(area_csv.status_code))
+                else:
+                    data['area_id_map_owner'] = current_user.name
             except Exception as e:
                 errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
                 return __summary_stage(data, errors)
@@ -267,7 +272,8 @@ def __prepare_harvester_details(data):
         'dhis2_url': data['dhis2_url'],
         'dhis2_api_version': data['dhis2_api_version'],
         'dhis2_auth_token': data['dhis2_auth_token'],
-        'area_id_map_url': data.get('area_id_map_url')
+        'area_id_map_url': data.get('area_id_map_url'),
+        'area_id_map_owner': data.get('area_id_map_owner')
     }
     harvester_name = data['name']
     data_dict = {
