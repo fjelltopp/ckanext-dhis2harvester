@@ -62,9 +62,6 @@ def pivot_tables_edit(harvest_source_id):
 
 
 def __set_harvest_globals(harvest_source):
-    g.id = harvest_source['id']
-    g.name = harvest_source['name']
-    g.title = harvest_source['title']
     g.owner_org = h.get_organization(harvest_source['owner_org'])
 
 
