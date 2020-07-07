@@ -41,6 +41,12 @@
   </li>
 {% endblock %}
 
+{% block page_header %}
+  {% if harvest_source %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
 {% block actions_content %}
 {% endblock %}
 
