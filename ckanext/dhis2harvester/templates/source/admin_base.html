@@ -56,3 +56,15 @@
 
 
 {% endblock %}
+
+{# CKAN 2.0 #}
+{% block actions_content %}
+  {{ self.action_links() }}
+{% endblock %}
+
+{# CKAN 2.1 #}
+{% block content_action %}
+  <div class="content_action btn-group">
+    {{ self.action_links() }}
+  </div>
+{% endblock %}

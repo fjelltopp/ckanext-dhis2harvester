@@ -52,8 +52,8 @@
   {% endif %}
 
   <div class="form-actions">
-    {%  if edit_configuration %}
-        <button class="btn btn-default" type="submit" name="action" value="pivot_table_new_save">{{_("Save & Close")}}</button>
+    {%  if edit_configuration and data.action != 'pivot_table_new_4' %}
+        <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_save">{{_("Save")}}</button>
     {% endif %}
     {% block delete_button %}
       {% if data.get('id', None) and h.check_access('harvest_source_delete', {'id': data.id}) and not data.get('state', 'none') == 'deleted' %}

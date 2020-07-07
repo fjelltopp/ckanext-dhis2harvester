@@ -205,13 +205,13 @@
   border-bottom: none;
 }
 
-.nav-tabs {
+.pivot-table-tabs.nav-tabs {
     border-bottom: 2px solid #e31737;
 }
 
-.nav-tabs > li.active > a,
-.nav-tabs > li.active > a:hover,
-.nav-tabs > li.active > a:focus {
+.pivot-table-tabs.nav-tabs > li.active > a,
+.pivot-table-tabs.nav-tabs > li.active > a:hover,
+.pivot-table-tabs.nav-tabs > li.active > a:focus {
   border: 2px solid #e31737;
   border-bottom-color: transparent;
   position: relative;

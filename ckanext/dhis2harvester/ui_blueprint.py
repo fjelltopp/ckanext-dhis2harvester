@@ -35,12 +35,9 @@ def pivot_tables_new():
 def pivot_tables_edit(harvest_source_id):
     if harvest_source_id:
         harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
-        g.id = harvest_source['id']
-        g.name = harvest_source['name']
-        g.title = harvest_source['title']
-        g.owner_org = h.get_organization(harvest_source['owner_org'])
+        __set_harvest_globals(harvest_source)
     if request.method == 'POST':
-        return __ui_state_machine(harvest_source_id)
+        return __ui_state_machine(harvest_source)
     else:
         data = {}
         data['action'] = 'pivot_table_new_1'
@@ -61,7 +58,14 @@ def pivot_tables_edit(harvest_source_id):
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
-        return __render_pivot_table_template(data, {}, edit_configuration=True)
+        return __render_pivot_table_template(data, {}, edit_configuration=True, harvest_source=harvest_source)
+
+
+def __set_harvest_globals(harvest_source):
+    g.id = harvest_source['id']
+    g.name = harvest_source['name']
+    g.title = harvest_source['title']
+    g.owner_org = h.get_organization(harvest_source['owner_org'])
 
 
 def __get_dhis2_connection_details_from_harvest_source(harvest_config):
@@ -77,6 +81,7 @@ def __get_dhis2_connection_details_from_harvest_source(harvest_config):
 
 def pivot_tables_refresh(harvest_source_id):
     harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+    __set_harvest_globals(harvest_source)
     harvester_name = harvest_source['name']
     source_config = json.loads(harvest_source['config'])
     data = request.form.to_dict()
@@ -89,7 +94,7 @@ def pivot_tables_refresh(harvest_source_id):
             _data = {'owner_org' :h.get_organization(harvest_source['owner_org'])}
             return t.render(
                 'source/pivot_table_refresh.html',
-                {'data': _data, 'c': harvest_source, 'errors': errors}
+                {'data': _data, 'harvest_source': harvest_source, 'errors': errors}
             )
         source_config.update({
             'dhis2_url': data['dhis2_url'],
@@ -124,18 +129,19 @@ def pivot_tables_refresh(harvest_source_id):
         data['owner_org'] = h.get_organization(harvest_source['owner_org'])
         return t.render(
             'source/pivot_table_refresh.html',
-            {'data': data, 'c': harvest_source, 'errors': {}}
+            {'data': data, 'harvest_source': harvest_source, 'errors': {}}
         )
 
 
-def __ui_state_machine(harvest_source_id=None):
-    edit_configuration = harvest_source_id is not None
+def __ui_state_machine(harvest_source=None):
+    edit_configuration = harvest_source is not None
     data = {}
     kwargs = {
-        "edit_configuration": edit_configuration
+        "edit_configuration": edit_configuration,
+        "harvest_source": harvest_source
     }
     try:
-        data, dhis2_conn_, form_stage = __data_initialization(**kwargs)
+        data, dhis2_conn_, form_stage = __data_initialization(edit_configuration=edit_configuration)
     except Dhis2ConnectionError as e:
         h.flash_error('Failed to connect DHIS2: {}'.format(e.message))
         return __dhis2_connection_stage(data, **kwargs)
@@ -149,7 +155,7 @@ def __ui_state_machine(harvest_source_id=None):
     elif form_stage == 'pivot_table_new_3':
         return __configure_table_columns_stage(data, **kwargs)
     elif form_stage == 'pivot_table_new_4':
-        return __summary_stage(data)
+        return __summary_stage(data, harvest_source=harvest_source)
     elif form_stage == 'pivot_table_new_save':
         area_id_map_url = data.get('area_id_map_url')
         if area_id_map_url:
@@ -164,23 +170,23 @@ def __ui_state_machine(harvest_source_id=None):
                     data['area_id_map_owner'] = current_user.name
             except Exception as e:
                 errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
-                return __summary_stage(data, errors)
+                return __summary_stage(data, errors, harvest_source=harvest_source)
             try:
                 csv_stream = StringIO(area_csv.text)
                 pd.read_csv(csv_stream)
             except Exception as e:
                 errors = {"area_id_map_url": [_("Incorrect csv file format.")]}
-                return __summary_stage(data, errors)
+                return __summary_stage(data, errors, harvest_source=harvest_source)
 
         try:
-            if harvest_source_id:
-                return __update_harvest_source(data, harvest_source_id)
+            if harvest_source:
+                return __update_harvest_source(data)
             else:
                 return __save_harvest_source(data)
         except Exception as e:
             log.exception(e.message)
             h.flash_error('Error while saving the harvest source: {}'.format(e.message))
-            return __summary_stage(data)
+            return __summary_stage(data, harvest_source=harvest_source)
     else:
         abort(400, "Unrecognised action")
 
@@ -237,11 +243,14 @@ def __get_dhis_conn(data_dict):
     return dhis2_conn
 
 
-def __summary_stage(data, errors=None):
+def __summary_stage(data, errors=None, harvest_source=None):
+    kwargs = {
+        "harvest_source": harvest_source
+    }
     if not errors:
         errors = {}
     data['action'] = "pivot_table_new_4"
-    return __render_pivot_table_template(data, errors)
+    return __render_pivot_table_template(data, errors, **kwargs)
 
 
 def __save_harvest_source(data):
@@ -256,7 +265,7 @@ def __save_harvest_source(data):
     return redirect(h.url_for('harvest'))
 
 
-def __update_harvest_source(data, harvest_source_id):
+def __update_harvest_source(data):
     data_dict, harvester_name = __prepare_harvester_details(data)
     try:
         source = t.get_action("harvest_source_update")({}, data_dict)
@@ -291,18 +300,26 @@ def __prepare_harvester_details(data):
     return data_dict, harvester_name
 
 
-def __configure_table_columns_stage(data, edit_configuration=False):
+def __configure_table_columns_stage(data, edit_configuration=False, harvest_source=None):
+    kwargs = {
+        "edit_configuration": edit_configuration,
+        "harvest_source": harvest_source
+    }
     data['action'] = "pivot_table_new_4"
-    return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
+    return __render_pivot_table_template(data, {}, **kwargs)
 
 
-def __pivot_table_select_stage(data, edit_configuration=False):
+def __pivot_table_select_stage(data, edit_configuration=False, harvest_source=None):
+    kwargs = {
+        "edit_configuration": edit_configuration,
+        "harvest_source": harvest_source
+    }
     errors = _validate_area_map_resource_id('area_map_resource_id')
     if errors:
-        return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
+        return __render_pivot_table_template(data, errors, **kwargs)
     data['action'] = "pivot_table_new_3"
     errors = {}
-    return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
+    return __render_pivot_table_template(data, errors, **kwargs)
 
 
 def __render_pivot_table_template(data, errors, **kwargs):
@@ -314,7 +331,11 @@ def __render_pivot_table_template(data, errors, **kwargs):
     )
 
 
-def __dhis2_connection_stage(data, edit_configuration=False):
+def __dhis2_connection_stage(data, edit_configuration=False, harvest_source=None):
+    kwargs = {
+        "edit_configuration": edit_configuration,
+        "harvest_source": harvest_source
+    }
     if not data['dhis2_auth_token']:
         required_fields = [
             {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
@@ -324,12 +345,12 @@ def __dhis2_connection_stage(data, edit_configuration=False):
         errors = _validate_required_fields(required_fields)
         if errors:
             data['action'] = 'pivot_table_new_1'
-            return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
+            return __render_pivot_table_template(data, errors, **kwargs)
     dhis2_conn_ = __get_dhis_conn(request.form)
     errors = _validate_dhis2_connection(dhis2_conn_)
     if errors:
         data['action'] = 'pivot_table_new_1'
-        return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
+        return __render_pivot_table_template(data, errors, **kwargs)
     data['dhis2_username'] = ''
     data['dhis2_password'] = ''
     data['dhis2_auth_token'] = dhis2_conn_.get_auth_token()
@@ -339,17 +360,21 @@ def __dhis2_connection_stage(data, edit_configuration=False):
     except Dhis2ConnectionError as e:
         errors = {'dhis2_url': ["Failed to fetch pivot table data from this DHIS2 instance."]}
         data['action'] = 'pivot_table_new_1'
-        return __render_pivot_table_template(data, errors, edit_configuration=edit_configuration)
+        return __render_pivot_table_template(data, errors, **kwargs)
     pivot_tables_options = [{'value': pivot_table['id'], 'text': pivot_table['name']} for pivot_table in pivot_tables]
     data['pivot_tables'] = pivot_tables_options
     data['action'] = "pivot_table_new_2"
-    return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
+    return __render_pivot_table_template(data, {}, **kwargs)
 
 
-def __go_back(data, form_stage, edit_configuration=False):
+def __go_back(data, form_stage, edit_configuration=False, harvest_source=None):
+    kwargs = {
+        "edit_configuration": edit_configuration,
+        "harvest_source": harvest_source
+    }
     to_form_stage = form_stage.split('.')[-1]
     data['action'] = to_form_stage
-    return __render_pivot_table_template(data, {}, edit_configuration=edit_configuration)
+    return __render_pivot_table_template(data, {}, **kwargs)
 
 
 def __data_initialization(edit_configuration=False):
