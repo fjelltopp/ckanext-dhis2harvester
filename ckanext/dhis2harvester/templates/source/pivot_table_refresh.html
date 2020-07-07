@@ -7,6 +7,8 @@
 {% block form_content %}
 <form id="source-new" class="dhis2-source-new form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post" >
   {% include 'source/refresh_dhis2_credentials.html' %}
-<button class="btn btn-primary" type="submit" name="action" value="run_job">{{_("Refresh DHIS2 Harvester")}}</button>
+  <div class="form-nav">
+    <button class="btn btn-primary" type="submit" name="action" value="run_job">{{_("Refresh DHIS2 Harvester")}}</button>
+  </div>
 </form>
 {% endblock %}
