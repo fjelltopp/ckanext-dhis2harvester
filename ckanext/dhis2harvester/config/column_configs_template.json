@@ -9,7 +9,7 @@
       "ancrt_test_pos"
     ],
     "categories": {
-      "age_group": [
+      "age-group": [
         "15-49"
       ]
     }
@@ -25,7 +25,7 @@
         "female",
         "both"
       ],
-      "age_group": [
+      "age-group": [
         "00-14",
         "15-99"
       ]
