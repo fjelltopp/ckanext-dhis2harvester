@@ -33,9 +33,8 @@ def pivot_tables_new():
 
 
 def pivot_tables_edit(harvest_source_id):
-    if harvest_source_id:
-        harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
-        __set_harvest_globals(harvest_source)
+    harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+    __set_harvest_globals(harvest_source)
     if request.method == 'POST':
         return __ui_state_machine(harvest_source)
     else:
