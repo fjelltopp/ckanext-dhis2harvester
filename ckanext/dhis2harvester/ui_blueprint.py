@@ -33,9 +33,8 @@ def pivot_tables_new():
 
 
 def pivot_tables_edit(harvest_source_id):
-    if harvest_source_id:
-        harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
-        __set_harvest_globals(harvest_source)
+    harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
+    __set_harvest_globals(harvest_source)
     if request.method == 'POST':
         return __ui_state_machine(harvest_source)
     else:
@@ -425,7 +424,11 @@ def __data_initialization(edit_configuration=False):
         pt_column_values_ = {
             'id': pt_id,
         }
-        columns_ = defaultdict(dict)
+        def __new_column():
+            return {
+                'enabled': False
+            }
+        columns_ = defaultdict(__new_column)
         for k in data:
             if k.startswith("target_column_{}".format(pt_id)):
                 c_id_ = k.split('_')[-1]
@@ -439,8 +442,7 @@ def __data_initialization(edit_configuration=False):
                 columns_[c_id_]['categories'][tc_] = tc_value_
             elif k.startswith("column_enabled_{}".format(pt_id)):
                 c_id_ = k.split('_')[-1]
-                enabled_ = str(data[k]).lower() == 'true'
-                columns_[c_id_]['enabled'] = enabled_
+                columns_[c_id_]['enabled'] = True
 
         columns_list_ = []
         for c_id, c_details in columns_.iteritems():
