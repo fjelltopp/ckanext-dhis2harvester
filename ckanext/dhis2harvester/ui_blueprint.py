@@ -425,7 +425,11 @@ def __data_initialization(edit_configuration=False):
         pt_column_values_ = {
             'id': pt_id,
         }
-        columns_ = defaultdict(dict)
+        def __new_column():
+            return {
+                'enabled': False
+            }
+        columns_ = defaultdict(__new_column)
         for k in data:
             if k.startswith("target_column_{}".format(pt_id)):
                 c_id_ = k.split('_')[-1]
