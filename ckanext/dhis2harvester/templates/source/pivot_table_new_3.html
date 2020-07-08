@@ -42,7 +42,6 @@
       {% set column_enabled = column_data.enabled if column_data else True %}
       <div class="column-config toggle-box {% if not column_enabled %} toggled {% endif %}">
         <div class="header">
-          <span>Column is {{ column_enabled }}</span>
           <span class="column-title">{{ column['text'] }} <span class="toggle-content {% if column_enabled %}hidden{% endif %}"> (Excluded) </span></span>
           <a href="#" class="toggle-btn pull-right" data-module="toggle_box"><i class="fa {% if column_enabled %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i></a>
           <input type="checkbox" id="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" name="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" class="toggle-checkbox hidden" {% if column_enabled %}checked{% endif %}>
