@@ -439,8 +439,7 @@ def __data_initialization(edit_configuration=False):
                 columns_[c_id_]['categories'][tc_] = tc_value_
             elif k.startswith("column_enabled_{}".format(pt_id)):
                 c_id_ = k.split('_')[-1]
-                enabled_ = str(data[k]).lower() == 'true'
-                columns_[c_id_]['enabled'] = enabled_
+                columns_[c_id_]['enabled'] = True
 
         columns_list_ = []
         for c_id, c_details in columns_.iteritems():

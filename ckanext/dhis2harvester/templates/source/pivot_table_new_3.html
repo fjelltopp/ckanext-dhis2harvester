@@ -40,13 +40,14 @@
       {% set column_data_search = pivot_table_column_values|selectattr("id", "equalto", column["value"])|list %}
       {% set column_data = column_data_search|first if column_data_search else None %}
       {% set column_enabled = column_data.enabled if column_data else True %}
-      <div class="column-config toggle-box">
+      <div class="column-config toggle-box {% if not column_enabled %} toggled {% endif %}">
         <div class="header">
-          <span class="column-title">{{ column['text'] }} <span class="toggle-content hidden"> (Excluded) </span></span>
-          <a href="#" class="toggle-btn pull-right" data-module="toggle_box" {% if not column_enabled %}data-module-toggled="true"{% endif %}><i class="fa fa-toggle-on"></i></a>
-          <input type="checkbox" name={{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}} class="toggle-checkbox hidden" value="true">
+          <span>Column is {{ column_enabled }}</span>
+          <span class="column-title">{{ column['text'] }} <span class="toggle-content {% if column_enabled %}hidden{% endif %}"> (Excluded) </span></span>
+          <a href="#" class="toggle-btn pull-right" data-module="toggle_box"><i class="fa {% if column_enabled %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i></a>
+          <input type="checkbox" id="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" name="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" class="toggle-checkbox hidden" {% if column_enabled %}checked{% endif %}>
         </div>
-        <div class="content row">
+        <div class="content row" {% if not column_enabled %} style="display: none;" {% endif %}>
           {% if target_type == 'other' %}
             {{ form.input("col_{}".format(column['value']), label=_('Column name'), value=data['col_{}'.format(column['value'])]) }}
             {{ form.input("age_{}".format(column['value']), label=_('Age group'), value=data['age_{}'.format(column['value'])]) }}

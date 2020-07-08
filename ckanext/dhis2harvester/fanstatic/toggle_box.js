@@ -10,9 +10,6 @@ this.ckan.module('toggle_box', function ($) {
     initialize: function () {
       $.proxyAll(this, /_on/);
       this.el.on('click', this._onClick);
-      if( this.options.toggled == true ){
-        this.el.click();
-      }
     },
     _onClick: function (event) {
       event.preventDefault();
