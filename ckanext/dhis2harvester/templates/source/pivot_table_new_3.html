@@ -48,9 +48,9 @@
         </div>
         <div class="content row" {% if not column_enabled %} style="display: none;" {% endif %}>
           {% if target_type == 'other' %}
-            {{ form.input("col_{}".format(column['value']), label=_('Column name'), value=data['col_{}'.format(column['value'])]) }}
-            {{ form.input("age_{}".format(column['value']), label=_('Age group'), value=data['age_{}'.format(column['value'])]) }}
-            {{ form.input("gender_{}".format(column['value']), label=_('Gender'), value=data['gender_{}'.format(column['value'])]) }}
+            {{ form.input("target_column_{}_{}".format(pivot_table.id, column.value), label=_('column'), value=column_data.target_column) }}
+            {{ form.input("category_{}_primary-category_{}".format(pivot_table.id, column.value), label=_('primary category'), value=column_data.categories['primary-category'] if column_data.categories else '') }}
+            {{ form.input("category_{}_secondary-category_{}".format(pivot_table.id, column.value), label=_('secondary category'), value=column_data.categories['secondary-category'] if column_data.categories else '') }}
           {% else %}
 
             {% set column_options = [] %}
