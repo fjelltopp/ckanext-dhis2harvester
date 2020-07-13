@@ -314,7 +314,7 @@ class PivotTablesHarvester(HarvesterBase):
             return None
 
         # save csv output for import stage
-        content['csv'] = pt_df.to_csv(index=False)
+        content['csv'] = pt_df.to_csv(index=False, float_format='%.f', encoding='utf-8')
         harvest_object.content = json.dumps(content)
         return True
 
@@ -392,7 +392,8 @@ class PivotTablesHarvester(HarvesterBase):
             package_data["id"] = str(uuid.uuid4())
             new_package = t.get_action('package_create')(context, package_data)
 
-        csv_stream = StringIO(csv_string)
+
+        csv_stream = StringIO(csv_string.encode('ascii', 'replace'))
         csv_filename = "{}.csv".format(slugify(resource_name))
         resource = {
             "name": resource_name,
@@ -400,6 +401,7 @@ class PivotTablesHarvester(HarvesterBase):
             "url_type": "upload",
             "upload": FlaskFileStorage(
                 stream=csv_stream,
+                content_type="text/csv",
                 filename=csv_filename
             ),
             "package_id": new_package["id"]
