@@ -33,7 +33,7 @@ then
 fi
 
 sudo python setup.py develop
-pip install --user -r pip-requirements.txt
+pip install --user -r requirements.txt
 pip install --user -r dev-requirements.txt
 pip install --user flake8
 cd -
