@@ -11,6 +11,7 @@ from ckan import model
 from ckan.plugins import toolkit as t
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from slugify import slugify
+from datetime import datetime
 import pandas as pd
 import uuid
 import json
@@ -147,7 +148,7 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_api_version': config['dhis2_api_version'],
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
-                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
+                'output_dataset_name': '{} Output'.format(harvest_job.source.title),
                 'output_resource_name': pt_config['name'],
                 'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns']
@@ -364,16 +365,20 @@ class PivotTablesHarvester(HarvesterBase):
         )
         org = source_package["organization"]
 
-        config = json.loads(harvest_object.source.config)
         content = json.loads(harvest_object.content)
         dataset_name = content['output_dataset_name']
         resource_name = content['output_resource_name']
+        today = datetime.today()
+        date_stamp = today.strftime("%Y %b %d")
+        date_stamp_slug = today.strftime("%Y-%m-%d")
         csv_string = content['csv']
 
         package_data = {
-            "name": slugify(dataset_name),
-            "title": dataset_name,
+            "name": slugify("{}-{}".format(dataset_name, date_stamp_slug)),
+            "title": "{} {}".format(dataset_name, date_stamp),
             "type": "dataset",
+            "tags": [{"name": "DHIS2 Raw Data"}],
+            "state": "active",
             "owner_org": org["id"],
             "extras": [
                 {"key": "harvest_source_id",
@@ -382,7 +387,6 @@ class PivotTablesHarvester(HarvesterBase):
 
         try:
             existing_package = t.get_action('package_show')(context, {"id": package_data["name"]})
-            # TODO : if the package is in a deleted state we should activate it
             existing_package.update(package_data)
             new_package = t.get_action('package_update')(context, existing_package)
         except NotFound:
