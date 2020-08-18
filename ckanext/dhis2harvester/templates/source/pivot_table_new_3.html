@@ -1,0 +1,99 @@
+{% import 'macros/form.html' as form %}
+{% resource 'dhis2harvester/tabs.js' %}
+{% resource 'dhis2harvester/toggle_box.js' %}
+
+<div class="pivot-table-new-3 {% if data.action != 'pivot_table_new_3' %}hidden{% endif %}">
+<h2>Configure Columns and Categories</h2>
+
+<ul class="pivot-table-tabs nav nav-tabs" data-module="tabs" data-module-tab-class=".pivot-table-config">
+  {% for pivot_table in data.selected_pivot_tables %}
+    <li {% if loop.index==1 %} class="active" {% endif %} target_page="{{pivot_table.id}}"><a href="#">{{pivot_table.text|truncate(20)}}</a></li>
+  {% endfor %}
+</ul>
+
+{% for pivot_table in data.selected_pivot_tables %}
+
+  {% set pivot_tables_data = data.column_values|selectattr("id", "equalto", pivot_table.id)|list if data.column_values else None%}
+  {% set pivot_table_data = pivot_tables_data|first if pivot_tables_data else None%}
+  {% set pivot_table_column_values = pivot_table_data.columns if pivot_table_data else None %}
+
+  {% set target_type = data.selected_pivot_tables|selectattr("id", "equalto", pivot_table.id)|list|first %}
+  {% set target_type = target_type.type %}
+  {% set target_type_name = data.target_types|selectattr('value', 'equalto', target_type)|list|first %}
+  {% set target_type_name = target_type_name.text %}
+  <div class="pivot-table-config {% if loop.index > 1 %}hidden{% endif %}" tab_page="{{pivot_table.id}}">
+    <div class="header">
+      <div class="element row">
+        <span class="label col-xs-12 col-sm-3">Pivot table:</span>
+        <div class="col-xs-12 col-sm-9">
+          <span class="value">{{pivot_table.text}}</span><br />
+          <span class="small">({{_('DHIS2 ID:')}} {{pivot_table.id}})</span>
+        </div>
+      </div>
+      <div class="element row">
+        <span class="label col-xs-12 col-sm-3">Target Type:</span>
+        <span class="value col-xs-12 col-sm-9">{{target_type_name}}</span>
+      </div>
+    </div>
+    {% if data.pivot_table_columns %}
+    {%  for column in data.pivot_table_columns[pivot_table.id] %}
+      {% set column_data_search = pivot_table_column_values|selectattr("id", "equalto", column["value"])|list %}
+      {% set column_data = column_data_search|first if column_data_search else None %}
+      {% set column_enabled = column_data.enabled if column_data else True %}
+      <div class="column-config toggle-box {% if not column_enabled %} toggled {% endif %}">
+        <div class="header">
+          <span class="column-title">{{ column['text'] }} <span class="toggle-content {% if column_enabled %}hidden{% endif %}"> (Excluded) </span></span>
+          <a href="#" class="toggle-btn pull-right" data-module="toggle_box"><i class="fa {% if column_enabled %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i></a>
+          <input type="checkbox" id="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" name="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" class="toggle-checkbox hidden" {% if column_enabled %}checked{% endif %}>
+        </div>
+        <div class="content row" {% if not column_enabled %} style="display: none;" {% endif %}>
+          {% if target_type == 'other' %}
+            {{ form.input("target_column_{}_{}".format(pivot_table.id, column.value), label=_('column'), value=column_data.target_column) }}
+            {{ form.input("category_{}_primary-category_{}".format(pivot_table.id, column.value), label=_('primary category'), value=column_data.categories['primary-category'] if column_data.categories else '') }}
+            {{ form.input("category_{}_secondary-category_{}".format(pivot_table.id, column.value), label=_('secondary category'), value=column_data.categories['secondary-category'] if column_data.categories else '') }}
+          {% else %}
+
+            {% set column_options = [] %}
+            {% for column in data.column_config[target_type].columns %}
+              {% do column_options.append({'value': column, 'text': column}) %}
+            {% endfor %}
+            {{ form.select(
+                'target_column_{}_{}'.format(pivot_table.id, column.value),
+                id='target_column_{}_{}'.format(pivot_table.id, column.value),
+                label='column',
+                options=column_options,
+                selected=column_data.target_column if column_data else column_options[0],
+                error=errors.pivot_table_id,
+                classes=['control-medium', 'col-xs-12', 'col-md-4']
+                )
+            }}
+
+            {% for category, values in data.column_config[target_type].categories.iteritems() %}
+              {% set category_options = [] %}
+              {% for value in values %}
+                {% do category_options.append({'value': value, 'text': value}) %}
+              {% endfor %}
+              {{ form.select(
+                  'category_{}_{}_{}'.format(pivot_table.id, category, column.value),
+                  id='category_{}_{}_{}'.format(pivot_table.id, category, column.value),
+                  label=category,
+                  options=category_options,
+                  selected=column_data.categories[category] if column_data else category_options[0].value,
+                  error=errors.pivot_table_id,
+                  classes=['control-medium', 'col-xs-12', 'col-md-4']
+                  )
+              }}
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    {%  endfor %}
+    {%  endif %}
+  </div>
+{% endfor %}
+
+  <div class="form-nav">
+    <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
+    <button class="btn btn-default" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+{% import 'macros/form.html' as form %}
+<div class="pivot-table-data hidden">
+  {% if data.selected_pivot_tables %}
+    {{ form.input("selected_pivot_tables", value=data.selected_pivot_tables|json_dumps) }}
+  {% endif %}
+  {% if data.column_values %}
+    {{ form.input("column_values", value=data.column_values|json_dumps) }}
+  {% endif %}
+</div>

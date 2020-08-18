@@ -1,0 +1,11 @@
+{% ckan_extends %}
+{#{% set authorized_user = h.check_access('harvest_source_update', {'id': harvest_source.id}) %}#}
+
+{% block content_action %}
+  <div class="content_action btn-group">
+    {% if authorized_user %}
+      {% snippet 'snippets/harvest_run_action.html', harvest_source=harvest_source %}
+      {{ self.admin_link() }}
+    {% endif %}
+  </div>
+{% endblock %}
