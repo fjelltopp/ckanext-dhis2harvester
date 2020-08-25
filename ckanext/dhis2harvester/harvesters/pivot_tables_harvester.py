@@ -128,7 +128,7 @@ class PivotTablesHarvester(HarvesterBase):
                                         .format(area_id_map_url, e.message), harvest_job)
                 return None
             harvest_object_data = {
-                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
+                'output_dataset_name': '{} Output'.format(harvest_job.source.title),
                 'output_resource_name': 'Area ID Crosswalk Table',
                 'csv': area_csv.text
             }
@@ -432,7 +432,11 @@ class PivotTablesHarvester(HarvesterBase):
 
         harvest_object.package_id = new_package['id']
         harvest_object.current = True
-        harvest_object.save()
+        harvest_object.add()
+
+        harvest_object.Session.execute('SET CONSTRAINTS harvest_object_package_id_fkey DEFERRED')
+        harvest_object.Session.flush()
+        harvest_object.Session.commit()
 
         return True
 
