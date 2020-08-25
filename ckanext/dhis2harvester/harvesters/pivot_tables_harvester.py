@@ -128,7 +128,7 @@ class PivotTablesHarvester(HarvesterBase):
                                         .format(area_id_map_url, e.message), harvest_job)
                 return None
             harvest_object_data = {
-                'output_dataset_name': '{} Dataset'.format(harvest_job.source.title),
+                'output_dataset_name': '{} Output'.format(harvest_job.source.title),
                 'output_resource_name': 'Area ID Crosswalk Table',
                 'csv': area_csv.text
             }
