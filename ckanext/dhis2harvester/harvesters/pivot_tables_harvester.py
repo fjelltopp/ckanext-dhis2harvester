@@ -432,7 +432,11 @@ class PivotTablesHarvester(HarvesterBase):
 
         harvest_object.package_id = new_package['id']
         harvest_object.current = True
-        harvest_object.save()
+        harvest_object.add()
+
+        harvest_object.Session.execute('SET CONSTRAINTS harvest_object_package_id_fkey DEFERRED')
+        harvest_object.Session.flush()
+        harvest_object.Session.commit()
 
         return True
 
