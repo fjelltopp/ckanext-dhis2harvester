@@ -24,15 +24,26 @@
   <div class="pivot-table-config {% if loop.index > 1 %}hidden{% endif %}" tab_page="{{pivot_table.id}}">
     <div class="header">
       <div class="element row">
-        <span class="label col-xs-12 col-sm-3">Pivot table:</span>
+        <span class="label col-xs-12 col-sm-3">{{ _('Source DHIS2 pivot table') }}:</span>
         <div class="col-xs-12 col-sm-9">
           <span class="value">{{pivot_table.text}}</span><br />
           <span class="small">({{_('DHIS2 ID:')}} {{pivot_table.id}})</span>
         </div>
       </div>
       <div class="element row">
-        <span class="label col-xs-12 col-sm-3">Target Type:</span>
+        <span class="label col-xs-12 col-sm-3">{{ _('ADR Mapping Type') }}:</span>
         <span class="value col-xs-12 col-sm-9">{{target_type_name}}</span>
+      </div>
+      <div class="element row">
+        <span class="col-xs-12">
+          {{  _('The pivot table <strong>{pivot_table_name}</strong>, with ID: <strong>{pivot_table_id}</strong>
+          in your DHIS2 system will be used to populate the <strong>{table_type_name}</strong> ADR table.')
+          .format(
+            pivot_table_name=pivot_table.text,
+            pivot_table_id=pivot_table.id,
+            table_type_name=target_type_name
+          )}}
+        </span>
       </div>
     </div>
     {% if data.pivot_table_columns %}
