@@ -230,7 +230,9 @@ def __get_dhis_conn(data_dict):
     dhis2_kwargs = {}
     dhis2_url = data_dict.get('dhis2_url')
     dhis2_kwargs['api_version'] = data_dict.get('dhis2_api_version')
-    if all([data_dict.get(x) for x in ('dhis2_username', 'dhis2_password')]):
+    _overwrite_auth_token = data_dict.get('overwrite-auth-token')
+    _auth_token = data_dict.get('dhis2_auth_token')
+    if not _auth_token or _overwrite_auth_token:
         dhis2_kwargs['username'] = data_dict.get('dhis2_username')
         dhis2_kwargs['password'] = data_dict.get('dhis2_password')
     else:
