@@ -1,0 +1,18 @@
+{% ckan_extends %}
+
+{% block secondary_content %}
+    <section class="module module-narrow">
+    <h2 class="module-heading"><i class="fa fa-lg fa-info-circle icon-large icon-info-sign"></i> {{ _('DHIS2 sources') }}</h2>
+    <div class="module-content">
+      <p>
+        {% trans %}
+        In this place you can configure automated data imports from the DHIS2 servers.
+          DHIS2 sources produce tabular data imported into the ADR.
+        {% endtrans %}
+      </p>
+    </div>
+  </section>
+  {% for facet in c.facet_titles %}
+      {{ h.snippet('snippets/facet_list.html', title=c.facet_titles[facet], name=facet, alternative_url=h.url_for('{0}_search'.format(c.dataset_type))) }}
+  {% endfor %}
+{% endblock %}
