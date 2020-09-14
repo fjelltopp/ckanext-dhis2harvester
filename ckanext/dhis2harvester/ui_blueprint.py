@@ -230,7 +230,9 @@ def __get_dhis_conn(data_dict):
     dhis2_kwargs = {}
     dhis2_url = data_dict.get('dhis2_url')
     dhis2_kwargs['api_version'] = data_dict.get('dhis2_api_version')
-    if all([data_dict.get(x) for x in ('dhis2_username', 'dhis2_password')]):
+    _overwrite_auth_token = data_dict.get('overwrite-auth-token')
+    _auth_token = data_dict.get('dhis2_auth_token')
+    if not _auth_token or _overwrite_auth_token:
         dhis2_kwargs['username'] = data_dict.get('dhis2_username')
         dhis2_kwargs['password'] = data_dict.get('dhis2_password')
     else:
@@ -409,11 +411,15 @@ def __data_initialization(edit_configuration=False):
 
     # pivot table columns
     pivot_table_columns_ = {}
+    pivot_table_with_indicators_ = {}
     for pt_id in pivot_table_ids:
         columns_ = dhis2_conn_.get_pivot_table_columns(pt_id)
-        pt_columns_ = [{'value': c['id'], 'text': c['name']} for c in columns_]
+        pivot_table_with_indicators_[pt_id] = any([c['type'] == 'indicator' for c in columns_])
+        data_el_only_ = [c for c in columns_ if c['type'] == 'data_element']
+        pt_columns_ = [{'value': de['id'], 'text': de['name']} for de in data_el_only_]
         pivot_table_columns_[pt_id] = pt_columns_
     data['pivot_table_columns'] = pivot_table_columns_
+    data['pivot_table_with_indicators'] = pivot_table_with_indicators_
     log.debug("Pivot table columns: " + str(pivot_table_columns_))
 
     # selected column values
