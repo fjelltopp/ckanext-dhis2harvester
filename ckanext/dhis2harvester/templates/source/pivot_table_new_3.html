@@ -47,58 +47,67 @@
       </div>
     </div>
     {% if data.pivot_table_columns %}
-    {%  for column in data.pivot_table_columns[pivot_table.id] %}
-      {% set column_data_search = pivot_table_column_values|selectattr("id", "equalto", column["value"])|list %}
-      {% set column_data = column_data_search|first if column_data_search else None %}
-      {% set column_enabled = column_data.enabled if column_data else True %}
-      <div class="column-config toggle-box {% if not column_enabled %} toggled {% endif %}">
-        <div class="header">
-          <span class="column-title">{{ column['text'] }} <span class="toggle-content {% if column_enabled %}hidden{% endif %}"> (Excluded) </span></span>
-          <a href="#" class="toggle-btn pull-right" data-module="toggle_box"><i class="fa {% if column_enabled %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i></a>
-          <input type="checkbox" id="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" name="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" class="toggle-checkbox hidden" {% if column_enabled %}checked{% endif %}>
+      {% if data.pivot_table_with_indicators[pivot_table.id] %}
+        <div class="error-explanation alert alert-error">
+          <span><strong>ADR supports only pivot tables with DHIS2 data elements.</strong>
+            Selected pivot table contains one or more DHIS2 indicators in its configuration.
+            This data will not be visible here.
+            Please update the configuration in DHIS2.
+          </span>
         </div>
-        <div class="content row" {% if not column_enabled %} style="display: none;" {% endif %}>
-          {% if target_type == 'other' %}
-            {{ form.input("target_column_{}_{}".format(pivot_table.id, column.value), label=_('column'), value=column_data.target_column) }}
-            {{ form.input("category_{}_primary-category_{}".format(pivot_table.id, column.value), label=_('primary category'), value=column_data.categories['primary-category'] if column_data.categories else '') }}
-            {{ form.input("category_{}_secondary-category_{}".format(pivot_table.id, column.value), label=_('secondary category'), value=column_data.categories['secondary-category'] if column_data.categories else '') }}
-          {% else %}
+      {% endif %}
+      {%  for column in data.pivot_table_columns[pivot_table.id] %}
+        {% set column_data_search = pivot_table_column_values|selectattr("id", "equalto", column["value"])|list %}
+        {% set column_data = column_data_search|first if column_data_search else None %}
+        {% set column_enabled = column_data.enabled if column_data else True %}
+        <div class="column-config toggle-box {% if not column_enabled %} toggled {% endif %}">
+          <div class="header">
+            <span class="column-title">{{ column['text'] }} <span class="toggle-content {% if column_enabled %}hidden{% endif %}"> (Excluded) </span></span>
+            <a href="#" class="toggle-btn pull-right" data-module="toggle_box"><i class="fa {% if column_enabled %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i></a>
+            <input type="checkbox" id="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" name="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" class="toggle-checkbox hidden" {% if column_enabled %}checked{% endif %}>
+          </div>
+          <div class="content row" {% if not column_enabled %} style="display: none;" {% endif %}>
+            {% if target_type == 'other' %}
+              {{ form.input("target_column_{}_{}".format(pivot_table.id, column.value), label=_('column'), value=column_data.target_column) }}
+              {{ form.input("category_{}_primary-category_{}".format(pivot_table.id, column.value), label=_('primary category'), value=column_data.categories['primary-category'] if column_data.categories else '') }}
+              {{ form.input("category_{}_secondary-category_{}".format(pivot_table.id, column.value), label=_('secondary category'), value=column_data.categories['secondary-category'] if column_data.categories else '') }}
+            {% else %}
 
-            {% set column_options = [] %}
-            {% for column in data.column_config[target_type].columns %}
-              {% do column_options.append({'value': column, 'text': column}) %}
-            {% endfor %}
-            {{ form.select(
-                'target_column_{}_{}'.format(pivot_table.id, column.value),
-                id='target_column_{}_{}'.format(pivot_table.id, column.value),
-                label='column',
-                options=column_options,
-                selected=column_data.target_column if column_data else column_options[0],
-                error=errors.pivot_table_id,
-                classes=['control-medium', 'col-xs-12', 'col-md-4']
-                )
-            }}
-
-            {% for category, values in data.column_config[target_type].categories.iteritems() %}
-              {% set category_options = [] %}
-              {% for value in values %}
-                {% do category_options.append({'value': value, 'text': value}) %}
+              {% set column_options = [] %}
+              {% for column in data.column_config[target_type].columns %}
+                {% do column_options.append({'value': column, 'text': column}) %}
               {% endfor %}
               {{ form.select(
-                  'category_{}_{}_{}'.format(pivot_table.id, category, column.value),
-                  id='category_{}_{}_{}'.format(pivot_table.id, category, column.value),
-                  label=category,
-                  options=category_options,
-                  selected=column_data.categories[category] if column_data else category_options[0].value,
+                  'target_column_{}_{}'.format(pivot_table.id, column.value),
+                  id='target_column_{}_{}'.format(pivot_table.id, column.value),
+                  label='column',
+                  options=column_options,
+                  selected=column_data.target_column if column_data else column_options[0],
                   error=errors.pivot_table_id,
                   classes=['control-medium', 'col-xs-12', 'col-md-4']
                   )
               }}
-            {% endfor %}
-          {% endif %}
+
+              {% for category, values in data.column_config[target_type].categories.iteritems() %}
+                {% set category_options = [] %}
+                {% for value in values %}
+                  {% do category_options.append({'value': value, 'text': value}) %}
+                {% endfor %}
+                {{ form.select(
+                    'category_{}_{}_{}'.format(pivot_table.id, category, column.value),
+                    id='category_{}_{}_{}'.format(pivot_table.id, category, column.value),
+                    label=category,
+                    options=category_options,
+                    selected=column_data.categories[category] if column_data else category_options[0].value,
+                    error=errors.pivot_table_id,
+                    classes=['control-medium', 'col-xs-12', 'col-md-4']
+                    )
+                }}
+              {% endfor %}
+            {% endif %}
+          </div>
         </div>
-      </div>
-    {%  endfor %}
+      {%  endfor %}
     {%  endif %}
   </div>
 {% endfor %}
