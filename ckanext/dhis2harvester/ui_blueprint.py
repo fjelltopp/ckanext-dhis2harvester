@@ -23,6 +23,8 @@ ui_blueprint = Blueprint(
     url_prefix='/dhis2_harvester'
 )
 
+METADATA_SEPARATOR = ';'
+
 
 def pivot_tables_new():
     if request.method == 'POST':
@@ -53,7 +55,6 @@ def pivot_tables_edit(harvest_source_id):
         data['description'] = str(harvest_source['notes'])
         data['name'] = str(harvest_source['name'])
         data['owner_org'] = str(harvest_source['owner_org'])
-
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
@@ -284,13 +285,15 @@ def __prepare_harvester_details(data):
         'area_id_map_owner': data.get('area_id_map_owner')
     }
     harvester_name = data['name']
+    active_ = data.get('state', 'active') == 'active'
     data_dict = {
         "name": harvester_name,
         "url": data['dhis2_url'],
         "source_type": 'dhis2-pivot-tables',
         "title": data['title'],
         "notes": data['notes'],
-        "active": True,
+        "active": active_,
+        "state": data.get('state', 'none'),
         "owner_org": data['owner_org'],
         "frequency": 'MANUAL',
         "config": json.dumps(source_config)
@@ -436,18 +439,18 @@ def __data_initialization(edit_configuration=False):
             }
         columns_ = defaultdict(__new_column)
         for k in data:
-            if k.startswith("target_column_{}".format(pt_id)):
-                c_id_ = k.split('_')[-1]
+            if k.startswith("target_column{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
+                c_id_ = k.split(METADATA_SEPARATOR)[-1]
                 target_column_ = data[k]
                 columns_[c_id_]['target_column'] = target_column_
-            elif k.startswith("category_{}".format(pt_id)):
-                tc_, c_id_ = k.split('_')[-2:]
+            elif k.startswith("category{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
+                tc_, c_id_ = k.split(METADATA_SEPARATOR)[-2:]
                 tc_value_ = data[k]
                 if not 'categories' in columns_[c_id_]:
                     columns_[c_id_]['categories'] = {}
                 columns_[c_id_]['categories'][tc_] = tc_value_
-            elif k.startswith("column_enabled_{}".format(pt_id)):
-                c_id_ = k.split('_')[-1]
+            elif k.startswith("column_enabled{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
+                c_id_ = k.split(METADATA_SEPARATOR)[-1]
                 columns_[c_id_]['enabled'] = True
 
         columns_list_ = []
@@ -472,14 +475,11 @@ def __data_initialization(edit_configuration=False):
 
 def __get_pt_configs(data):
     # get column config template
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dir_path, 'config/column_configs_template.json'), 'r') as f:
-        column_config_template_ = json.loads(f.read())
-        log.debug("Read JSON column config: " + str(column_config_template_))
-        data['column_config'] = column_config_template_
-        target_types_ = [{'text': type_d['name'], 'value': type_id}
-                         for type_id, type_d in column_config_template_.iteritems()]
-        data['target_types'] = target_types_
+    from config.column_configs_template import TARGET_TYPES
+    data['column_config'] = TARGET_TYPES
+    target_types_ = [{'text': type_d['name'], 'value': type_id}
+                     for type_id, type_d in TARGET_TYPES.iteritems()]
+    data['target_types'] = target_types_
 
 
 ui_blueprint.add_url_rule(

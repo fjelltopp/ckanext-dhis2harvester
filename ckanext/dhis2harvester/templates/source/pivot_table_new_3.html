@@ -64,13 +64,13 @@
           <div class="header">
             <span class="column-title">{{ column['text'] }} <span class="toggle-content {% if column_enabled %}hidden{% endif %}"> (Excluded) </span></span>
             <a href="#" class="toggle-btn pull-right" data-module="toggle_box"><i class="fa {% if column_enabled %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i></a>
-            <input type="checkbox" id="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" name="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" class="toggle-checkbox hidden" {% if column_enabled %}checked{% endif %}>
+            <input type="checkbox" id="{{'column_enabled_{}_{}'.format(pivot_table.id, column.value)}}" name="{{'column_enabled;{};{}'.format(pivot_table.id, column.value)}}" class="toggle-checkbox hidden" {% if column_enabled %}checked{% endif %}>
           </div>
           <div class="content row" {% if not column_enabled %} style="display: none;" {% endif %}>
             {% if target_type == 'other' %}
               {{ form.input("target_column_{}_{}".format(pivot_table.id, column.value), label=_('column'), value=column_data.target_column) }}
-              {{ form.input("category_{}_primary-category_{}".format(pivot_table.id, column.value), label=_('primary category'), value=column_data.categories['primary-category'] if column_data.categories else '') }}
-              {{ form.input("category_{}_secondary-category_{}".format(pivot_table.id, column.value), label=_('secondary category'), value=column_data.categories['secondary-category'] if column_data.categories else '') }}
+              {{ form.input("category_{};primary_category;{}".format(pivot_table.id, column.value), label=_('primary category'), value=column_data.categories['primary_category'] if column_data.categories else '') }}
+              {{ form.input("category_{};secondary_category;{}".format(pivot_table.id, column.value), label=_('secondary category'), value=column_data.categories['secondary_category'] if column_data.categories else '') }}
             {% else %}
 
               {% set column_options = [] %}
@@ -78,8 +78,8 @@
                 {% do column_options.append({'value': column, 'text': column}) %}
               {% endfor %}
               {{ form.select(
-                  'target_column_{}_{}'.format(pivot_table.id, column.value),
-                  id='target_column_{}_{}'.format(pivot_table.id, column.value),
+                  'target_column;{};{}'.format(pivot_table.id, column.value),
+                  id='target_column;{};{}'.format(pivot_table.id, column.value),
                   label='column',
                   options=column_options,
                   selected=column_data.target_column if column_data else column_options[0],
@@ -94,8 +94,8 @@
                   {% do category_options.append({'value': value, 'text': value}) %}
                 {% endfor %}
                 {{ form.select(
-                    'category_{}_{}_{}'.format(pivot_table.id, category, column.value),
-                    id='category_{}_{}_{}'.format(pivot_table.id, category, column.value),
+                    'category;{};{};{}'.format(pivot_table.id, category, column.value),
+                    id='category;{};{};{}'.format(pivot_table.id, category, column.value),
                     label=category,
                     options=category_options,
                     selected=column_data.categories[category] if column_data else category_options[0].value,
