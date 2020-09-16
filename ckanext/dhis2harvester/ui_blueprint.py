@@ -285,13 +285,15 @@ def __prepare_harvester_details(data):
         'area_id_map_owner': data.get('area_id_map_owner')
     }
     harvester_name = data['name']
+    active_ = data.get('state', 'active') == 'active'
     data_dict = {
         "name": harvester_name,
         "url": data['dhis2_url'],
         "source_type": 'dhis2-pivot-tables',
         "title": data['title'],
         "notes": data['notes'],
-        "active": True,
+        "active": active_,
+        "state": data.get('state', 'none'),
         "owner_org": data['owner_org'],
         "frequency": 'MANUAL',
         "config": json.dumps(source_config)

@@ -26,10 +26,21 @@
      upload_label=_('Optional Area ID Mapping File'), url_label=_('Optional Area ID Mapping File URL'), placeholder=_('http://example.com/external-data.csv'), field_name='name') }}
 </div>
 
+{% if harvest_source and h.check_access('harvest_source_delete', {'id': harvest_source.id}) and harvest_source.get('state', 'none') == 'deleted' %}
+  <div class="control-group">
+    <label for="field-state" class="control-label">{{ _('State') }}</label>
+    <div class="controls">
+      <select id="field-state" name="state">
+        <option value="active" {% if harvest_source.get('state', 'none') == 'active' %} selected="selected" {% endif %}>{{ _('Active') }}</option>
+        <option value="deleted" {% if harvest_source.get('state', 'none') == 'deleted' %} selected="selected" {% endif %}>{{ _('Deleted') }}</option>
+      </select>
+    </div>
+  </div>
+{% endif %}
+
 
 <input type="hidden" name="source_type" value="dhis2_pivot_table" >
 <div class="form-nav">
   <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_3">{{_("Previous")}}</button>
-  <button class="btn btn-primary" type="submit" name="action" value="pivot_table_new_save">{{_("Save")}}</button>
 </div>
 </div>
