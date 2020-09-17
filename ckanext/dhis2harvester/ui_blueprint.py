@@ -293,7 +293,7 @@ def __prepare_harvester_details(data):
         "title": data['title'],
         "notes": data['notes'],
         "active": active_,
-        "state": data.get('state', 'none'),
+        "state": data.get('state', 'active'),
         "owner_org": data['owner_org'],
         "frequency": 'MANUAL',
         "config": json.dumps(source_config)
