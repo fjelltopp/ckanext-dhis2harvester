@@ -51,6 +51,21 @@ TARGET_TYPES = OrderedDict([
             ]
         }
     }),
+    ("hiv-testing", {
+        "name": "HIV Testing Input",
+        "columns": [
+            "hts_tested"
+            "hts_tested_pos"
+        ],
+        "categories": {
+            "sex": [
+                "both"
+            ],
+            "age_group": [
+                "Y015_999"
+            ]
+        }
+    }),
     ("other", {
         "name": "Other"
     })
