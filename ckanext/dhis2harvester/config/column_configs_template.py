@@ -54,7 +54,7 @@ TARGET_TYPES = OrderedDict([
     ("hiv-testing", {
         "name": "HIV Testing Input",
         "columns": [
-            "hts_tested"
+            "hts_tested",
             "hts_tested_pos"
         ],
         "categories": {
