@@ -6,6 +6,7 @@ from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import (HarvestSource, HarvestJob, HarvestObject,
                                    HarvestGatherError, HarvestObjectError)
 import ckanext.dhis2harvester.dhis2_api as dhis2_api
+import ckan.plugins.toolkit as t
 from ckan.logic import NotFound
 from ckan import model
 from ckan.plugins import toolkit as t
@@ -107,6 +108,9 @@ class PivotTablesHarvester(HarvesterBase):
 
         config = json.loads(harvest_job.source.config)
         dhis2_connection = self._get_dhis2_connection(config)
+        organisation = t.get_action('harvest_source_show')({}, {'id': harvest_job.source_id})["organization"]
+        country_name = organisation['name']
+
         try:
             dhis2_connection.test_connection()
         except dhis2_api.Dhis2ConnectionError as e:
@@ -114,6 +118,10 @@ class PivotTablesHarvester(HarvesterBase):
                                     harvest_job)
             return None
         area_id_map_url = config['area_id_map_url']
+        today = datetime.today()
+        date_stamp_human = today.strftime("%Y %b %d")
+        date_stamp = today.strftime("%Y/%m/%d")
+        output_dataset_name_ = '{} Output {}'.format(harvest_job.source.title, date_stamp_human)
         if area_id_map_url:
             try:
                 area_map_owner = config['area_id_map_owner']
@@ -128,7 +136,7 @@ class PivotTablesHarvester(HarvesterBase):
                                         .format(area_id_map_url, e.message), harvest_job)
                 return None
             harvest_object_data = {
-                'output_dataset_name': '{} Output'.format(harvest_job.source.title),
+                'output_dataset_name': output_dataset_name_,
                 'output_resource_name': 'Area ID Crosswalk Table',
                 'csv': area_csv.text
             }
@@ -139,6 +147,7 @@ class PivotTablesHarvester(HarvesterBase):
             obj_ids.append(obj.id)
         for pt in config['column_values']:
             pt_id = pt['id']
+            pt_type = {x['id']: x for x in config['selected_pivot_tables']}[pt_id]['type']
             pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
             data_elements = [c['id'].split('-')[0] for c in pt['columns']]
             csv_resource_name = dhis2_connection.get_pivot_table_csv_resource(
@@ -148,8 +157,8 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_api_version': config['dhis2_api_version'],
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
-                'output_dataset_name': '{} Output'.format(harvest_job.source.title),
-                'output_resource_name': pt_config['name'],
+                'output_dataset_name': output_dataset_name_,
+                'output_resource_name': '{} {} {} DHIS2'.format(date_stamp, country_name, pt_type),
                 'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns']
             }
@@ -368,14 +377,11 @@ class PivotTablesHarvester(HarvesterBase):
         content = json.loads(harvest_object.content)
         dataset_name = content['output_dataset_name']
         resource_name = content['output_resource_name']
-        today = datetime.today()
-        date_stamp = today.strftime("%Y %b %d")
-        date_stamp_slug = today.strftime("%Y-%m-%d")
         csv_string = content['csv']
 
         package_data = {
-            "name": slugify("{}-{}".format(dataset_name, date_stamp_slug)),
-            "title": "{} {}".format(dataset_name, date_stamp),
+            "name": slugify(dataset_name),
+            "title": dataset_name,
             "type": "dataset",
             "tags": [{"name": "DHIS2 Raw Data"}],
             "state": "active",
@@ -398,7 +404,7 @@ class PivotTablesHarvester(HarvesterBase):
 
 
         csv_stream = StringIO(csv_string.encode('ascii', 'replace'))
-        csv_filename = "{}.csv".format(slugify(resource_name))
+        csv_filename = "{}.csv".format(slugify(resource_name.replace('/', '')))
         resource = {
             "name": resource_name,
             "description": "Data pulled from DHIS2",
