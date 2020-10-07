@@ -121,7 +121,8 @@ class PivotTablesHarvester(HarvesterBase):
         today = datetime.today()
         date_stamp_human = today.strftime("%Y %b %d")
         date_stamp = today.strftime("%Y/%m/%d")
-        output_dataset_name_ = '{} Output {}'.format(harvest_job.source.title, date_stamp_human)
+        title_ = harvest_job.source.title.encode('utf-8')
+        output_dataset_name_ = '{} Output {}'.format(title_, date_stamp_human)
         if area_id_map_url:
             try:
                 area_map_owner = config['area_id_map_owner']
