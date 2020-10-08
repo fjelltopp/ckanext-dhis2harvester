@@ -51,10 +51,10 @@ def pivot_tables_edit(harvest_source_id):
         data['dhis2_url'] = dhis2_url
         data['dhis2_api_version'] = dhis2_api_version
         data['dhis2_auth_token'] = dhis2_auth_token
-        data['title'] = str(harvest_source['title'])
-        data['description'] = str(harvest_source['notes'])
-        data['name'] = str(harvest_source['name'])
-        data['owner_org'] = str(harvest_source['owner_org'])
+        data['title'] = harvest_source['title']
+        data['description'] = harvest_source['notes']
+        data['name'] = harvest_source['name']
+        data['owner_org'] = harvest_source['owner_org']
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
