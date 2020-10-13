@@ -1,2 +1,2 @@
-python-slugify==3.0.2
+python-slugify==4.0.1
 pandas==0.24.2
