@@ -1,15 +1,15 @@
 {% if harvest_source.status and harvest_source.status.last_job and (harvest_source.status.last_job.status == 'New' or harvest_source.status.last_job.status == 'Running') %}
   <a class="btn btn-default disabled" rel="tooltip" title="There already is an unrun job for this source"><i class="fa fa-lg fa-refresh icon-refresh icon-large"></i> {{  _('Running...') }}</a>
 {% else %}
-  {% set locale = h.dump_json({'content': _('This will re-run the harvesting for this source. Any updates at the source will overwrite the local datasets. Sources with a large number of datasets may take a significant amount of time to finish harvesting. Please confirm you would like us to start reharvesting.')}) %}
+  {% set locale = h.dump_json({'content': _('This will re-run the DHIS2 import for this source. Any updates at the source will overwrite the local datasets. Sources with a large number of datasets may take a significant amount of time to finish refreshing. Please confirm you would like us to start refreshing.')}) %}
   {% if harvest_source.source_type == 'dhis2-pivot-tables' %}
     {% set harvest_refresh_url = h.url_for('dhis2_harvester.pivot_tables_refresh', harvest_source_id=harvest_source.id) %}
   {% else %}
     {% set harvest_refresh_url = h.url_for('harvest_refresh', id=harvest_source.id) %}
   {% endif %}
   <a href="{{ harvest_refresh_url }}" class="btn btn-default" data-module="confirm-action" data-module-i18n="{{ locale }}"
-     title="{{ _('Start a new harvesting job for this harvest source now') }}">
+     title="{{ _('Start a new import job for this DHIS2 source now') }}">
     <i class="fa fa-refresh icon-refresh"></i>
-    {{ _('Reharvest') }}
+    {{ _('Refresh') }}
   </a>
 {% endif %}
