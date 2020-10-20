@@ -28,13 +28,13 @@
     {% set locale = h.dump_json({'content': _('Warning: This will remove all datasets for this source, as well as all previous job reports. Are you sure you want to continue?')}) %}
 
       <a href="{{ h.url_for('harvest_clear', id=harvest_source.id) }}" class="btn btn-default" data-module="confirm-action" data-module-i18n="{{ locale }}"
-         title="{{ _('Delete all harvest jobs and existing datasets from this source') }}">
+         title="{{ _('Delete all import jobs and existing datasets from this DHIS2 source') }}">
         {{ _('Clear') }}
       </a>
 
        <a href="{{ h.url_for('harvest_read', id=harvest_source.name) }}" class="btn btn-default">
         <i class="fa fa-eye eye-open"></i>
-        {{ _('View harvest source') }}
+        {{ _('View DHIS2 source') }}
       </a>
 
 {% endblock %}

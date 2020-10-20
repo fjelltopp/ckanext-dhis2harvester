@@ -1,6 +1,6 @@
 {% import 'macros/form.html' as form %}
 <div class="pivot-table-new-4 {% if data.action != 'pivot_table_new_4' %}hidden{% endif %}">
-<h1>{{_('Finalise Harvester')}}</h1>
+<h1>{{_('Finalise DHIS2 Source')}}</h1>
 {{ form.input('title', id='field-title', label=_('Title'), placeholder=_('eg. A descriptive title'), value=data.title, error=errors.title, classes=['control-full'], attrs={'data-module': 'slug-preview-target', 'class': 'form-control'}) }}
 
 {% set prefix = 'harvest' %}
