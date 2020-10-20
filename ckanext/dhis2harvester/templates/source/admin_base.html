@@ -32,13 +32,10 @@
         {{ _('Clear') }}
       </a>
 
-
-
-       <a href="{{ h.url_for('{0}_read'.format(c.dataset_type), id=harvest_source.id) }}" class="btn btn-default">
+       <a href="{{ h.url_for('harvest_read', id=harvest_source.name) }}" class="btn btn-default">
         <i class="fa fa-eye eye-open"></i>
         {{ _('View harvest source') }}
       </a>
-
 
 {% endblock %}
 
