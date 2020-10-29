@@ -22,7 +22,7 @@
       <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_1' %}btn-primary{% endif %}" type="submit" name="action" value="back.pivot_table_new_1">{{_('DHIS2 Connection')}} <i class="fa fa-angle-right"></i></button>
       <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_2' %}btn-primary{% endif %}" {% if stage_2_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_2">{{_('Pivot Tables')}} <i class="fa fa-angle-right"></i></button>
       <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_3' %}btn-primary{% endif %}" {% if stage_3_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_3">{{_('Column Configuration')}} <i class="fa fa-angle-right"></i></button>
-      <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_4' %}btn-primary{% endif %}" {% if stage_4_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_4">{{_('Harvest Details')}}</button>
+      <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_4' %}btn-primary{% endif %}" {% if stage_4_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_4">{{_('DHIS2 Source Details')}}</button>
     </div>
 
     {% block errors %}{{ form.errors(error_summary) }}{% endblock %}
