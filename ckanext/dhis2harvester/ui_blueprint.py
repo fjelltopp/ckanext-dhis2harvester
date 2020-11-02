@@ -77,6 +77,8 @@ def __get_dhis2_connection_details_from_harvest_source(harvest_config):
 
 
 def pivot_tables_refresh(harvest_source_id):
+    import pydevd_pycharm
+    pydevd_pycharm.settrace('172.17.0.1', port=4321, stdoutToServer=True, stderrToServer=True)
     harvest_source = harvest_helpers.get_harvest_source(harvest_source_id)
     __set_harvest_globals(harvest_source)
     harvester_name = harvest_source['name']
@@ -109,7 +111,7 @@ def pivot_tables_refresh(harvest_source_id):
         except ValidationError as e:
             log.error("An error occurred: {}".format(str(e)))
             raise e
-        return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+        return redirect(h.url_for('harvest_admin', id=harvester_name))
     else:
         # this is
         data = {}
@@ -261,7 +263,7 @@ def __save_harvest_source(data):
         raise e
     log.info("Harvest source {} created".format(harvester_name))
 
-    return redirect(h.url_for('harvest'))
+    return redirect(h.url_for('/harvest'))
 
 
 def __update_harvest_source(data):
@@ -483,7 +485,7 @@ def __get_pt_configs(data):
 
 
 ui_blueprint.add_url_rule(
-    u'/pivot_tables/new',
+    u'/pivot_tables',
     view_func=pivot_tables_new,
     methods=['GET', 'POST']
 )
