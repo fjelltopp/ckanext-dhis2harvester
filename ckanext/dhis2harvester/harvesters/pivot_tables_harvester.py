@@ -6,6 +6,7 @@ from ckanext.harvest.harvesters import HarvesterBase
 from ckanext.harvest.model import (HarvestSource, HarvestJob, HarvestObject,
                                    HarvestGatherError, HarvestObjectError)
 import ckanext.dhis2harvester.dhis2_api as dhis2_api
+import ckanext.dhis2harvester.harvesters.operations as operations
 import ckan.plugins.toolkit as t
 from ckan.logic import NotFound
 from ckan import model
@@ -262,7 +263,8 @@ class PivotTablesHarvester(HarvesterBase):
                     target_column_ = [target_column_]
                 categories_map[cc['id']] = {
                     "target_column": target_column_,
-                    "categories": cc['categories']
+                    "categories": cc['categories'],
+                    "operation": cc.get('operation', operations.ADD)
                 }
             _category_column = 'Category option combo'
             _data_element_column = 'Data'
@@ -281,9 +283,10 @@ class PivotTablesHarvester(HarvesterBase):
                 except KeyError:
                     _index_to_drop.append(i)
                     continue
+                _factor = operations.aggregation_factor_for_operation(c["operation"])
                 for tc in c['target_column']:
                     _data_cols.add(tc)
-                    pt_df.loc[i, tc] = row['Value']
+                    pt_df.loc[i, tc] = _factor * row['Value']
                 for cat, cat_val in c['categories'].iteritems():
                     _cat_cols.add(cat)
                     pt_df.loc[i, cat] = cat_val
