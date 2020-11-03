@@ -3,10 +3,10 @@ import requests
 from ckan.lib import uploader
 
 from ckanext.harvest.harvesters import HarvesterBase
-from ckanext.harvest.model import (HarvestSource, HarvestJob, HarvestObject,
+from ckanext.harvest.model import (HarvestObject,
                                    HarvestGatherError, HarvestObjectError)
 import ckanext.dhis2harvester.dhis2_api as dhis2_api
-import ckan.plugins.toolkit as t
+import ckanext.dhis2harvester.harvesters.operations as operations
 from ckan.logic import NotFound
 from ckan import model
 from ckan.plugins import toolkit as t
@@ -38,23 +38,8 @@ class PivotTablesHarvester(HarvesterBase):
             'description': 'Harvests pivot tables data from DHIS2',
         }
 
-    def validate_config(self, config):
-        '''
-
-        [optional]
-
-        Harvesters can provide this method to validate the configuration
-        entered in the form. It should return a single string, which will be
-        stored in the database.  Exceptions raised will be shown in the form's
-        error messages.
-
-        :param harvest_object_id: Config string coming from the form
-        :returns: A string with the validated configuration options
-        '''
-        return config
-
     def get_original_url(self, harvest_object_id):
-        '''
+        """
 
         [optional]
 
@@ -74,10 +59,10 @@ class PivotTablesHarvester(HarvesterBase):
 
         :param harvest_object_id: HarvestObject id
         :returns: A string with the URL to the original document
-        '''
+        """
 
     def gather_stage(self, harvest_job):
-        '''
+        """
         The gather stage will receive a HarvestJob object and will be
         responsible for:
             - gathering all the necessary objects to fetch on a later.
@@ -95,7 +80,7 @@ class PivotTablesHarvester(HarvesterBase):
 
         :param harvest_job: HarvestJob object
         :returns: A list of HarvestObject ids
-        '''
+        """
         log.debug('Gather stage for harvest job: %r', harvest_job.id)
         if not harvest_job:
             log.error('No harvest job received')
@@ -180,7 +165,7 @@ class PivotTablesHarvester(HarvesterBase):
         return dhis2_api.Dhis2Connection(dhis2_url, api_version=dhis2_api_version, auth_token=dhis2_auth_token)
 
     def fetch_stage(self, harvest_object):
-        '''
+        """
         The fetch stage will receive a HarvestObject object and will be
         responsible for:
             - getting the contents of the remote object (e.g. for a CSW server,
@@ -196,7 +181,7 @@ class PivotTablesHarvester(HarvesterBase):
         :param harvest_object: HarvestObject object
         :returns: True if successful, 'unchanged' if nothing to import after
                   all, False if not successful
-        '''
+        """
         log.debug('Fetch stage for harvest object: %r', harvest_object.id)
 
         if not harvest_object:
@@ -262,7 +247,8 @@ class PivotTablesHarvester(HarvesterBase):
                     target_column_ = [target_column_]
                 categories_map[cc['id']] = {
                     "target_column": target_column_,
-                    "categories": cc['categories']
+                    "categories": cc['categories'],
+                    "operation": cc.get('operation', operations.ADD)
                 }
             _category_column = 'Category option combo'
             _data_element_column = 'Data'
@@ -281,17 +267,19 @@ class PivotTablesHarvester(HarvesterBase):
                 except KeyError:
                     _index_to_drop.append(i)
                     continue
+                _factor = operations.aggregation_factor_for_operation(c["operation"])
                 for tc in c['target_column']:
                     _data_cols.add(tc)
-                    pt_df.loc[i, tc] = row['Value']
+                    pt_df.loc[i, tc] = _factor * row['Value']
                 for cat, cat_val in c['categories'].iteritems():
                     _cat_cols.add(cat)
                     pt_df.loc[i, cat] = cat_val
             pt_df = pt_df.drop(_index_to_drop)
             if pt_df.empty:
-                self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}. No data matching column configuration.'
-                                        .format(pivot_table_id, dhis2_connection),
-                                        harvest_object, 'Fetch')
+                self._save_object_error(
+                    'Failed to process DHIS2 pivot table: {} @ {}. No data matching column configuration.'
+                    .format(pivot_table_id, dhis2_connection),
+                    harvest_object, 'Fetch')
                 return None
             # create final columns output
             pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
@@ -317,7 +305,7 @@ class PivotTablesHarvester(HarvesterBase):
                     return None
 
                 pt_df['area_id'] = pt_df['area_id'].replace(area_map_df.set_index(mapping_column_name)['area_id'])
-        except Exception as e:
+        except Exception:
             exc_type, value, traceback = sys.exc_info()
             self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}, {}:{}'
                                     .format(pivot_table_id, dhis2_connection, exc_type, value),
@@ -330,7 +318,7 @@ class PivotTablesHarvester(HarvesterBase):
         return True
 
     def import_stage(self, harvest_object):
-        '''
+        """
         The import stage will receive a HarvestObject object and will be
         responsible for:
             - performing any necessary action with the fetched object (e.g.
@@ -354,7 +342,7 @@ class PivotTablesHarvester(HarvesterBase):
         :param harvest_object: HarvestObject object
         :returns: True if the action was done, "unchanged" if the object didn't
                   need harvesting after all or False if there were errors.
-        '''
+        """
 
         log.debug('Import stage for harvest object: %r', harvest_object.id)
 
@@ -402,7 +390,6 @@ class PivotTablesHarvester(HarvesterBase):
                        'user': self._get_user_name()}
             package_data["id"] = str(uuid.uuid4())
             new_package = t.get_action('package_create')(context, package_data)
-
 
         csv_stream = StringIO(csv_string.encode('ascii', 'replace'))
         csv_filename = "{}.csv".format(slugify(resource_name.replace('/', '')))
