@@ -109,13 +109,15 @@
               {% endif %}
             </div>
             <div class="row">
-              {{ form.checkbox(
-                      'negative;{};{}'.format(pivot_table.id, column.value),
-                      label=_('Negative value'),
-                      checked=column_negative,
-                      error=errors.pivot_table_id
-                )
-              }}
+              <div class="col-xs-12">
+                {{ form.checkbox(
+                        'negative;{};{}'.format(pivot_table.id, column.value),
+                        label=_('Negative value'),
+                        checked=column_negative,
+                        error=errors.pivot_table_id
+                  )
+                }}
+              </div>
             </div>
           </div>
         </div>
