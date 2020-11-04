@@ -13,6 +13,7 @@ import ckanext.harvest.utils as harvest_utils
 from ckan.logic import ValidationError
 from collections import defaultdict
 from dhis2_api import Dhis2Connection, Dhis2ConnectionError
+from harvesters import operations
 
 log = logging.getLogger(__name__)
 
@@ -442,7 +443,8 @@ def __data_initialization(edit_configuration=False):
 
         def __new_column():
             return {
-                'enabled': False
+                'enabled': False,
+                'operation': operations.ADD
             }
 
         columns_ = defaultdict(__new_column)
@@ -460,6 +462,9 @@ def __data_initialization(edit_configuration=False):
             elif k.startswith("column_enabled{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
                 c_id_ = k.split(METADATA_SEPARATOR)[-1]
                 columns_[c_id_]['enabled'] = True
+            elif k.startswith("negative{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
+                c_id_ = k.split(METADATA_SEPARATOR)[-1]
+                columns_[c_id_]['operation'] = operations.SUBTRACT
 
         columns_list_ = []
         for c_id, c_details in columns_.iteritems():
