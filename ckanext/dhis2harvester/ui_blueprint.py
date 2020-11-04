@@ -4,7 +4,7 @@ from StringIO import StringIO
 import logging
 import requests
 import pandas as pd
-from flask import Blueprint, request, redirect, abort
+from flask import Blueprint, request, abort
 from ckan.common import _, g
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
@@ -110,16 +110,15 @@ def pivot_tables_refresh(harvest_source_id):
         except ValidationError as e:
             log.error("An error occurred: {}".format(str(e)))
             raise e
-        return redirect(h.url_for('harvest_admin', id=harvester_name))
+        return h.redirect_to('harvest_admin', id=harvester_name)
     else:
-        # this is
         data = {}
         (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(
             source_config)
         if dhis2_auth_token:
             try:
                 harvest_utils.create_job(harvest_source_id)
-                return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+                return h.redirect_to('harvest_admin', id=harvester_name)
             except ValidationError as e:
                 log.error("An error occurred: {}".format(str(e)))
         data['dhis2_url'] = dhis2_url
@@ -235,7 +234,7 @@ def __save_harvest_source(data):
         raise e
     log.info("Harvest source {} created".format(harvester_name))
 
-    return redirect(h.url_for('/harvest'))
+    return h.redirect_to('harvest_admin', id=harvester_name)
 
 
 def __update_harvest_source(data):
@@ -245,7 +244,7 @@ def __update_harvest_source(data):
     except ValidationError as e:
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
-    return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+    return h.redirect_to('harvest_admin', id=harvester_name)
 
 
 def __save_or_update_harvest_source(data, harvest_source=None):
