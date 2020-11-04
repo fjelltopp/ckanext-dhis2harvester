@@ -156,37 +156,7 @@ def __ui_state_machine(harvest_source=None):
     elif form_stage == 'pivot_table_new_4':
         return __summary_stage(data, harvest_source=harvest_source)
     elif form_stage == 'pivot_table_new_save':
-        area_id_map_url = data.get('area_id_map_url')
-        if area_id_map_url:
-            current_user = g.userobj
-            api_key = current_user.apikey
-            try:
-                headers = {'Authorization': api_key}
-                area_csv = requests.get(area_id_map_url, headers=headers)
-                if area_csv.status_code != 200:
-                    raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(
-                        area_csv.status_code))
-                else:
-                    data['area_id_map_owner'] = current_user.name
-            except Exception as e:
-                errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
-                return __summary_stage(data, errors, harvest_source=harvest_source)
-            try:
-                csv_stream = StringIO(area_csv.text)
-                pd.read_csv(csv_stream)
-            except Exception:
-                errors = {"area_id_map_url": [_("Incorrect csv file format.")]}
-                return __summary_stage(data, errors, harvest_source=harvest_source)
-
-        try:
-            if harvest_source:
-                return __update_harvest_source(data)
-            else:
-                return __save_harvest_source(data)
-        except Exception as e:
-            log.exception(e.message)
-            h.flash_error('Error while saving the harvest source: {}'.format(e.message))
-            return __summary_stage(data, harvest_source=harvest_source)
+        return __save_or_update_harvest_source(data, harvest_source=harvest_source)
     else:
         abort(400, "Unrecognised action")
 
@@ -276,6 +246,40 @@ def __update_harvest_source(data):
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
     return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+
+
+def __save_or_update_harvest_source(data, harvest_source=None):
+    area_id_map_url = data.get('area_id_map_url')
+    if area_id_map_url:
+        current_user = g.userobj
+        api_key = current_user.apikey
+        try:
+            headers = {'Authorization': api_key}
+            area_csv = requests.get(area_id_map_url, headers=headers)
+            if area_csv.status_code != 200:
+                raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(
+                    area_csv.status_code))
+            else:
+                data['area_id_map_owner'] = current_user.name
+        except Exception as e:
+            errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
+            return __summary_stage(data, errors, harvest_source=harvest_source)
+        try:
+            csv_stream = StringIO(area_csv.text)
+            pd.read_csv(csv_stream)
+        except Exception:
+            errors = {"area_id_map_url": [_("Incorrect csv file format.")]}
+            return __summary_stage(data, errors, harvest_source=harvest_source)
+
+    try:
+        if harvest_source:
+            return __update_harvest_source(data)
+        else:
+            return __save_harvest_source(data)
+    except Exception as e:
+        log.exception(e.message)
+        h.flash_error('Error while saving the harvest source: {}'.format(e.message))
+        return __summary_stage(data, harvest_source=harvest_source)
 
 
 def __prepare_harvester_details(data):
