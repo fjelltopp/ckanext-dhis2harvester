@@ -1,5 +1,9 @@
 {% ckan_extends %}
 
+{% block breadcrumb_content %}
+  <li class="active">{{ h.nav_link(_('DHIS2 Sources'), named_route='harvest_search') }}</li>
+{% endblock %}
+
 {% block secondary_content %}
     <section class="module module-narrow">
     <h2 class="module-heading"><i class="fa fa-lg fa-info-circle icon-large icon-info-sign"></i> {{ _('DHIS2 sources') }}</h2>
