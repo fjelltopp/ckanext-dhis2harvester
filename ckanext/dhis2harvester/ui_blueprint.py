@@ -1,11 +1,10 @@
 import json
-import os
 from StringIO import StringIO
 
 import logging
 import requests
 import pandas as pd
-from flask import Blueprint, request, redirect, abort
+from flask import Blueprint, request, abort
 from ckan.common import _, g
 import ckan.lib.helpers as h
 import ckan.plugins.toolkit as t
@@ -14,6 +13,7 @@ import ckanext.harvest.utils as harvest_utils
 from ckan.logic import ValidationError
 from collections import defaultdict
 from dhis2_api import Dhis2Connection, Dhis2ConnectionError
+from harvesters import operations
 
 log = logging.getLogger(__name__)
 
@@ -40,21 +40,23 @@ def pivot_tables_edit(harvest_source_id):
     if request.method == 'POST':
         return __ui_state_machine(harvest_source)
     else:
-        data = {}
-        data['action'] = 'pivot_table_new_1'
         harvest_config = json.loads(harvest_source['config'])
+        (dhis2_url, dhis2_api_version, dhis2_auth_token) = \
+            __get_dhis2_connection_details_from_harvest_source(harvest_config)
 
-        data['column_values'] = harvest_config['column_values']
-        data['selected_pivot_tables'] = harvest_config['selected_pivot_tables']
-        data['area_id_map_url'] = harvest_config['area_id_map_url']
-        (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(harvest_config)
-        data['dhis2_url'] = dhis2_url
-        data['dhis2_api_version'] = dhis2_api_version
-        data['dhis2_auth_token'] = dhis2_auth_token
-        data['title'] = harvest_source['title']
-        data['description'] = harvest_source['notes']
-        data['name'] = harvest_source['name']
-        data['owner_org'] = harvest_source['owner_org']
+        data = {
+            'action': 'pivot_table_new_1',
+            'column_values': harvest_config['column_values'],
+            'selected_pivot_tables': harvest_config['selected_pivot_tables'],
+            'area_id_map_url': harvest_config['area_id_map_url'],
+            'dhis2_url': dhis2_url,
+            'dhis2_api_version': dhis2_api_version,
+            'dhis2_auth_token': dhis2_auth_token,
+            'title': harvest_source['title'],
+            'description': harvest_source['notes'],
+            'name': harvest_source['name'],
+            'owner_org': harvest_source['owner_org']
+        }
         __get_pt_configs(data)
 
         log.debug("Editing harvest source: " + harvest_source_id)
@@ -88,7 +90,7 @@ def pivot_tables_refresh(harvest_source_id):
         dhis2_conn_ = __get_dhis_conn(request.form)
         errors = _validate_dhis2_connection(dhis2_conn_)
         if errors:
-            _data = {'owner_org' :h.get_organization(harvest_source['owner_org'])}
+            _data = {'owner_org': h.get_organization(harvest_source['owner_org'])}
             return t.render(
                 'source/pivot_table_refresh.html',
                 {'data': _data, 'harvest_source': harvest_source, 'errors': errors}
@@ -100,7 +102,7 @@ def pivot_tables_refresh(harvest_source_id):
         })
         harvest_source['config'] = json.dumps(source_config)
         try:
-            source = t.get_action("harvest_source_update")({}, harvest_source)
+            t.get_action("harvest_source_update")({}, harvest_source)
         except ValidationError as e:
             log.error("An error occurred: {}".format(str(e.error_dict)))
             raise e
@@ -109,15 +111,15 @@ def pivot_tables_refresh(harvest_source_id):
         except ValidationError as e:
             log.error("An error occurred: {}".format(str(e)))
             raise e
-        return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+        return h.redirect_to('harvest_admin', id=harvester_name)
     else:
-        # this is
         data = {}
-        (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(source_config)
+        (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(
+            source_config)
         if dhis2_auth_token:
             try:
                 harvest_utils.create_job(harvest_source_id)
-                return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+                return h.redirect_to('harvest_admin', id=harvester_name)
             except ValidationError as e:
                 log.error("An error occurred: {}".format(str(e)))
         data['dhis2_url'] = dhis2_url
@@ -154,36 +156,7 @@ def __ui_state_machine(harvest_source=None):
     elif form_stage == 'pivot_table_new_4':
         return __summary_stage(data, harvest_source=harvest_source)
     elif form_stage == 'pivot_table_new_save':
-        area_id_map_url = data.get('area_id_map_url')
-        if area_id_map_url:
-            current_user = g.userobj
-            api_key = current_user.apikey
-            try:
-                headers = {'Authorization': api_key}
-                area_csv = requests.get(area_id_map_url, headers=headers)
-                if area_csv.status_code != 200:
-                    raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(area_csv.status_code))
-                else:
-                    data['area_id_map_owner'] = current_user.name
-            except Exception as e:
-                errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
-                return __summary_stage(data, errors, harvest_source=harvest_source)
-            try:
-                csv_stream = StringIO(area_csv.text)
-                pd.read_csv(csv_stream)
-            except Exception as e:
-                errors = {"area_id_map_url": [_("Incorrect csv file format.")]}
-                return __summary_stage(data, errors, harvest_source=harvest_source)
-
-        try:
-            if harvest_source:
-                return __update_harvest_source(data)
-            else:
-                return __save_harvest_source(data)
-        except Exception as e:
-            log.exception(e.message)
-            h.flash_error('Error while saving the harvest source: {}'.format(e.message))
-            return __summary_stage(data, harvest_source=harvest_source)
+        return __save_or_update_harvest_source(data, harvest_source=harvest_source)
     else:
         abort(400, "Unrecognised action")
 
@@ -198,6 +171,7 @@ def _validate_required_fields(required_fields, errors=None):
             )
     return errors
 
+
 def _validate_area_map_resource_id(field_name, errors=None):
     if errors is None:
         errors = defaultdict(list)
@@ -205,7 +179,7 @@ def _validate_area_map_resource_id(field_name, errors=None):
         return errors
     r_id = request.form.get(field_name)
     try:
-        resource = t.get_action('resource_show')({}, { "id": r_id })
+        t.get_action('resource_show')({}, {"id": r_id})
     except Exception as e:
         log.debug("Failed to get resource {}", e)
         errors[field_name].append(
@@ -255,23 +229,57 @@ def __summary_stage(data, errors=None, harvest_source=None):
 def __save_harvest_source(data):
     data_dict, harvester_name = __prepare_harvester_details(data)
     try:
-        source = t.get_action("harvest_source_create")({}, data_dict)
+        t.get_action("harvest_source_create")({}, data_dict)
     except ValidationError as e:
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
     log.info("Harvest source {} created".format(harvester_name))
 
-    return redirect(h.url_for('harvest'))
+    return h.redirect_to('harvest_admin', id=harvester_name)
 
 
 def __update_harvest_source(data):
     data_dict, harvester_name = __prepare_harvester_details(data)
     try:
-        source = t.get_action("harvest_source_update")({}, data_dict)
+        t.get_action("harvest_source_update")({}, data_dict)
     except ValidationError as e:
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
-    return redirect(h.url_for('harvest/admin/{}'.format(harvester_name)))
+    return h.redirect_to('harvest_admin', id=harvester_name)
+
+
+def __save_or_update_harvest_source(data, harvest_source=None):
+    area_id_map_url = data.get('area_id_map_url')
+    if area_id_map_url:
+        current_user = g.userobj
+        api_key = current_user.apikey
+        try:
+            headers = {'Authorization': api_key}
+            area_csv = requests.get(area_id_map_url, headers=headers)
+            if area_csv.status_code != 200:
+                raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(
+                    area_csv.status_code))
+            else:
+                data['area_id_map_owner'] = current_user.name
+        except Exception as e:
+            errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
+            return __summary_stage(data, errors, harvest_source=harvest_source)
+        try:
+            csv_stream = StringIO(area_csv.text)
+            pd.read_csv(csv_stream)
+        except Exception:
+            errors = {"area_id_map_url": [_("Incorrect csv file format.")]}
+            return __summary_stage(data, errors, harvest_source=harvest_source)
+
+    try:
+        if harvest_source:
+            return __update_harvest_source(data)
+        else:
+            return __save_harvest_source(data)
+    except Exception as e:
+        log.exception(e.message)
+        h.flash_error('Error while saving the harvest source: {}'.format(e.message))
+        return __summary_stage(data, harvest_source=harvest_source)
 
 
 def __prepare_harvester_details(data):
@@ -358,7 +366,7 @@ def __dhis2_connection_stage(data, edit_configuration=False, harvest_source=None
 
     try:
         pivot_tables = dhis2_conn_.get_pivot_tables()
-    except Dhis2ConnectionError as e:
+    except Dhis2ConnectionError:
         errors = {'dhis2_url': ["Failed to fetch pivot table data from this DHIS2 instance."]}
         data['action'] = 'pivot_table_new_1'
         return __render_pivot_table_template(data, errors, **kwargs)
@@ -429,14 +437,16 @@ def __data_initialization(edit_configuration=False):
     column_values = []
     for pt in data['selected_pivot_tables']:
         pt_id = pt['id']
-        pt_type = pt['type']
         pt_column_values_ = {
             'id': pt_id,
         }
+
         def __new_column():
             return {
-                'enabled': False
+                'enabled': False,
+                'operation': operations.ADD
             }
+
         columns_ = defaultdict(__new_column)
         for k in data:
             if k.startswith("target_column{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
@@ -446,12 +456,15 @@ def __data_initialization(edit_configuration=False):
             elif k.startswith("category{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
                 tc_, c_id_ = k.split(METADATA_SEPARATOR)[-2:]
                 tc_value_ = data[k]
-                if not 'categories' in columns_[c_id_]:
+                if 'categories' not in columns_[c_id_]:
                     columns_[c_id_]['categories'] = {}
                 columns_[c_id_]['categories'][tc_] = tc_value_
             elif k.startswith("column_enabled{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
                 c_id_ = k.split(METADATA_SEPARATOR)[-1]
                 columns_[c_id_]['enabled'] = True
+            elif k.startswith("negative{_}{id}".format(_=METADATA_SEPARATOR, id=pt_id)):
+                c_id_ = k.split(METADATA_SEPARATOR)[-1]
+                columns_[c_id_]['operation'] = operations.SUBTRACT
 
         columns_list_ = []
         for c_id, c_details in columns_.iteritems():
@@ -483,7 +496,7 @@ def __get_pt_configs(data):
 
 
 ui_blueprint.add_url_rule(
-    u'/pivot_tables/new',
+    u'/pivot_tables',
     view_func=pivot_tables_new,
     methods=['GET', 'POST']
 )

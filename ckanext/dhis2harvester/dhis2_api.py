@@ -10,12 +10,14 @@ from requests.exceptions import MissingSchema
 
 import request_util
 
-
 log = logging.getLogger(__name__)
+
 
 class Dhis2Connection(object):
     DEFAULT_API_VERSION = '26'
-    PIVOT_TABLES_RESOURCE = 'reportTables.json?fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&order=name:asc&paging=false'
+    PIVOT_TABLES_RESOURCE = 'reportTables.json?' \
+                            'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&' \
+                            'order=name:asc&paging=false'
     PIVOT_TABLES_KEY_NAME = "reportTables"
     PIVOT_TABLES_CSV_RESOURCE = 'analytics.csv?' \
                                 'dimension=dx:{data_elements}&' \
@@ -134,7 +136,7 @@ class Dhis2Connection(object):
 
     def get_pivot_table_columns(self, pivot_table_id):
         pivot_table_meta = self._get_pivot_table_meta(pivot_table_id)
-        ################## categories combos metadata
+        # categories combos metadata
         cc_url_ = urlparse.urljoin(self.api_url, "metadata?categoryCombos:fields=id,name,categoryOptionCombos")
         coc_url_ = urlparse.urljoin(self.api_url, "metadata?categoryOptionCombos:fields=id,name")
         cc_r = requests.get(cc_url_, cookies=self.__create_auth_cookie())
@@ -144,17 +146,19 @@ class Dhis2Connection(object):
         category_option_combos_map = {c['id']: c['name'] for c in category_option_combos_meta}
         category_combos_map = {}
         for category_combo in category_combos_meta:
-            id = category_combo['id']
+            c_id = category_combo['id']
             category_options = category_combo['categoryOptionCombos']
             options = {option['id']: category_option_combos_map[option['id']] for option in category_options}
-            category_combos_map[id] = options
-        ################################################
-        ######### data elements metadata ##############
+            category_combos_map[c_id] = options
+        # data elements metadata
         de_url_ = urlparse.urljoin(self.api_url, "metadata?dataElements:fields=id,name,categoryCombo")
         de_r = requests.get(de_url_, cookies=self.__create_auth_cookie())
-        data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in de_r.json()["dataElements"]}
-        ###############################################
-        def get_data_elements_config(d_id_, data_elements_map={}):
+        data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in
+                              de_r.json()["dataElements"]}
+
+        def get_data_elements_config(d_id_, data_elements_map=None):
+            if data_elements_map is None:
+                data_elements_map = {}
             if d_id_ not in data_elements_map:
                 d_name_ = data_elements_meta[d_id_]['name']
                 data_element_category_options_ = []
@@ -187,7 +191,6 @@ class Dhis2Connection(object):
                     })
         return result
 
-
     def get_pivot_table_configuration(self, pivot_table_id):
         pivot_table_metadata = self._get_pivot_table_meta(pivot_table_id)
         ou_levels = [x['id'] for x in pivot_table_metadata.get('organisationUnits', [])]
@@ -204,7 +207,6 @@ class Dhis2Connection(object):
             "ou_levels": ou_levels,
             "periods": periods
         }
-
 
     def get_pivot_table_csv_resource(self, data_elements, ou_levels, periods):
         des = ";".join(data_elements)
@@ -225,6 +227,7 @@ class Dhis2Connection(object):
         url_ = urlparse.urljoin(self.api_url, api_resource)
         response = requests.get(url_, cookies=self.__create_auth_cookie())
         return response
+
 
 class Dhis2ConnectionError(Exception):
     pass
