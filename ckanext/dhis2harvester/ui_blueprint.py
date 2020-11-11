@@ -255,7 +255,7 @@ def __save_or_update_harvest_source(data, harvest_source=None):
         api_key = current_user.apikey
         try:
             headers = {'Authorization': api_key}
-            area_csv = requests.get(area_id_map_url, headers=headers)
+            area_csv = requests.get(area_id_map_url, headers=headers, timeout=5)
             if area_csv.status_code != 200:
                 raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(
                     area_csv.status_code))

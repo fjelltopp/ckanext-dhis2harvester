@@ -13,6 +13,7 @@ from ckan.plugins import toolkit as t
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from slugify import slugify
 from datetime import datetime
+import pytz
 import pandas as pd
 import uuid
 import json
@@ -103,18 +104,17 @@ class PivotTablesHarvester(HarvesterBase):
                                     harvest_job)
             return None
         area_id_map_url = config['area_id_map_url']
-        today = datetime.today()
-        date_stamp_human = today.strftime("%Y %b %d")
-        date_stamp = today.strftime("%Y/%m/%d")
+        today = datetime.now(pytz.utc)
+        date_stamp = today.strftime("%Y/%m/%dT%H:%M%Z")
         title_ = harvest_job.source.title.encode('utf-8')
-        output_dataset_name_ = '{} Output {}'.format(title_, date_stamp_human)
+        output_dataset_name_ = '{} Output'.format(title_)
         if area_id_map_url:
             try:
                 area_map_owner = config['area_id_map_owner']
                 user = model.User.get(area_map_owner)
                 api_key = user.apikey
                 headers = {'Authorization': api_key}
-                area_csv = requests.get(area_id_map_url, headers=headers)
+                area_csv = requests.get(area_id_map_url, headers=headers, timeout=5)
                 if area_csv.status_code != 200:
                     raise ValueError("Error while getting response, code {}".format(area_csv.status_code))
             except Exception as e:
@@ -123,7 +123,7 @@ class PivotTablesHarvester(HarvesterBase):
                 return None
             harvest_object_data = {
                 'output_dataset_name': output_dataset_name_,
-                'output_resource_name': 'Area ID Crosswalk Table',
+                'output_resource_name': '{} Area ID Crosswalk Table'.format(date_stamp),
                 'csv': area_csv.text
             }
             obj = HarvestObject(guid="pivot_table",
