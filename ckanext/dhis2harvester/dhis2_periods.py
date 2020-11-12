@@ -10,6 +10,23 @@ def calendar_quarter_from_dhis2_period_string(dhis2_period_string):
         return "CY{}Q4".format(dhis2_period_string)
     elif is_quarter:
         return "CY{}".format(dhis2_period_string)
+    elif is_month:
+        year_re = "^[1-2]\d\d\d"
+        year_m = re.search(year_re, dhis2_period_string)
+        month_re = "[0-1]\d$"
+        month_m = re.search(month_re, dhis2_period_string)
+        month = month_m.group(0)
+        try:
+            quarter = {
+                '03': 'Q1',
+                '06': 'Q2',
+                '09': 'Q3',
+                '12': 'Q4'
+            }[month]
+        except KeyError:
+            raise ValueError("Unsupported month period string {}\n"
+                             "Needs to be last month of the quarter only: 03, 06, 09, 12.".format(dhis2_period_string))
+        return "CY{}{}".format(year_m.group(0), quarter)
     else:
         raise ValueError("Unsupported period string {}".format(dhis2_period_string))
 
