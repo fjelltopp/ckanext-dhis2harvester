@@ -116,7 +116,7 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
                 'output_dataset_name': output_dataset_name,
-                'output_resource_name': '{} {} {} DHIS2'.format(date_stamp, country_name, pt_target_type['shortName']),
+                'output_resource_name': '{} {} {} {}'.format(date_stamp, country_name, pt_target_type['shortName'], pt_config['name']),
                 'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns'],
                 'output_tags': pt_target_type.get("tags", []),
