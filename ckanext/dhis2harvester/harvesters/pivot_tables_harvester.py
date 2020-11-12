@@ -7,6 +7,7 @@ from ckanext.harvest.model import (HarvestObject,
                                    HarvestGatherError, HarvestObjectError)
 import ckanext.dhis2harvester.dhis2_api as dhis2_api
 import ckanext.dhis2harvester.harvesters.operations as operations
+import ckanext.dhis2harvester.dhis2_periods as dhis2_periods
 from ckanext.dhis2harvester.config.column_configs_template import TARGET_TYPES as PT_TARGET_TYPES
 from ckan.logic import NotFound
 from ckan import model
@@ -118,7 +119,8 @@ class PivotTablesHarvester(HarvesterBase):
                 'output_resource_name': '{} {} {} DHIS2'.format(date_stamp, country_name, pt_target_type['shortName']),
                 'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns'],
-                'output_tags': pt_target_type.get("tags", [])
+                'output_tags': pt_target_type.get("tags", []),
+                'pt_type': pt_type
             }
             if area_id_map_url:
                 try:
@@ -221,9 +223,14 @@ class PivotTablesHarvester(HarvesterBase):
             pt_df[_area_name_col] = pt_df[_org_unit_col].map(ou_id_name_map)
             pt_df[_area_id_col] = pt_df[_org_unit_col]
 
+            _pt_type = content['pt_type']
             _period_col = 'Period'
-            _year_col = 'year'
-            pt_df[_year_col] = pt_df[_period_col]
+            _output_period_col = dhis2_periods.period_column_name(_pt_type)
+            if dhis2_periods.should_map_year_into_last_quarter(_pt_type):
+                pt_df[_output_period_col] =\
+                    pt_df[_period_col].map(dhis2_periods.calendar_quarter_from_dhis2_period_string)
+            else:
+                pt_df[_output_period_col] = pt_df[_period_col]
 
             categories_map = {}
             disabled_categories = []
@@ -270,13 +277,13 @@ class PivotTablesHarvester(HarvesterBase):
                     harvest_object, 'Fetch')
                 return None
             # create final columns output
-            pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
+            pt_df = pt_df[[_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols) + list(_data_cols)]
             # group by orgs and periods and categories
-            pt_df = pt_df.groupby([_area_id_col, _area_name_col, _year_col] + list(_cat_cols)).sum().reset_index()
+            pt_df = pt_df.groupby([_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols)).sum().reset_index()
             # sort by area names
-            pt_df.sort_values(by=[_area_name_col, _year_col]).reset_index(drop=True)
+            pt_df.sort_values(by=[_area_name_col, _output_period_col]).reset_index(drop=True)
             # trim period strings
-            pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
+            pt_df[_output_period_col] = pt_df[_output_period_col].astype(str).str[:4]
             # map area ids
             if 'area_id_map_csv_str' in content:
                 area_id_map_csv_str = content['area_id_map_csv_str']

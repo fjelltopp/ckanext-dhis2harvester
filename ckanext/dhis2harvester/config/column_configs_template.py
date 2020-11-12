@@ -19,7 +19,8 @@ TARGET_TYPES = OrderedDict([
         "tags": [
             "dhis2",
             "anc"
-        ]
+        ],
+        "periodType": "year"
     }),
     ("naomi-art", {
         "name": "Naomi ART Input",
@@ -42,7 +43,8 @@ TARGET_TYPES = OrderedDict([
         "tags": [
             "dhis2",
             "art"
-        ]
+        ],
+        "periodType": "calendar_quarter"
     }),
     ("naomi-population", {
         "name": "Naomi Population Input",
@@ -64,7 +66,8 @@ TARGET_TYPES = OrderedDict([
         "tags": [
             "dhis2",
             "population"
-        ]
+        ],
+        "periodType": "year"
     }),
     ("hiv-testing", {
         "name": "HIV Testing Input",
@@ -84,7 +87,8 @@ TARGET_TYPES = OrderedDict([
         "tags": [
             "dhis2",
             "hiv-testing"
-        ]
+        ],
+        "periodType": "year"
     }),
     ("other", {
         "name": "Other"
