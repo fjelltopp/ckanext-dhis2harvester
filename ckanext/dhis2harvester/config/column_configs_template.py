@@ -1,5 +1,9 @@
 from collections import OrderedDict
 
+PERIOD_QUARTER = "calendar_quarter"
+PERIOD_YEAR = "year"
+DEFAULT_PERIOD_TYPE = PERIOD_YEAR
+
 TARGET_TYPES = OrderedDict([
     ("naomi-anc", {
         "name": "Naomi ANC Input",
@@ -20,7 +24,7 @@ TARGET_TYPES = OrderedDict([
             "dhis2",
             "anc"
         ],
-        "periodType": "year"
+        "periodType": PERIOD_YEAR
     }),
     ("naomi-art", {
         "name": "Naomi ART Input",
@@ -44,7 +48,7 @@ TARGET_TYPES = OrderedDict([
             "dhis2",
             "art"
         ],
-        "periodType": "calendar_quarter"
+        "periodType": PERIOD_QUARTER
     }),
     ("naomi-population", {
         "name": "Naomi Population Input",
@@ -67,7 +71,7 @@ TARGET_TYPES = OrderedDict([
             "dhis2",
             "population"
         ],
-        "periodType": "year"
+        "periodType": PERIOD_YEAR
     }),
     ("hiv-testing", {
         "name": "HIV Testing Input",
@@ -88,7 +92,7 @@ TARGET_TYPES = OrderedDict([
             "dhis2",
             "hiv-testing"
         ],
-        "periodType": "year"
+        "periodType": PERIOD_YEAR
     }),
     ("other", {
         "name": "Other"

@@ -1,7 +1,6 @@
 import re
-from ckanext.dhis2harvester.config.column_configs_template import TARGET_TYPES as PT_TARGET_TYPES
-
-DEFAULT_PERIOD_TYPE = 'year'
+from ckanext.dhis2harvester.config.column_configs_template import TARGET_TYPES as PT_TARGET_TYPES, PERIOD_QUARTER, \
+    DEFAULT_PERIOD_TYPE, PERIOD_YEAR
 
 
 def calendar_quarter_from_dhis2_period_string(dhis2_period_string):
@@ -54,14 +53,14 @@ def _stringify(dhis2_period_string):
 
 def should_map_into_calendar_quarter(pivot_table_type):
     pt_config = PT_TARGET_TYPES[pivot_table_type]
-    if pt_config.get("periodType", DEFAULT_PERIOD_TYPE) == "calendar_quarter":
+    if pt_config.get("periodType", DEFAULT_PERIOD_TYPE) == PERIOD_QUARTER:
         return True
     return False
 
 
 def should_map_into_year(pivot_table_type):
     pt_config = PT_TARGET_TYPES[pivot_table_type]
-    if pt_config.get("periodType", DEFAULT_PERIOD_TYPE) == "year":
+    if pt_config.get("periodType", DEFAULT_PERIOD_TYPE) == PERIOD_YEAR:
         return True
     return False
 
