@@ -13,6 +13,20 @@ def calendar_quarter_from_dhis2_period_string(dhis2_period_string):
         return "CY{}".format(dhis2_period_string)
 
 
+def year_from_dhis2_period_string(dhis2_period_string):
+    dhis2_period_string = _stringify(dhis2_period_string)
+    is_year, is_period = _validate_input(dhis2_period_string)
+    if is_year:
+        return dhis2_period_string
+    elif is_period:
+        year_re = "[1-2]\d\d\d"
+        year_m = re.search(year_re, dhis2_period_string)
+        if year_m:
+            return year_m.group(0)
+        else:
+            raise ValueError("Unsupported period string {}".format(dhis2_period_string))
+
+
 def _validate_input(dhis2_period_string):
     period_re = "^[1-2]\d\d\dQ[1-4]$"
     year_re = "^[1-2]\d\d\d$"
@@ -34,6 +48,13 @@ def _stringify(dhis2_period_string):
 def should_map_into_calendar_quarter(pivot_table_type):
     pt_config = PT_TARGET_TYPES[pivot_table_type]
     if pt_config.get("periodType", DEFAULT_PERIOD_TYPE) == "calendar_quarter":
+        return True
+    return False
+
+
+def should_map_into_year(pivot_table_type):
+    pt_config = PT_TARGET_TYPES[pivot_table_type]
+    if pt_config.get("periodType", DEFAULT_PERIOD_TYPE) == "year":
         return True
     return False
 

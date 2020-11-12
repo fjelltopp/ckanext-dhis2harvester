@@ -226,9 +226,13 @@ class PivotTablesHarvester(HarvesterBase):
             _pt_type = content['pt_type']
             _period_col = 'Period'
             _output_period_col = dhis2_periods.period_column_name(_pt_type)
-            if dhis2_periods.should_map_year_into_last_quarter(_pt_type):
-                pt_df[_output_period_col] =\
+            pt_df[_period_col] = pt_df[_period_col].astype(str)
+            if dhis2_periods.should_map_into_calendar_quarter(_pt_type):
+                pt_df[_output_period_col] = \
                     pt_df[_period_col].map(dhis2_periods.calendar_quarter_from_dhis2_period_string)
+            elif dhis2_periods.should_map_into_year(_pt_type):
+                pt_df[_output_period_col] = \
+                    pt_df[_period_col].map(dhis2_periods.year_from_dhis2_period_string)
             else:
                 pt_df[_output_period_col] = pt_df[_period_col]
 
@@ -282,8 +286,6 @@ class PivotTablesHarvester(HarvesterBase):
             pt_df = pt_df.groupby([_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols)).sum().reset_index()
             # sort by area names
             pt_df.sort_values(by=[_area_name_col, _output_period_col]).reset_index(drop=True)
-            # trim period strings
-            pt_df[_output_period_col] = pt_df[_output_period_col].astype(str).str[:4]
             # map area ids
             if 'area_id_map_csv_str' in content:
                 area_id_map_csv_str = content['area_id_map_csv_str']

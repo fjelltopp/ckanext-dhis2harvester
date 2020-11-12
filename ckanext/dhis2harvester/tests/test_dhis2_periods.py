@@ -18,6 +18,34 @@ def test_calendar_quarter_from_dhis2_period_string(dhis2_period_string, expected
     assert result == expected
 
 
+@pytest.mark.parametrize('dhis2_period_string, expected', [
+    ('2018', '2018'),
+    ('2020', '2020'),
+    (2020, '2020'),
+    (2019, '2019'),
+    ('2020Q4', '2020'),
+    ('2019Q3', '2019'),
+    ('2018Q2', '2018'),
+    ('2017Q1', '2017')
+])
+def test_year_from_dhis2_period_string(dhis2_period_string, expected):
+    result = dhis2_periods.year_from_dhis2_period_string(dhis2_period_string)
+    assert result == expected
+
+
+@pytest.mark.parametrize('dhis2_period_string', [
+    'Fjelltopp',
+    'Jan2020',
+    '012020',
+    '202010',
+    012020,
+    202010,
+])
+def test_year_from_dhis2_period_string_errors_on_bad_input(dhis2_period_string):
+    with pytest.raises(ValueError):
+        dhis2_periods.year_from_dhis2_period_string(dhis2_period_string)
+
+
 @pytest.mark.parametrize('dhis2_period_string', [
     'Fjelltopp',
     'Jan2020',
@@ -39,6 +67,17 @@ def test_calendar_quarter_from_dhis2_period_string_errors_on_bad_input(dhis2_per
 ])
 def test_should_translate_year_into_last_quarter(pivot_table_type, expected):
     result = dhis2_periods.should_map_into_calendar_quarter(pivot_table_type)
+    assert result == expected
+
+
+@pytest.mark.parametrize('pivot_table_type, expected', [
+    ('naomi-art', False),
+    ('naomi-anc', True),
+    ('naomi-population', True),
+    ('hiv-testing', True),
+])
+def test_should_map_into_year(pivot_table_type, expected):
+    result = dhis2_periods.should_map_into_year(pivot_table_type)
     assert result == expected
 
 
