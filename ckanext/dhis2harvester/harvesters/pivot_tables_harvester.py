@@ -7,12 +7,15 @@ from ckanext.harvest.model import (HarvestObject,
                                    HarvestGatherError, HarvestObjectError)
 import ckanext.dhis2harvester.dhis2_api as dhis2_api
 import ckanext.dhis2harvester.harvesters.operations as operations
+import ckanext.dhis2harvester.dhis2_periods as dhis2_periods
+from ckanext.dhis2harvester.config.column_configs_template import TARGET_TYPES as PT_TARGET_TYPES
 from ckan.logic import NotFound
 from ckan import model
 from ckan.plugins import toolkit as t
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from slugify import slugify
 from datetime import datetime
+import pytz
 import pandas as pd
 import uuid
 import json
@@ -38,28 +41,18 @@ class PivotTablesHarvester(HarvesterBase):
             'description': 'Harvests pivot tables data from DHIS2',
         }
 
-    def get_original_url(self, harvest_object_id):
-        """
 
-        [optional]
-
-        This optional but very recommended method allows harvesters to return
-        the URL to the original remote document, given a Harvest Object id.
-        Note that getting the harvest object you have access to its guid as
-        well as the object source, which has the URL.
-        This URL will be used on error reports to help publishers link to the
-        original document that has the errors. If this method is not provided
-        or no URL is returned, only a link to the local copy of the remote
-        document will be shown.
-
-        Examples:
-            * For a CKAN record: http://{ckan-instance}/api/rest/{guid}
-            * For a WAF record: http://{waf-root}/{file-name}
-            * For a CSW record: http://{csw-server}/?Request=GetElementById&Id={guid}&...
-
-        :param harvest_object_id: HarvestObject id
-        :returns: A string with the URL to the original document
-        """
+    def _area_id_map_harvest_object_data(self, area_id_map_url, area_id_map_owner):
+        if not area_id_map_url or not area_id_map_owner:
+            return
+        area_map_owner = area_id_map_owner
+        user = model.User.get(area_map_owner)
+        api_key = user.apikey
+        headers = {'Authorization': api_key}
+        area_csv = requests.get(area_id_map_url, headers=headers, timeout=5)
+        if area_csv.status_code != 200:
+            raise ValueError("Error while getting response, code {}".format(area_csv.status_code))
+        return area_csv.text
 
     def gather_stage(self, harvest_job):
         """
@@ -103,53 +96,50 @@ class PivotTablesHarvester(HarvesterBase):
                                     harvest_job)
             return None
         area_id_map_url = config['area_id_map_url']
-        today = datetime.today()
-        date_stamp_human = today.strftime("%Y %b %d")
-        date_stamp = today.strftime("%Y/%m/%d")
+        area_id_map_owner = config['area_id_map_owner']
+        today = datetime.now(pytz.utc)
+        date_stamp = today.strftime("%Y/%m/%dT%H:%M%Z")
         title_ = harvest_job.source.title.encode('utf-8')
-        output_dataset_name_ = '{} Output {}'.format(title_, date_stamp_human)
-        if area_id_map_url:
-            try:
-                area_map_owner = config['area_id_map_owner']
-                user = model.User.get(area_map_owner)
-                api_key = user.apikey
-                headers = {'Authorization': api_key}
-                area_csv = requests.get(area_id_map_url, headers=headers)
-                if area_csv.status_code != 200:
-                    raise ValueError("Error while getting response, code {}".format(area_csv.status_code))
-            except Exception as e:
-                self._save_gather_error('Failed to process area id csv resource: {}, {}'
-                                        .format(area_id_map_url, e.message), harvest_job)
-                return None
-            harvest_object_data = {
-                'output_dataset_name': output_dataset_name_,
-                'output_resource_name': 'Area ID Crosswalk Table',
-                'csv': area_csv.text
-            }
-            obj = HarvestObject(guid="pivot_table",
-                                job=harvest_job,
-                                content=json.dumps(harvest_object_data))
-            obj.save()
-            obj_ids.append(obj.id)
+        output_dataset_name_prefix = '{} Output'.format(title_)
         for pt in config['column_values']:
             pt_id = pt['id']
             pt_type = {x['id']: x for x in config['selected_pivot_tables']}[pt_id]['type']
+            pt_target_type = PT_TARGET_TYPES[pt_type]
             pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
             data_elements = [c['id'].split('-')[0] for c in pt['columns']]
             csv_resource_name = dhis2_connection.get_pivot_table_csv_resource(
                 data_elements, pt_config['ou_levels'], pt_config['periods'])
+            output_dataset_name = "{} {}".format(output_dataset_name_prefix, pt_target_type['shortName'])
             harvest_object_data = {
                 'dhis2_url': config['dhis2_url'],
                 'dhis2_api_version': config['dhis2_api_version'],
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
-                'output_dataset_name': output_dataset_name_,
-                'output_resource_name': '{} {} {} DHIS2'.format(date_stamp, country_name, pt_type),
+                'output_dataset_name': output_dataset_name,
+                'output_resource_name': '{} {} {} DHIS2'.format(date_stamp, country_name, pt_target_type['shortName']),
                 'pivot_table_id': pt_id,
-                'pivot_table_column_config': pt['columns']
+                'pivot_table_column_config': pt['columns'],
+                'output_tags': pt_target_type.get("tags", []),
+                'pt_type': pt_type
             }
             if area_id_map_url:
-                harvest_object_data['area_id_map_csv_str'] = area_csv.text
+                try:
+                    area_csv_str = self._area_id_map_harvest_object_data(area_id_map_url, area_id_map_owner)
+                except Exception as e:
+                    self._save_gather_error('Failed to process area id csv resource: {}, {}'
+                                            .format(area_id_map_url, e.message), harvest_job)
+                    return None
+                area_harvest_object_data = {
+                    'output_dataset_name': output_dataset_name,
+                    'output_resource_name': '{} Area ID Crosswalk Table'.format(date_stamp),
+                    'csv': area_csv_str
+                }
+                obj = HarvestObject(guid="pivot_table",
+                                    job=harvest_job,
+                                    content=json.dumps(area_harvest_object_data))
+                obj.save()
+                obj_ids.append(obj.id)
+                harvest_object_data['area_id_map_csv_str'] = area_csv_str
 
             obj = HarvestObject(guid="pivot_table",
                                 job=harvest_job,
@@ -233,9 +223,18 @@ class PivotTablesHarvester(HarvesterBase):
             pt_df[_area_name_col] = pt_df[_org_unit_col].map(ou_id_name_map)
             pt_df[_area_id_col] = pt_df[_org_unit_col]
 
+            _pt_type = content['pt_type']
             _period_col = 'Period'
-            _year_col = 'year'
-            pt_df[_year_col] = pt_df[_period_col]
+            _output_period_col = dhis2_periods.period_column_name(_pt_type)
+            pt_df[_period_col] = pt_df[_period_col].astype(str)
+            if dhis2_periods.should_map_into_calendar_quarter(_pt_type):
+                pt_df[_output_period_col] = \
+                    pt_df[_period_col].map(dhis2_periods.calendar_quarter_from_dhis2_period_string)
+            elif dhis2_periods.should_map_into_year(_pt_type):
+                pt_df[_output_period_col] = \
+                    pt_df[_period_col].map(dhis2_periods.year_from_dhis2_period_string)
+            else:
+                pt_df[_output_period_col] = pt_df[_period_col]
 
             categories_map = {}
             disabled_categories = []
@@ -282,13 +281,11 @@ class PivotTablesHarvester(HarvesterBase):
                     harvest_object, 'Fetch')
                 return None
             # create final columns output
-            pt_df = pt_df[[_area_id_col, _area_name_col, _year_col] + list(_cat_cols) + list(_data_cols)]
+            pt_df = pt_df[[_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols) + list(_data_cols)]
             # group by orgs and periods and categories
-            pt_df = pt_df.groupby([_area_id_col, _area_name_col, _year_col] + list(_cat_cols)).sum().reset_index()
+            pt_df = pt_df.groupby([_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols)).sum().reset_index()
             # sort by area names
-            pt_df.sort_values(by=[_area_name_col, _year_col]).reset_index(drop=True)
-            # trim period strings
-            pt_df[_year_col] = pt_df[_year_col].astype(str).str[:4]
+            pt_df.sort_values(by=[_area_name_col, _output_period_col]).reset_index(drop=True)
             # map area ids
             if 'area_id_map_csv_str' in content:
                 area_id_map_csv_str = content['area_id_map_csv_str']
@@ -372,7 +369,7 @@ class PivotTablesHarvester(HarvesterBase):
             "name": slugify(dataset_name),
             "title": dataset_name,
             "type": "dataset",
-            "tags": [{"name": "DHIS2 Raw Data"}],
+            "tags": [{"name": tag} for tag in content.get('output_tags', [])],
             "state": "active",
             "owner_org": org["id"],
             "extras": [
@@ -392,7 +389,7 @@ class PivotTablesHarvester(HarvesterBase):
             new_package = t.get_action('package_create')(context, package_data)
 
         csv_stream = StringIO(csv_string.encode('ascii', 'replace'))
-        csv_filename = "{}.csv".format(slugify(resource_name.replace('/', '')))
+        csv_filename = "{}.csv".format(slugify(resource_name.replace('/', '').replace(':', '-')))
         resource = {
             "name": resource_name,
             "description": "Data pulled from DHIS2",

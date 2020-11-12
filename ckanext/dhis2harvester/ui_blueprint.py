@@ -111,6 +111,7 @@ def pivot_tables_refresh(harvest_source_id):
         except ValidationError as e:
             log.error("An error occurred: {}".format(str(e)))
             raise e
+        h.flash_success(_("DHIS2 Source refresh will start shortly. Refresh this page for updates."))
         return h.redirect_to('harvest_admin', id=harvester_name)
     else:
         data = {}
@@ -119,6 +120,7 @@ def pivot_tables_refresh(harvest_source_id):
         if dhis2_auth_token:
             try:
                 harvest_utils.create_job(harvest_source_id)
+                h.flash_success(_("DHIS2 Source refresh will start shortly. Refresh this page for updates."))
                 return h.redirect_to('harvest_admin', id=harvester_name)
             except ValidationError as e:
                 log.error("An error occurred: {}".format(str(e)))
@@ -255,7 +257,7 @@ def __save_or_update_harvest_source(data, harvest_source=None):
         api_key = current_user.apikey
         try:
             headers = {'Authorization': api_key}
-            area_csv = requests.get(area_id_map_url, headers=headers)
+            area_csv = requests.get(area_id_map_url, headers=headers, timeout=5)
             if area_csv.status_code != 200:
                 raise ValueError("Error while getting response, code {}. Are you sure the file is public?".format(
                     area_csv.status_code))
