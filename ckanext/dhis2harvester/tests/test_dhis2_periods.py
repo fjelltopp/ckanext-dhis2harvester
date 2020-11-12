@@ -11,7 +11,24 @@ import ckanext.dhis2harvester.dhis2_periods as dhis2_periods
     ('2020Q4', 'CY2020Q4'),
     ('2019Q3', 'CY2019Q3'),
     ('2018Q2', 'CY2018Q2'),
-    ('2017Q1', 'CY2017Q1')
+    ('2017Q1', 'CY2017Q1'),
+    ('202003', 'CY2020Q1'),
+    ('202006', 'CY2020Q2'),
+    ('202009', 'CY2020Q3'),
+    ('202012', 'CY2020Q4'),
+], ids=[
+    "year string to last quarter of the year",
+    "year string to last quarter of the year",
+    "int year string to last quarter of the year",
+    "int year string to last quarter of the year",
+    "quarter string to calendar quarter",
+    "quarter string to calendar quarter",
+    "quarter string to calendar quarter",
+    "quarter string to calendar quarter",
+    "March month to Q1 of the year",
+    "June month to Q1 of the year",
+    "September month to Q1 of the year",
+    "December month to Q1 of the year"
 ])
 def test_calendar_quarter_from_dhis2_period_string(dhis2_period_string, expected):
     result = dhis2_periods.calendar_quarter_from_dhis2_period_string(dhis2_period_string)
@@ -49,10 +66,21 @@ def test_year_from_dhis2_period_string_errors_on_bad_input(dhis2_period_string):
 @pytest.mark.parametrize('dhis2_period_string', [
     'Fjelltopp',
     'Jan2020',
-    '012020',
+    '202002',
+    '202011',
     '202010',
-    012020,
     202010,
+    '032020',
+    032020,
+], ids=[
+    'only date text supported',
+    'only strictly specified date formatting supported',
+    'only last months of quarter suported',
+    'only last months of quarter suported',
+    'only last months of quarter suported',
+    'only last months of quarter suported',
+    'only YYYYMM not MMYYYY',
+    'only YYYYMM not MMYYYY',
 ])
 def test_calendar_quarter_from_dhis2_period_string_errors_on_bad_input(dhis2_period_string):
     with pytest.raises(ValueError):
