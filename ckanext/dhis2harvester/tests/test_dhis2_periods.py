@@ -26,7 +26,9 @@ def test_calendar_quarter_from_dhis2_period_string(dhis2_period_string, expected
     ('2020Q4', '2020'),
     ('2019Q3', '2019'),
     ('2018Q2', '2018'),
-    ('2017Q1', '2017')
+    ('2017Q1', '2017'),
+    ('201810', '2018'),
+    ('201901', '2019'),
 ])
 def test_year_from_dhis2_period_string(dhis2_period_string, expected):
     result = dhis2_periods.year_from_dhis2_period_string(dhis2_period_string)
@@ -37,9 +39,7 @@ def test_year_from_dhis2_period_string(dhis2_period_string, expected):
     'Fjelltopp',
     'Jan2020',
     '012020',
-    '202010',
-    012020,
-    202010,
+    012020
 ])
 def test_year_from_dhis2_period_string_errors_on_bad_input(dhis2_period_string):
     with pytest.raises(ValueError):

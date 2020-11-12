@@ -6,35 +6,42 @@ DEFAULT_PERIOD_TYPE = 'year'
 
 def calendar_quarter_from_dhis2_period_string(dhis2_period_string):
     dhis2_period_string = _stringify(dhis2_period_string)
-    is_year, is_period = _validate_input(dhis2_period_string)
+    is_year, is_period, is_month = _validate_input(dhis2_period_string)
     if is_year:
         return "CY{}Q4".format(dhis2_period_string)
     elif is_period:
         return "CY{}".format(dhis2_period_string)
+    else:
+        raise ValueError("Unsupported period string {}".format(dhis2_period_string))
 
 
 def year_from_dhis2_period_string(dhis2_period_string):
     dhis2_period_string = _stringify(dhis2_period_string)
-    is_year, is_period = _validate_input(dhis2_period_string)
+    is_year, is_period, is_month = _validate_input(dhis2_period_string)
     if is_year:
         return dhis2_period_string
     elif is_period:
-        year_re = "[1-2]\d\d\d"
+        year_re = "^[1-2]\d\d\d"
         year_m = re.search(year_re, dhis2_period_string)
-        if year_m:
-            return year_m.group(0)
-        else:
-            raise ValueError("Unsupported period string {}".format(dhis2_period_string))
+        return year_m.group(0)
+    elif is_month:
+        year_re = "^[1-2]\d\d\d"
+        year_m = re.search(year_re, dhis2_period_string)
+        return year_m.group(0)
+    else:
+        raise ValueError("Unsupported period string {}".format(dhis2_period_string))
 
 
 def _validate_input(dhis2_period_string):
     period_re = "^[1-2]\d\d\dQ[1-4]$"
     year_re = "^[1-2]\d\d\d$"
+    month_re = "^[1-2]\d\d\d[0-1]\d$"
     year_m = re.search(year_re, dhis2_period_string)
     period_m = re.search(period_re, dhis2_period_string)
-    if not year_m and not period_m:
+    month_m = re.search(month_re, dhis2_period_string)
+    if not year_m and not period_m and not month_m:
         raise ValueError("Unsupported dhis2_period_string: {}".format(dhis2_period_string))
-    return year_m, period_m
+    return year_m, period_m, month_m
 
 
 def _stringify(dhis2_period_string):
