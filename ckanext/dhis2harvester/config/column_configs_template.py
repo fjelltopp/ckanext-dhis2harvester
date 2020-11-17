@@ -13,7 +13,7 @@ TARGET_TYPES = OrderedDict([
             "anc_known_pos",
             "anc_already_art",
             "anc_tested",
-            "anc_test_pos"
+            "anc_tested_pos"
         ],
         "categories": {
             "age_group": [
