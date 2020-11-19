@@ -1,0 +1,39 @@
+# French translations for ckanext-dhis2harvester.
+# Copyright (C) 2020 ORGANIZATION
+# This file is distributed under the same license as the
+# ckanext-dhis2harvester
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ckanext-dhis2harvester 0.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2020-11-19 12:33+0000\n"
+"PO-Revision-Date: 2020-11-19 12:40+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ckanext/dhis2harvester/licenses.py:15
+msgid "Creative Commons Attribution for Intergovernmental Organisations"
+msgstr ""
+
+#: ckanext/dhis2harvester/ui_blueprint.py:114
+#: ckanext/dhis2harvester/ui_blueprint.py:123
+msgid "DHIS2 Source refresh will start shortly. Refresh this page for updates."
+msgstr ""
+
+#: ckanext/dhis2harvester/ui_blueprint.py:267
+msgid "Failed to download the area id map csv file."
+msgstr ""
+
+#: ckanext/dhis2harvester/ui_blueprint.py:273
+msgid "Incorrect csv file format."
+msgstr ""
+
