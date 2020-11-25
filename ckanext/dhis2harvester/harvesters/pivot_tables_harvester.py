@@ -41,7 +41,6 @@ class PivotTablesHarvester(HarvesterBase):
             'description': 'Harvests pivot tables data from DHIS2',
         }
 
-
     def _area_id_map_harvest_object_data(self, area_id_map_url, area_id_map_owner):
         if not area_id_map_url or not area_id_map_owner:
             return
@@ -116,7 +115,12 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
                 'output_dataset_name': output_dataset_name,
-                'output_resource_name': '{} {} {} {}'.format(date_stamp, country_name, pt_target_type['shortName'], pt_config['name']),
+                'output_resource_name': '{} {} {} {}'.format(
+                    date_stamp,
+                    country_name,
+                    pt_target_type['shortName'],
+                    pt_config['name']
+                ),
                 'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns'],
                 'output_tags': pt_target_type.get("tags", []),
@@ -129,16 +133,6 @@ class PivotTablesHarvester(HarvesterBase):
                     self._save_gather_error('Failed to process area id csv resource: {}, {}'
                                             .format(area_id_map_url, e.message), harvest_job)
                     return None
-                area_harvest_object_data = {
-                    'output_dataset_name': output_dataset_name,
-                    'output_resource_name': '{} Area ID Crosswalk Table'.format(date_stamp),
-                    'csv': area_csv_str
-                }
-                obj = HarvestObject(guid="pivot_table",
-                                    job=harvest_job,
-                                    content=json.dumps(area_harvest_object_data))
-                obj.save()
-                obj_ids.append(obj.id)
                 harvest_object_data['area_id_map_csv_str'] = area_csv_str
 
             obj = HarvestObject(guid="pivot_table",
