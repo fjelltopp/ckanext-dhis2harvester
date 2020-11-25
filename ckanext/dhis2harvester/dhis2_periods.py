@@ -11,9 +11,9 @@ def calendar_quarter_from_dhis2_period_string(dhis2_period_string):
     elif is_quarter:
         return "CY{}".format(dhis2_period_string)
     elif is_month:
-        year_re = "^[1-2]\d\d\d"
+        year_re = r"^[1-2]\d\d\d"
         year_m = re.search(year_re, dhis2_period_string)
-        month_re = "[0-1]\d$"
+        month_re = r"[0-1]\d$"
         month_m = re.search(month_re, dhis2_period_string)
         month = month_m.group(0)
         try:
@@ -37,11 +37,11 @@ def year_from_dhis2_period_string(dhis2_period_string):
     if is_year:
         return dhis2_period_string
     elif is_quarter:
-        year_re = "^[1-2]\d\d\d"
+        year_re = r"^[1-2]\d\d\d"
         year_m = re.search(year_re, dhis2_period_string)
         return year_m.group(0)
     elif is_month:
-        year_re = "^[1-2]\d\d\d"
+        year_re = r"^[1-2]\d\d\d"
         year_m = re.search(year_re, dhis2_period_string)
         return year_m.group(0)
     else:
@@ -49,9 +49,9 @@ def year_from_dhis2_period_string(dhis2_period_string):
 
 
 def _validate_input(dhis2_period_string):
-    quarter_re = "^[1-2]\d\d\dQ[1-4]$"
-    year_re = "^[1-2]\d\d\d$"
-    month_re = "^[1-2]\d\d\d[0-1]\d$"
+    quarter_re = r"^[1-2]\d\d\dQ[1-4]$"
+    year_re = r"^[1-2]\d\d\d$"
+    month_re = r"^[1-2]\d\d\d[0-1]\d$"
     year_m = re.search(year_re, dhis2_period_string)
     quarter_m = re.search(quarter_re, dhis2_period_string)
     month_m = re.search(month_re, dhis2_period_string)

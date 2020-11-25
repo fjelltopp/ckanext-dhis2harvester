@@ -41,7 +41,6 @@ class PivotTablesHarvester(HarvesterBase):
             'description': 'Harvests pivot tables data from DHIS2',
         }
 
-
     def _area_id_map_harvest_object_data(self, area_id_map_url, area_id_map_owner):
         if not area_id_map_url or not area_id_map_owner:
             return
@@ -116,7 +115,12 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
                 'output_dataset_name': output_dataset_name,
-                'output_resource_name': '{} {} {} {}'.format(date_stamp, country_name, pt_target_type['shortName'], pt_config['name']),
+                'output_resource_name': '{} {} {} {}'.format(
+                    date_stamp,
+                    country_name,
+                    pt_target_type['shortName'],
+                    pt_config['name']
+                ),
                 'pivot_table_id': pt_id,
                 'pivot_table_column_config': pt['columns'],
                 'output_tags': pt_target_type.get("tags", []),
