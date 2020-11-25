@@ -129,16 +129,6 @@ class PivotTablesHarvester(HarvesterBase):
                     self._save_gather_error('Failed to process area id csv resource: {}, {}'
                                             .format(area_id_map_url, e.message), harvest_job)
                     return None
-                area_harvest_object_data = {
-                    'output_dataset_name': output_dataset_name,
-                    'output_resource_name': '{} Area ID Crosswalk Table'.format(date_stamp),
-                    'csv': area_csv_str
-                }
-                obj = HarvestObject(guid="pivot_table",
-                                    job=harvest_job,
-                                    content=json.dumps(area_harvest_object_data))
-                obj.save()
-                obj_ids.append(obj.id)
                 harvest_object_data['area_id_map_csv_str'] = area_csv_str
 
             obj = HarvestObject(guid="pivot_table",
