@@ -56,7 +56,7 @@ def test_year_from_dhis2_period_string(dhis2_period_string, expected):
     'Fjelltopp',
     'Jan2020',
     '012020',
-    012020
+    112020
 ])
 def test_year_from_dhis2_period_string_errors_on_bad_input(dhis2_period_string):
     with pytest.raises(ValueError):
@@ -71,7 +71,7 @@ def test_year_from_dhis2_period_string_errors_on_bad_input(dhis2_period_string):
     '202010',
     202010,
     '032020',
-    032020,
+    112020,
 ], ids=[
     'only date text supported',
     'only strictly specified date formatting supported',
@@ -117,4 +117,28 @@ def test_should_map_into_year(pivot_table_type, expected):
 ])
 def test_period_column_name(pivot_table_type, expected):
     result = dhis2_periods.period_column_name(pivot_table_type)
+    assert result == expected
+
+
+@pytest.mark.parametrize('ethiopian_period_string, expected', [
+    ('2011', '2018'),
+    ('2013', '2020'),
+    (2013, '2020'),
+    (2011, '2018'),
+    ('2012Q3', '2020Q1'),
+    ('2012Q4', '2020Q2'),
+    ('2013Q1', '2020Q3'),
+    ('2013Q2', '2020Q4'),
+    ('2010Q4', '2018Q2'),
+    ('2011Q3', '2019Q1'),
+    ('2005Q2', '2012Q4'),
+    ('2005Q1', '2012Q3'),
+    ('201010', '201806'),
+    ('201212', '202008'),
+    ('201301', '202009'),
+    ('201302', '202010'),
+    ('201004', '201712'),
+])
+def test_ethiopian(ethiopian_period_string, expected):
+    result = dhis2_periods.from_ethiopian_data_to_georgian_date(ethiopian_period_string)
     assert result == expected
