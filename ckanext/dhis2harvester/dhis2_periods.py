@@ -2,6 +2,8 @@ import re
 from ckanext.dhis2harvester.config.column_configs_template import TARGET_TYPES as PT_TARGET_TYPES, PERIOD_QUARTER, \
     DEFAULT_PERIOD_TYPE, PERIOD_YEAR
 
+ETHIOPIAN_PERIOD_CONVERSION = 'ETHIOPIAN_PERIOD_CONVERSION'
+
 
 def calendar_quarter_from_dhis2_period_string(dhis2_period_string):
     dhis2_period_string = _stringify(dhis2_period_string)
@@ -120,3 +122,13 @@ def should_map_into_year(pivot_table_type):
 def period_column_name(pivot_table_type):
     pt_config = PT_TARGET_TYPES[pivot_table_type]
     return pt_config.get("periodType", DEFAULT_PERIOD_TYPE)
+
+
+def period_convert_function(period_convert_type):
+    def _dummy_convert_function(input):
+        return input
+
+    if period_convert_type == ETHIOPIAN_PERIOD_CONVERSION:
+        return from_ethiopian_data_to_georgian_date
+    return _dummy_convert_function
+

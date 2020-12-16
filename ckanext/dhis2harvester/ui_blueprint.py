@@ -12,6 +12,8 @@ import ckanext.harvest.helpers as harvest_helpers
 import ckanext.harvest.utils as harvest_utils
 from ckan.logic import ValidationError
 from collections import defaultdict
+
+from ckanext.dhis2harvester import dhis2_periods
 from dhis2_api import Dhis2Connection, Dhis2ConnectionError
 from harvesters import operations
 
@@ -49,6 +51,7 @@ def pivot_tables_edit(harvest_source_id):
             'column_values': harvest_config['column_values'],
             'selected_pivot_tables': harvest_config['selected_pivot_tables'],
             'area_id_map_url': harvest_config['area_id_map_url'],
+            'period_conversion_type': harvest_config.get('period_conversion_type'),
             'dhis2_url': dhis2_url,
             'dhis2_api_version': dhis2_api_version,
             'dhis2_auth_token': dhis2_auth_token,
@@ -292,7 +295,8 @@ def __prepare_harvester_details(data):
         'dhis2_api_version': data['dhis2_api_version'],
         'dhis2_auth_token': data['dhis2_auth_token'],
         'area_id_map_url': data.get('area_id_map_url'),
-        'area_id_map_owner': data.get('area_id_map_owner')
+        'area_id_map_owner': data.get('area_id_map_owner'),
+        'period_conversion_type': data.get('period_conversion_type')
     }
     harvester_name = data['name']
     active_ = data.get('state', 'active') == 'active'
