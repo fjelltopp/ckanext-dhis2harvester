@@ -13,7 +13,6 @@ import ckanext.harvest.utils as harvest_utils
 from ckan.logic import ValidationError
 from collections import defaultdict
 
-from ckanext.dhis2harvester import dhis2_periods
 from dhis2_api import Dhis2Connection, Dhis2ConnectionError
 from harvesters import operations
 

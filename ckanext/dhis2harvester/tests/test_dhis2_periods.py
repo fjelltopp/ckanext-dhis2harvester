@@ -119,6 +119,7 @@ def test_period_column_name(pivot_table_type, expected):
     result = dhis2_periods.period_column_name(pivot_table_type)
     assert result == expected
 
+
 @pytest.mark.parametrize('ethiopian_period_string, expected', [
     ('2011', '2018'),
     ('2013', '2020'),

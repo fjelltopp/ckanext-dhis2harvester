@@ -131,4 +131,3 @@ def period_convert_function(period_convert_type):
     if period_convert_type == ETHIOPIAN_PERIOD_CONVERSION:
         return from_ethiopian_data_to_georgian_date
     return _dummy_convert_function
-
