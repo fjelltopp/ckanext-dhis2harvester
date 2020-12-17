@@ -20,6 +20,18 @@
   {% endif %}
 {% endif %}
 
+{% snippet 'scheming/form_snippets/country_select.html',
+    data=data,
+    errors=errors,
+    field={
+        "field_name": "geo_location",
+        "label": "Geographical Location",
+        "form_placeholder": "Country or province",
+        "preset": "country_list",
+        "display_property": "dc:contributor"
+    }
+%}
+
 {{ form.image_upload(data, errors, field_url='area_id_map_url', field_upload='area_id_map_upload', field_clear='clear_upload',
  is_upload_enabled=false, is_url=data.area_map_is_url, is_upload=false,
  upload_label=_('Optional Area ID Mapping File'), url_label=_('Optional Area ID Mapping File URL'), placeholder=_('http://example.com/external-data.csv'), field_name='name') }}
