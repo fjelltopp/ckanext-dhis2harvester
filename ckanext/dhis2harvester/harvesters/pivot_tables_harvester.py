@@ -278,12 +278,6 @@ class PivotTablesHarvester(HarvesterBase):
                     .format(pivot_table_id, dhis2_connection),
                     harvest_object, 'Fetch')
                 return None
-            # create final columns output
-            pt_df = pt_df[[_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols) + list(_data_cols)]
-            # group by orgs and periods and categories
-            pt_df = pt_df.groupby([_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols)).sum().reset_index()
-            # sort by area names
-            pt_df.sort_values(by=[_area_name_col, _output_period_col]).reset_index(drop=True)
             # map area ids
             if 'area_id_map_csv_str' in content:
                 area_id_map_csv_str = content['area_id_map_csv_str']
@@ -300,6 +294,20 @@ class PivotTablesHarvester(HarvesterBase):
                     return None
 
                 pt_df['area_id'] = pt_df['area_id'].replace(area_map_df.set_index(mapping_column_name)['area_id'])
+            # aggregate by area_id, categories
+            aggregation_config = {data_col: "sum" for data_col in _data_cols}
+
+            def concat_area_names(area_names_series):
+                return ','.join([name for name in area_names_series.unique()])
+            aggregation_config[_area_name_col] = lambda x: concat_area_names(x)
+
+            pt_df = (pt_df.groupby([_area_id_col, _output_period_col] + list(_cat_cols))
+                     .agg(aggregation_config)
+                     .reset_index()
+                     )
+            # create final columns output
+            pt_df = pt_df[[_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols) + list(_data_cols)]
+            pt_df.sort_values(by=[_area_id_col, _output_period_col]).reset_index(drop=True)
         except Exception:
             exc_type, value, traceback = sys.exc_info()
             self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}, {}:{}'
