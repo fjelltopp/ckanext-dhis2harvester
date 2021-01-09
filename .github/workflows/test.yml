@@ -55,5 +55,5 @@ jobs:
         ckan -c test.ini db init
         sudo find / -type f -name pytest
     - name: Run tests
-      run: pytest --ckan-ini=test.ini --cov=ckanext.dhis2harvester --disable-warnings ckanext/restricted/tests
+      run: pytest --ckan-ini=test.ini --cov=ckanext.dhis2harvester --disable-warnings ckanext/dhis2harvester/tests
 
