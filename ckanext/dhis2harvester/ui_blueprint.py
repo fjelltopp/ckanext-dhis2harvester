@@ -114,7 +114,7 @@ def pivot_tables_refresh(harvest_source_id):
         except ValidationError as e:
             log.error("An error occurred: {}".format(str(e)))
             raise e
-        h.flash_success(_("DHIS2 Source refresh will start shortly. Refresh this page for updates."))
+        _flash_source_refresh_success()
         return h.redirect_to('harvest_admin', id=harvester_name)
     else:
         data = {}
@@ -123,7 +123,7 @@ def pivot_tables_refresh(harvest_source_id):
         if dhis2_auth_token:
             try:
                 harvest_utils.create_job(harvest_source_id)
-                h.flash_success(_("DHIS2 Source refresh will start shortly. Refresh this page for updates."))
+                _flash_source_refresh_success()
                 return h.redirect_to('harvest_admin', id=harvester_name)
             except ValidationError as e:
                 log.error("An error occurred: {}".format(str(e)))
@@ -135,6 +135,10 @@ def pivot_tables_refresh(harvest_source_id):
             'source/pivot_table_refresh.html',
             {'data': data, 'harvest_source': harvest_source, 'errors': {}}
         )
+
+
+def _flash_source_refresh_success():
+    h.flash_success(_("Import of data from DHIS will start soon. Click on import to bring in the most recent program data."))
 
 
 def __ui_state_machine(harvest_source=None):

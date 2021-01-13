@@ -1,0 +1,46 @@
+# French translations for ckanext-dhis2harvester.
+# Copyright (C) 2020 ORGANIZATION
+# This file is distributed under the same license as the
+# ckanext-dhis2harvester
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ckanext-dhis2harvester 0.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-01-08 09:07+0100\n"
+"PO-Revision-Date: 2020-12-14 11:37+0300\n"
+"Last-Translator: \n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ckanext/dhis2harvester/licenses.py:15
+msgid "Creative Commons Attribution for Intergovernmental Organisations"
+msgstr "Attribution Creative Commons pour les organisations intergouvernementales"
+
+#: ckanext/dhis2harvester/ui_blueprint.py:138
+msgid ""
+"Import of data from DHIS will start soon. Click on import to bring in the"
+" most recent program data."
+msgstr ""
+"L'importation des données de DHIS2 "
+"commencera bientôt. Cliquez sur réimporter "
+"pour importer les données les plus "
+"récentes."
+
+#: ckanext/dhis2harvester/ui_blueprint.py:271
+msgid "Failed to download the area id map csv file."
+msgstr ""
+"Échec du téléchargement du fichier qui mappe l'identifiant DHIS aux "
+"identifiants de zone Naomi."
+
+#: ckanext/dhis2harvester/ui_blueprint.py:277
+msgid "Incorrect csv file format."
+msgstr "Format de fichier csv incorrect."
+

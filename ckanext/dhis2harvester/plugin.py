@@ -5,6 +5,7 @@ import ckan.model.license as core_licenses
 import ckan.model.package as package
 import ckan.plugins.toolkit as toolkit
 from ui_blueprint import ui_blueprint
+from ckan.lib.plugins import DefaultTranslation
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def add_licenses():
         ]
 
 
-class DHIS2HarvesterPlugin(p.SingletonPlugin):
+class DHIS2HarvesterPlugin(p.SingletonPlugin, DefaultTranslation):
     """
     This plugin implements the configurations needed for AIDS data exchange
 
@@ -29,6 +30,7 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin):
     p.implements(p.IFacets, inherit=True)
     p.implements(p.interfaces.IBlueprint)
     p.implements(p.ITemplateHelpers)
+    p.implements(p.ITranslation)
 
     # IConfigurer
     def update_config(self, config):
