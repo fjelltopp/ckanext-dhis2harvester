@@ -1,6 +1,5 @@
 import json
-from StringIO import StringIO
-
+import io
 import logging
 import requests
 import pandas as pd
@@ -13,8 +12,8 @@ import ckanext.harvest.utils as harvest_utils
 from ckan.logic import ValidationError
 from collections import defaultdict
 
-from dhis2_api import Dhis2Connection, Dhis2ConnectionError
-from harvesters import operations
+from ckanext.dhis2harvester.dhis2_api import Dhis2Connection, Dhis2ConnectionError
+from ckanext.dhis2harvester.harvesters import operations
 
 log = logging.getLogger(__name__)
 
@@ -274,7 +273,7 @@ def __save_or_update_harvest_source(data, harvest_source=None):
             errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
             return __summary_stage(data, errors, harvest_source=harvest_source)
         try:
-            csv_stream = StringIO(area_csv.text)
+            csv_stream = io.StringIO(area_csv.text)
             pd.read_csv(csv_stream)
         except Exception:
             errors = {"area_id_map_url": [_("Incorrect csv file format.")]}

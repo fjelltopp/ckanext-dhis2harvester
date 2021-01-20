@@ -1,14 +1,12 @@
 import json
-import urlparse
-
 import logging
 from base64 import b64encode
-
+from urllib.parse import urlparse
 import requests
 from requests import ConnectionError
 from requests.exceptions import MissingSchema
 
-import request_util
+from ckanext.dhis2harvester import request_util
 
 log = logging.getLogger(__name__)
 
