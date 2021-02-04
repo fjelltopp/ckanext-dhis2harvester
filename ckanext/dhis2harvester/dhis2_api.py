@@ -1,7 +1,7 @@
 import json
 import logging
 from base64 import b64encode
-from urllib.parse import urlparse
+from six.moves.urllib.parse import urlparse
 import requests
 from requests import ConnectionError
 from requests.exceptions import MissingSchema

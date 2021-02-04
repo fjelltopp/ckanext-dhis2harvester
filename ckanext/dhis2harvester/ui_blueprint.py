@@ -1,5 +1,5 @@
 import json
-import io
+from six import StringIO
 import logging
 import requests
 import pandas as pd
@@ -273,7 +273,7 @@ def __save_or_update_harvest_source(data, harvest_source=None):
             errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
             return __summary_stage(data, errors, harvest_source=harvest_source)
         try:
-            csv_stream = io.StringIO(area_csv.text)
+            csv_stream = StringIO(area_csv.text)
             pd.read_csv(csv_stream)
         except Exception:
             errors = {"area_id_map_url": [_("Incorrect csv file format.")]}
