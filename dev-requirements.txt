@@ -1,1 +1,3 @@
 pydevd_pycharm
+pytest-ckan
+pytest-cov
