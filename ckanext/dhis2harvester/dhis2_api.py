@@ -69,7 +69,8 @@ class Dhis2Connection(object):
         if not self.auth_token:
             self.get_auth_token()
         return {
-            'JSESSIONID': self.auth_token
+            'JSESSIONID': self.auth_token,
+            'SESSION': self.auth_token
         }
 
     def __response_validation(self, msg, r):
@@ -106,9 +107,12 @@ class Dhis2Connection(object):
             data_ = {"j_username": self.username, "j_password": self.password}
             session.post(url_, data=data_)
             cookie = session.cookies.get_dict()
-            if 'JSESSIONID' not in cookie:
+            if 'JSESSIONID' in cookie:
+                self.auth_token = cookie['JSESSIONID']
+            elif 'SESSION' in cookie:
+                self.auth_token = cookie['SESSION']
+            else:
                 raise Dhis2ConnectionError("Failed to get DHIS2 auth token")
-            self.auth_token = cookie['JSESSIONID']
         return self.auth_token
 
     def get_pivot_tables(self):
