@@ -1,11 +1,11 @@
 import ckan.plugins as p
 import logging
-import licenses
 import ckan.model.license as core_licenses
 import ckan.model.package as package
 import ckan.plugins.toolkit as toolkit
-from ui_blueprint import ui_blueprint
 from ckan.lib.plugins import DefaultTranslation
+from ckanext.dhis2harvester import licenses
+from ckanext.dhis2harvester.ui_blueprint import ui_blueprint
 
 log = logging.getLogger(__name__)
 

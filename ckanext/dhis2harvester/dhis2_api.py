@@ -1,14 +1,12 @@
 import json
-import urlparse
-
 import logging
 from base64 import b64encode
-
+from six.moves.urllib.parse import urljoin
 import requests
 from requests import ConnectionError
 from requests.exceptions import MissingSchema
 
-import request_util
+from ckanext.dhis2harvester import request_util
 
 log = logging.getLogger(__name__)
 
@@ -85,7 +83,7 @@ class Dhis2Connection(object):
     def test_connection(self):
         try:
             cookies = self.__create_auth_cookie()
-            test_url = urlparse.urljoin(self.api_url, 'organisationUnits')
+            test_url = urljoin(self.api_url, 'organisationUnits')
             r = requests.get(test_url, cookies=cookies)
             self.__response_validation("Failed to authenticate to DHIS2", r)
             return True
@@ -103,7 +101,7 @@ class Dhis2Connection(object):
     def get_auth_token(self):
         if not self.auth_token:
             session = requests.session()
-            url_ = urlparse.urljoin(self.url, self.SECURITY_LOGIN_ACTION)
+            url_ = urljoin(self.url, self.SECURITY_LOGIN_ACTION)
             data_ = {"j_username": self.username, "j_password": self.password}
             session.post(url_, data=data_)
             cookie = session.cookies.get_dict()
@@ -116,7 +114,7 @@ class Dhis2Connection(object):
         return self.auth_token
 
     def get_pivot_tables(self):
-        url_ = urlparse.urljoin(self.api_url, self.PIVOT_TABLES_RESOURCE)
+        url_ = urljoin(self.api_url, self.PIVOT_TABLES_RESOURCE)
         r = requests.get(url_, cookies=self.__create_auth_cookie())
         self.__response_validation("Failed to get pivot tables information", r)
         try:
@@ -129,7 +127,7 @@ class Dhis2Connection(object):
         return result
 
     def _get_pivot_table_meta(self, pivot_table_id):
-        url_ = urlparse.urljoin(self.api_url, "{}/{}".format(self.PIVOT_TABLES_KEY_NAME, pivot_table_id))
+        url_ = urljoin(self.api_url, "{}/{}".format(self.PIVOT_TABLES_KEY_NAME, pivot_table_id))
         r = requests.get(url_, cookies=self.__create_auth_cookie())
         self.__response_validation("Failed to get pivot table information for pivot table {}".format(pivot_table_id), r)
         try:
@@ -141,8 +139,8 @@ class Dhis2Connection(object):
     def get_pivot_table_columns(self, pivot_table_id):
         pivot_table_meta = self._get_pivot_table_meta(pivot_table_id)
         # categories combos metadata
-        cc_url_ = urlparse.urljoin(self.api_url, "metadata?categoryCombos:fields=id,name,categoryOptionCombos")
-        coc_url_ = urlparse.urljoin(self.api_url, "metadata?categoryOptionCombos:fields=id,name")
+        cc_url_ = urljoin(self.api_url, "metadata?categoryCombos:fields=id,name,categoryOptionCombos")
+        coc_url_ = urljoin(self.api_url, "metadata?categoryOptionCombos:fields=id,name")
         cc_r = requests.get(cc_url_, cookies=self.__create_auth_cookie())
         coc_r = requests.get(coc_url_, cookies=self.__create_auth_cookie())
         category_combos_meta = cc_r.json()["categoryCombos"]
@@ -155,7 +153,7 @@ class Dhis2Connection(object):
             options = {option['id']: category_option_combos_map[option['id']] for option in category_options}
             category_combos_map[c_id] = options
         # data elements metadata
-        de_url_ = urlparse.urljoin(self.api_url, "metadata?dataElements:fields=id,name,categoryCombo")
+        de_url_ = urljoin(self.api_url, "metadata?dataElements:fields=id,name,categoryCombo")
         de_r = requests.get(de_url_, cookies=self.__create_auth_cookie())
         data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in
                               de_r.json()["dataElements"]}
@@ -219,7 +217,7 @@ class Dhis2Connection(object):
         return self.PIVOT_TABLES_CSV_RESOURCE.format(data_elements=des, periods=ps, organisation_units=ous)
 
     def get_organisation_unit_name_id_map(self):
-        ou_url_ = urlparse.urljoin(self.api_url, self.ORG_UNIT_RESOURCE)
+        ou_url_ = urljoin(self.api_url, self.ORG_UNIT_RESOURCE)
         ou_r = requests.get(ou_url_, cookies=self.__create_auth_cookie())
         self.__response_validation("Failed to get organisation unit information", ou_r)
         ou_list = json.loads(ou_r.text)['organisationUnits']
@@ -228,7 +226,7 @@ class Dhis2Connection(object):
         return id_name_map
 
     def get_api_resource(self, api_resource):
-        url_ = urlparse.urljoin(self.api_url, api_resource)
+        url_ = urljoin(self.api_url, api_resource)
         response = requests.get(url_, cookies=self.__create_auth_cookie())
         return response
 

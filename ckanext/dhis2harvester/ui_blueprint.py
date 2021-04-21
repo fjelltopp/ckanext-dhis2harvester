@@ -1,6 +1,5 @@
 import json
-from StringIO import StringIO
-
+from six import StringIO
 import logging
 import requests
 import pandas as pd
@@ -13,8 +12,8 @@ import ckanext.harvest.utils as harvest_utils
 from ckan.logic import ValidationError
 from collections import defaultdict
 
-from dhis2_api import Dhis2Connection, Dhis2ConnectionError
-from harvesters import operations
+from ckanext.dhis2harvester.dhis2_api import Dhis2Connection, Dhis2ConnectionError
+from ckanext.dhis2harvester.harvesters import operations
 
 log = logging.getLogger(__name__)
 
