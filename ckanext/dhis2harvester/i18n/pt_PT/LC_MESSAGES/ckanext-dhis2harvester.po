@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-dhis2harvester 0.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-01-11 08:32+0000\n"
+"POT-Creation-Date: 2022-01-11 08:51+0000\n"
 "PO-Revision-Date: 2022-01-11 08:32+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt_PT\n"
@@ -22,19 +22,19 @@ msgstr ""
 
 #: ckanext/dhis2harvester/licenses.py:15
 msgid "Creative Commons Attribution for Intergovernmental Organisations"
-msgstr ""
+msgstr "Atribuição Creative Commons para Organizações Intergovernamentais"
 
 #: ckanext/dhis2harvester/ui_blueprint.py:140
 msgid ""
 "Import of data from DHIS will start soon. Click on import to bring in the"
 " most recent program data."
 msgstr ""
+"A importação de dados do DHIS começará em breve. Clique em importar para obter os dados mais recentes do programa."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:273
 msgid "Failed to download the area id map csv file."
-msgstr ""
+msgstr "Falha no download do ficheiro csv do mapa de identificação da área."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:279
 msgid "Incorrect csv file format."
-msgstr ""
-
+msgstr "Formato de ficheiro csv incorreto."
