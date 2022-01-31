@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-dhis2harvester 0.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-01-11 08:32+0000\n"
+"POT-Creation-Date: 2022-01-11 08:51+0000\n"
 "PO-Revision-Date: 2020-12-14 11:37+0300\n"
 "Last-Translator: \n"
 "Language: fr\n"
@@ -29,16 +29,12 @@ msgid ""
 "Import of data from DHIS will start soon. Click on import to bring in the"
 " most recent program data."
 msgstr ""
-"L'importation des données de DHIS2 commencera bientôt. Cliquez sur "
-"réimporter pour importer les données les plus récentes."
+"L'importation des données de DHIS commencera bientôt. Cliquez sur importer pour importer les données les plus récentes."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:273
 msgid "Failed to download the area id map csv file."
-msgstr ""
-"Échec du téléchargement du fichier qui mappe l'identifiant DHIS aux "
-"identifiants de zone Naomi."
+msgstr "Échec du téléchargement du fichier csv de la carte des identifiants de zone."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:279
 msgid "Incorrect csv file format."
 msgstr "Format de fichier csv incorrect."
-
