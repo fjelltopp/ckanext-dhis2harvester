@@ -23,4 +23,11 @@ setup(
     dhis2harvester_plugin=ckanext.dhis2harvester.plugin:DHIS2HarvesterPlugin
     dhis2_pivot_tables_harvester=ckanext.dhis2harvester.harvesters.pivot_tables_harvester:PivotTablesHarvester
     """,
+    message_extractors={
+        'ckanext': [
+            ('**.py', 'python', None),
+            ('**.js', 'javascript', None),
+            ('**/templates/**.html', 'ckan', None),
+        ]
+    }
 )
