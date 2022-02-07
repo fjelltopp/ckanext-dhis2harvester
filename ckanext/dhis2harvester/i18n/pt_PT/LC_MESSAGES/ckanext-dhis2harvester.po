@@ -1,20 +1,20 @@
-# French translations for ckanext-dhis2harvester.
-# Copyright (C) 2020 ORGANIZATION
+# Portuguese (Portugal) translations for ckanext-dhis2harvester.
+# Copyright (C) 2022 ORGANIZATION
 # This file is distributed under the same license as the
 # ckanext-dhis2harvester
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-dhis2harvester 0.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2022-02-03 11:37+0000\n"
-"PO-Revision-Date: 2020-12-14 11:37+0300\n"
-"Last-Translator: \n"
-"Language: fr\n"
-"Language-Team: fr <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"PO-Revision-Date: 2022-01-11 08:32+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pt_PT\n"
+"Language-Team: pt_PT <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -22,25 +22,23 @@ msgstr ""
 
 #: ckanext/dhis2harvester/licenses.py:15
 msgid "Creative Commons Attribution for Intergovernmental Organisations"
-msgstr "Attribution Creative Commons pour les organisations intergouvernementales"
+msgstr "Atribuição Creative Commons para Organizações Intergovernamentais"
 
 #: ckanext/dhis2harvester/ui_blueprint.py:140
 msgid ""
 "Import of data from DHIS will start soon. Click on import to bring in the"
 " most recent program data."
 msgstr ""
-"L'importation des données de DHIS commencera bientôt. Cliquez sur "
-"importer pour importer les données les plus récentes."
+"A importação de dados do DHIS começará em breve. Clique em importar para "
+"obter os dados mais recentes do programa."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:273
 msgid "Failed to download the area id map csv file."
-msgstr ""
-"Échec du téléchargement du fichier csv de la carte des identifiants de "
-"zone."
+msgstr "Falha no download do ficheiro csv do mapa de identificação da área."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:279
 msgid "Incorrect csv file format."
-msgstr "Format de fichier csv incorrect."
+msgstr "Formato de ficheiro csv incorreto."
 
 #: ckanext/dhis2harvester/templates/snippets/add_source_button.html:6
 msgid "Add DHIS2 Source"
