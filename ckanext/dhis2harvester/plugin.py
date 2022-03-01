@@ -43,6 +43,10 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin, DefaultTranslation):
         toolkit.add_public_directory(config, 'public')
         toolkit.add_resource('fanstatic', 'dhis2harvester')
 
+    # ITranslation
+    def i18n_domain(self):
+        return 'ckanext-dhis2harvester'
+
     def get_blueprint(self):
         return [ui_blueprint]
 
