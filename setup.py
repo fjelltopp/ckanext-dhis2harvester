@@ -22,6 +22,8 @@ setup(
     [ckan.plugins]
     dhis2harvester_plugin=ckanext.dhis2harvester.plugin:DHIS2HarvesterPlugin
     dhis2_pivot_tables_harvester=ckanext.dhis2harvester.harvesters.pivot_tables_harvester:PivotTablesHarvester
+    [babel.extractors]
+    ckan = ckan.lib.extract:extract_ckan
     """,
     message_extractors={
         'ckanext': [
