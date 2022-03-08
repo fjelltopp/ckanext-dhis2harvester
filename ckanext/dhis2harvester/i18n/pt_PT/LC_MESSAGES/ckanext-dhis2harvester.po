@@ -29,12 +29,11 @@ msgid ""
 "Import of data from DHIS will start soon. Click on import to bring in the"
 " most recent program data."
 msgstr ""
-"A importação de dados do DHIS começará em breve. Clique em importar para "
-"obter os dados mais recentes do programa."
+"A importação de dados do DHIS começará em breve. Clique em importar para obter os dados mais recentes do programa."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:273
 msgid "Failed to download the area id map csv file."
-msgstr "Falha no download do ficheiro csv do mapa de identificação da área."
+msgstr "Não foi possível descarregar o ficheiro csv do mapa de identificação da área."
 
 #: ckanext/dhis2harvester/ui_blueprint.py:279
 msgid "Incorrect csv file format."
@@ -42,11 +41,11 @@ msgstr "Formato de ficheiro csv incorreto."
 
 #: ckanext/dhis2harvester/templates/snippets/add_source_button.html:6
 msgid "Add DHIS2 Source"
-msgstr ""
+msgstr "Adicionar Fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/snippets/harvest_run_action.html:2
 msgid "Running..."
-msgstr ""
+msgstr "A executar..."
 
 #: ckanext/dhis2harvester/templates/snippets/harvest_run_action.html:4
 msgid ""
@@ -55,137 +54,139 @@ msgid ""
 "datasets may take a significant amount of time to finish refreshing. "
 "Please confirm you would like us to start refreshing."
 msgstr ""
+"Isto irá executar novamente a importação DHIS2 para esta fonte. Quaisquer atualizações na fonte irão substituir os conjuntos de dados locais. As fontes com um grande número de conjuntos de dados poderão demorar algum tempo a concluir a atualização. Por favor, confirme se deseja iniciar a atualização."
 
 #: ckanext/dhis2harvester/templates/snippets/harvest_run_action.html:11
 msgid "Start a new import job for this DHIS2 source now"
-msgstr ""
+msgstr "Iniciar agora um novo trabalho de importação para esta fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/snippets/harvest_run_action.html:13
 msgid "Refresh"
-msgstr ""
+msgstr "Atualizar"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:15
 msgid "{number} dataset found for \"{query}\""
 msgid_plural "{number} datasets found for \"{query}\""
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} conjunto de dados encontrado para \"{query}\""
+msgstr[1] "{number} conjuntos de dados encontrados para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:16
 msgid "No datasets found for \"{query}\""
-msgstr ""
+msgstr "Não foram encontrados conjuntos de dados para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:17
 msgid "{number} dataset found"
 msgid_plural "{number} datasets found"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} conjunto de dados encontrado"
+msgstr[1] "{number} conjuntos de dados encontrados"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:18
 msgid "No datasets found"
-msgstr ""
+msgstr "Não foram encontrados conjuntos de dados"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:21
 msgid "{number} group found for \"{query}\""
 msgid_plural "{number} groups found for \"{query}\""
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} grupo encontrado para \"{query}\""
+msgstr[1] "{number} grupos encontrados para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:22
 msgid "No groups found for \"{query}\""
-msgstr ""
+msgstr "Não foram encontrados grupos para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:23
 msgid "{number} group found"
 msgid_plural "{number} groups found"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} grupo encontrado"
+msgstr[1] "{number} grupos encontrados"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:24
 msgid "No groups found"
-msgstr ""
+msgstr "Não foram encontrados grupos"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:27
 msgid "{number} organization found for \"{query}\""
 msgid_plural "{number} organizations found for \"{query}\""
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} organização encontrada para \"{query}\""
+msgstr[1] "{number} organizações encontradas para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:28
 msgid "No organizations found for \"{query}\""
-msgstr ""
+msgstr "Não foram encontradas organizações para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:29
 msgid "{number} organization found"
 msgid_plural "{number} organizations found"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} organização encontrada"
+msgstr[1] "{number} organizações encontradas"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:30
 msgid "No organizations found"
-msgstr ""
+msgstr "Nenhuma organização encontrada"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:33
 msgid "{number} DHIS2 source found for \"{query}\""
 msgid_plural "{number} DHIS2 sources found for \"{query}\""
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} fonte DHIS2 encontrada para \"{query}\""
+msgstr[1] "{number} fontes DHIS2 encontradas para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:34
 msgid "Sorry no DHIS2 sources found for \"{query}\""
-msgstr ""
+msgstr "Lamentamos, mas não foram encontradas fontes DHIS2 para \"{query}\""
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:35
 msgid "{number} DHIS2 source found"
 msgid_plural "{number} DHIS2 sources found"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{number} fonte DHIS2 encontrada"
+msgstr[1] "{number} fontes DHIS2 encontradas"
 
 #: ckanext/dhis2harvester/templates/snippets/search_result_text.html:36
 msgid "Sorry no DHIS2 sources found"
-msgstr ""
+msgstr "Lamentamos, mas não foram encontradas fontes DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:4
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:29
 msgid "Dashboard"
-msgstr ""
+msgstr "Painel de instrumentos"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:5
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:34
 msgid "Jobs"
-msgstr ""
+msgstr "Tarefas"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:10
 #: ckanext/dhis2harvester/templates/source/admin_base.html:14
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:39
 msgid "Edit"
-msgstr ""
+msgstr "Editar"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:24
 msgid "Stop"
-msgstr ""
+msgstr "Parar"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:28
 msgid ""
 "Warning: This will remove all datasets for this source, as well as all "
 "previous job reports. Are you sure you want to continue?"
 msgstr ""
+"Advertência: isto irá remover todos os conjuntos de dados para esta fonte, bem como todos os relatórios de tarefas anteriores. Tem a certeza de que pretende continuar?"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:31
 msgid "Delete all import jobs and existing datasets from this DHIS2 source"
-msgstr ""
+msgstr "Eliminar todas as tarefas de importação e conjuntos de dados existentes desta fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:32
 msgid "Clear"
-msgstr ""
+msgstr "Limpar"
 
 #: ckanext/dhis2harvester/templates/source/admin_base.html:37
 msgid "View DHIS2 source"
-msgstr ""
+msgstr "Ver fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/base.html:6
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:11
 msgid "Organizations"
-msgstr ""
+msgstr "Organizações"
 
 #: ckanext/dhis2harvester/templates/source/base.html:8
 #: ckanext/dhis2harvester/templates/source/base.html:11
@@ -193,79 +194,81 @@ msgstr ""
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:19
 #: ckanext/dhis2harvester/templates/source/search.html:4
 msgid "DHIS2 Sources"
-msgstr ""
+msgstr "Fontes DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:8
 msgid "Configure DHIS2 Connection"
-msgstr ""
+msgstr "Configurar a ligação DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:13
 msgid "DHIS2 URL"
-msgstr ""
+msgstr "URL DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:15
 msgid "This should include the https:// part of the URL"
-msgstr ""
+msgstr "Isto deve incluir a parte https:// do URL"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:17
 msgid "Click here to optionally specify the DHIS2 API version"
-msgstr ""
+msgstr "Clique aqui para especificar opcionalmente a versão API do DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:23
 msgid "DHIS2 API version"
-msgstr ""
+msgstr "Versão API do DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:25
 msgid ""
 "DHIS2 API version to be used. If empty the default version 26 will be "
 "used."
 msgstr ""
+"Versão API do DHIS2 a utilizar. Se estiver vazia, será utilizada a versão padrão 26."
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:32
 msgid "DHIS2 Username"
-msgstr ""
+msgstr "Nome de utilizador DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:32
 msgid "dhis2_username"
-msgstr ""
+msgstr "dhis2_nome_de_utilizador"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:34
 msgid "The user must have access to read the desired pivot tables"
-msgstr ""
+msgstr "O utilizador deve ter acesso para ler as tabelas pivot pretendidas"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:37
 msgid "DHIS2 Password"
-msgstr ""
+msgstr "Palavra-passe DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:39
 msgid ""
 "Your password won't be stored in ADR but passed straight to the DHIS2 "
 "instance for authentication."
 msgstr ""
+"A sua palavra-passe não será guardada no ADR, mas será transferida diretamente para a instância DHIS2 para autenticação."
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:46
 msgid "A previous DHIS2 session is still active.  No need to log in again. "
-msgstr ""
+msgstr "Uma sessão anterior no DHIS2 ainda está ativa. Não é necessário iniciar sessão novamente."
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:49
 msgid "Click here to change DHIS2 User"
-msgstr ""
+msgstr "Clique aqui para alterar o Utilizador do DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:63
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_2.html:91
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:131
 msgid "Next"
-msgstr ""
+msgstr "Seguinte"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:21
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:53
 msgid "Create DHIS2 Pivot Table Fetcher"
-msgstr ""
+msgstr "Criar Fetcher para Tabela Pivot DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:66
 #: ckanext/dhis2harvester/templates/source/search.html:9
 msgid "DHIS2 sources"
-msgstr ""
+msgstr "Fontes DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_base.html:69
 msgid ""
@@ -273,32 +276,34 @@ msgid ""
 "fetcher can be configured to periodically fetch pivot tables from a DHIS2"
 " instance and do some automatic transformation upon them."
 msgstr ""
+"Os Fetchers permitem importar conjuntos de dados remotos para o ADR. Este fetcher DHIS2 pode ser configurado para procurar periodicamente tabelas pivot a partir de uma instância DHIS2 e executar algum tipo transformação automática sobre elas."
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:22
 msgid "DHIS2 Connection"
-msgstr ""
+msgstr "Ligação DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:23
 msgid "Pivot Tables"
-msgstr ""
+msgstr "Tabelas Pivot"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:24
 msgid "Column Configuration"
-msgstr ""
+msgstr "Configuração de Colunas"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:25
 msgid "DHIS2 Source Details"
-msgstr ""
+msgstr "Detalhes da Fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:51
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:55
 msgid ""
 "This will flag the source as deleted but keep all its datasets and "
 "previous jobs. Are you sure you want to delete this harvest source?"
 msgstr ""
+"Isto marcará a fonte como eliminada, mas manterá todos os seus conjuntos de dados e tarefas anteriores. Tem a certeza de que pretende eliminar esta fonte de colheita?"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:56
 msgid ""
@@ -306,48 +311,49 @@ msgid ""
 "its datasets, as well as all previous job reports. Are you sure you want "
 "to continue?"
 msgstr ""
+"Advertência: para além de eliminar esta fonte, este comando irá remover todos os seus conjuntos de dados, bem como todos os relatórios de tarefas anteriores. Tem a certeza de que pretende continuar?"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:59
 msgid "Delete"
-msgstr ""
+msgstr "Eliminar"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:65
 msgid "Delete source"
-msgstr ""
+msgstr "Eliminar fonte"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:70
 msgid "Delete and clear source"
-msgstr ""
+msgstr "Eliminar e limpar fonte"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new.html:82
 msgid "Talking to DHIS2"
-msgstr ""
+msgstr "A comunicar com o DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_2.html:6
 msgid "Choose your DHIS2 pivot tables"
-msgstr ""
+msgstr "Selecione as suas tabelas pivot DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_2.html:84
 msgid "Add Pivot Table"
-msgstr ""
+msgstr "Adicionar Tabela Pivot"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_2.html:90
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:130
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:64
 msgid "Previous"
-msgstr ""
+msgstr "Anterior"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:27
 msgid "Source DHIS2 pivot table"
-msgstr ""
+msgstr "Tabela pivot da fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:30
 msgid "DHIS2 ID:"
-msgstr ""
+msgstr "ID DHIS2:"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:34
 msgid "ADR Mapping Type"
-msgstr ""
+msgstr "Tipo de Mapeamento ADR"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:39
 msgid ""
@@ -356,91 +362,93 @@ msgid ""
 "          in your DHIS2 system will be used to populate the "
 "<strong>{table_type_name}</strong> ADR table."
 msgstr ""
+"A tabela pivot <strong>{pivot_table_name}</strong>, com ID: <strong>{pivot_table_id}</strong>\n"
+"          no seu sistema DHIS2 será utilizada para popular a tabela ADR <strong>{table_type_name}</strong> ."
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:73
 msgid "column"
-msgstr ""
+msgstr "coluna"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:74
 msgid "primary category"
-msgstr ""
+msgstr "categoria primária"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:75
 msgid "secondary category"
-msgstr ""
+msgstr "categoria secundária"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_3.html:115
 msgid "Negative value"
-msgstr ""
+msgstr "Valor negativo"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:3
 msgid "Finalise DHIS2 Source"
-msgstr ""
+msgstr "Finalizar a Fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:4
 msgid "Title"
-msgstr ""
+msgstr "Título"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:4
 msgid "eg. A descriptive title"
-msgstr ""
+msgstr "p. ex., um título descritivo"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:11
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:11
 msgid "eg. my-dataset"
-msgstr ""
+msgstr "p. ex., o meu conjunto de dados"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:13
 msgid "Description"
-msgstr ""
+msgstr "Descrição"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:19
 msgid "Organization"
-msgstr ""
+msgstr "Organização"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:37
 msgid "Optional Area ID Mapping File"
-msgstr ""
+msgstr "Ficheiro Opcional de Mapeamento de ID da Área"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:37
 msgid "Optional Area ID Mapping File URL"
-msgstr ""
+msgstr "URL do Ficheiro Opcional de Mapeamento de ID da Área"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:37
 msgid "http://example.com/external-data.csv"
-msgstr ""
+msgstr "http://example.com/external-data.csv"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:51
 msgid "State"
-msgstr ""
+msgstr "Estado"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:54
 msgid "Active"
-msgstr ""
+msgstr "Ativo"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_new_4.html:55
 msgid "Deleted"
-msgstr ""
+msgstr "Eliminado"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_refresh.html:5
 msgid "Fetch DHIS2 Pivot Table"
-msgstr ""
+msgstr "Procurar Tabela Pivot DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/pivot_table_refresh.html:11
 #: ckanext/dhis2harvester/templates/source/refresh_dhis2_credentials.html:8
 msgid "Refresh DHIS2 Source"
-msgstr ""
+msgstr "Atualizar Fonte DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/refresh_dhis2_credentials.html:12
 msgid "Please confirm your DHIS2 login details"
-msgstr ""
+msgstr "Por favor, confirme os seus dados de início de sessão no DHIS2"
 
 #: ckanext/dhis2harvester/templates/source/search.html:12
 msgid ""
 "In this place you can configure automated data imports from the DHIS2 "
 "servers. DHIS2 sources produce tabular data imported into the ADR."
 msgstr ""
-
+"Aqui pode configurar importações automáticas de dados a partir dos servidores DHIS2. As fontes DHIS2 produzem dados tabulares importados para o ADR."
