@@ -1,0 +1,15 @@
+main:
+  output: dhis2harvester/%(version)s_main.js
+  contents:
+    - pivot_tables.js
+    - tabs.js
+    - throbber.js
+    - toggle_box.js
+  extra:
+    preload:
+      - base/main
+
+main-css:
+    contents:
+        - dhis2_harvester_source_form.css
+    output: dhis2harvester/%(version)s_main.css

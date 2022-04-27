@@ -1,5 +1,6 @@
 import logging
 import requests
+import six
 from ckan.lib import uploader
 
 from ckanext.harvest.harvesters import HarvesterBase
@@ -265,7 +266,7 @@ class PivotTablesHarvester(HarvesterBase):
                 for tc in c['target_column']:
                     _data_cols.add(tc)
                     pt_df.loc[i, tc] = _factor * row['Value']
-                for cat, cat_val in c['categories'].iteritems():
+                for cat, cat_val in six.iteritems(c['categories']):
                     _cat_cols.add(cat)
                     pt_df.loc[i, cat] = cat_val
             pt_df = pt_df.drop(_index_to_drop)
@@ -395,7 +396,7 @@ class PivotTablesHarvester(HarvesterBase):
             package_data["id"] = str(uuid.uuid4())
             new_package = t.get_action('package_create')(context, package_data)
 
-        csv_stream = StringIO(csv_string.encode('ascii', 'replace'))
+        csv_stream = six.BytesIO(six.text_type(csv_string).encode(encoding='UTF-8'))
         csv_filename = "{}.csv".format(slugify(resource_name.replace('/', '').replace(':', '-')))
         resource = {
             "name": resource_name,

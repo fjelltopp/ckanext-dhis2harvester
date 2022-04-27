@@ -5,6 +5,7 @@ import ckan.model.package as package
 import ckan.plugins.toolkit as toolkit
 from ckan.lib.plugins import DefaultTranslation
 from ckanext.dhis2harvester import licenses
+from ckanext.dhis2harvester.template_helpers import organization_select_options, iteritems
 from ckanext.dhis2harvester.ui_blueprint import ui_blueprint
 
 log = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin, DefaultTranslation):
         log.info("DHIS2 Plugin is enabled")
         toolkit.add_template_directory(config, 'templates')
         toolkit.add_public_directory(config, 'public')
-        toolkit.add_resource('fanstatic', 'dhis2harvester')
+        toolkit.add_resource('assets', 'ckanext-dhis2harvester')
 
     # ITranslation
     def i18n_domain(self):
@@ -52,18 +53,8 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin, DefaultTranslation):
 
     def get_helpers(self):
         return {
-            'organization_select_options': organization_select_options
+            'organization_select_options': organization_select_options,
+            'iteritems': iteritems
         }
 
 
-def organization_select_options(action):
-    orgs = toolkit.h.organizations_available(action)
-    log.warning(orgs)
-
-    def create_option(org):
-        return {
-            'text': org['title'],
-            'value': org['id']
-        }
-
-    return map(create_option, orgs)

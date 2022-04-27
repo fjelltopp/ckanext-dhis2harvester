@@ -1,6 +1,8 @@
 import json
 import logging
 from base64 import b64encode
+
+import six
 from six.moves.urllib.parse import urljoin
 import requests
 from requests import ConnectionError
@@ -123,7 +125,7 @@ class Dhis2Connection(object):
             raise Dhis2ConnectionError("Failed to decode response for pivot table")
         result = []
         for table in pivot_tables:
-            result.append({k: v for k, v in table.iteritems() if k in self.PIVOT_TABLE_KEYS})
+            result.append({k: v for k, v in six.iteritems(table) if k in self.PIVOT_TABLE_KEYS})
         return result
 
     def _get_pivot_table_meta(self, pivot_table_id):
@@ -166,7 +168,7 @@ class Dhis2Connection(object):
                 data_element_category_options_ = []
                 cc_id_ = data_elements_meta[d_id_]['category_combo']
                 category_options_ = category_combos_map[cc_id_]
-                for co_id, co_name in category_options_.iteritems():
+                for co_id, co_name in six.iteritems(category_options_):
                     data_element_category_options_.append({
                         "id": "-".join([d_id_, co_id]),
                         "name": " / ".join([d_name_, co_name])
