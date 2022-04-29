@@ -56,5 +56,3 @@ class DHIS2HarvesterPlugin(p.SingletonPlugin, DefaultTranslation):
             'organization_select_options': organization_select_options,
             'iteritems': iteritems
         }
-
-
