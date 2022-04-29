@@ -65,7 +65,7 @@ class Dhis2Connection(object):
         })
         return headers
 
-    def __create_auth_cookie(self):
+    def create_auth_cookie(self):
         if not self.auth_token:
             self.get_auth_token()
         return {
@@ -73,7 +73,7 @@ class Dhis2Connection(object):
             'SESSION': self.auth_token
         }
 
-    def __response_validation(self, msg, r):
+    def response_validation(self, msg, r):
         ok = request_util.check_if_response_is_ok(r)
         if not ok:
             raise (Dhis2ConnectionError(msg))
@@ -84,10 +84,10 @@ class Dhis2Connection(object):
 
     def test_connection(self):
         try:
-            cookies = self.__create_auth_cookie()
+            cookies = self.create_auth_cookie()
             test_url = urljoin(self.api_url, 'organisationUnits')
             r = requests.get(test_url, cookies=cookies)
-            self.__response_validation("Failed to authenticate to DHIS2", r)
+            self.response_validation("Failed to authenticate to DHIS2", r)
             return True
         except ConnectionError:
             msg_ = "Failed to connect to DHIS2 with provided credentials."
@@ -117,8 +117,8 @@ class Dhis2Connection(object):
 
     def get_pivot_tables(self):
         url_ = urljoin(self.api_url, self.PIVOT_TABLES_RESOURCE)
-        r = requests.get(url_, cookies=self.__create_auth_cookie())
-        self.__response_validation("Failed to get pivot tables information", r)
+        r = requests.get(url_, cookies=self.create_auth_cookie())
+        self.response_validation("Failed to get pivot tables information", r)
         try:
             pivot_tables = r.json().get(self.PIVOT_TABLES_KEY_NAME)
         except ValueError:
@@ -130,8 +130,8 @@ class Dhis2Connection(object):
 
     def _get_pivot_table_meta(self, pivot_table_id):
         url_ = urljoin(self.api_url, "{}/{}".format(self.PIVOT_TABLES_KEY_NAME, pivot_table_id))
-        r = requests.get(url_, cookies=self.__create_auth_cookie())
-        self.__response_validation("Failed to get pivot table information for pivot table {}".format(pivot_table_id), r)
+        r = requests.get(url_, cookies=self.create_auth_cookie())
+        self.response_validation("Failed to get pivot table information for pivot table {}".format(pivot_table_id), r)
         try:
             pivot_table_meta = r.json()
         except ValueError:
@@ -143,12 +143,12 @@ class Dhis2Connection(object):
         # categories combos metadata
         cc_url_ = urljoin(self.api_url, "metadata?categoryCombos:fields=id,name,categoryOptionCombos")
         coc_url_ = urljoin(self.api_url, "metadata?categoryOptionCombos:fields=id,name")
-        cc_r = requests.get(cc_url_, cookies=self.__create_auth_cookie())
-        coc_r = requests.get(coc_url_, cookies=self.__create_auth_cookie())
+        cc_r = requests.get(cc_url_, cookies=self.create_auth_cookie())
+        coc_r = requests.get(coc_url_, cookies=self.create_auth_cookie())
         category_combos_meta = cc_r.json()["categoryCombos"]
         category_option_combos_meta = coc_r.json()["categoryOptionCombos"]
         category_option_combos_map = {c['id']: c['name'] for c in category_option_combos_meta}
-        category_combos_map = {}
+        category_combos_map = CategoryCombosMap(self)
         for category_combo in category_combos_meta:
             c_id = category_combo['id']
             category_options = category_combo['categoryOptionCombos']
@@ -156,7 +156,7 @@ class Dhis2Connection(object):
             category_combos_map[c_id] = options
         # data elements metadata
         de_url_ = urljoin(self.api_url, "metadata?dataElements:fields=id,name,categoryCombo")
-        de_r = requests.get(de_url_, cookies=self.__create_auth_cookie())
+        de_r = requests.get(de_url_, cookies=self.create_auth_cookie())
         data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in
                               de_r.json()["dataElements"]}
 
@@ -220,8 +220,8 @@ class Dhis2Connection(object):
 
     def get_organisation_unit_name_id_map(self):
         ou_url_ = urljoin(self.api_url, self.ORG_UNIT_RESOURCE)
-        ou_r = requests.get(ou_url_, cookies=self.__create_auth_cookie())
-        self.__response_validation("Failed to get organisation unit information", ou_r)
+        ou_r = requests.get(ou_url_, cookies=self.create_auth_cookie())
+        self.response_validation("Failed to get organisation unit information", ou_r)
         ou_list = json.loads(ou_r.text)['organisationUnits']
         id_name_map = {ou['id']: ou['name'] for ou in ou_list}
 
@@ -229,8 +229,41 @@ class Dhis2Connection(object):
 
     def get_api_resource(self, api_resource):
         url_ = urljoin(self.api_url, api_resource)
-        response = requests.get(url_, cookies=self.__create_auth_cookie())
+        response = requests.get(url_, cookies=self.create_auth_cookie())
         return response
+
+
+class CategoryCombosMap(dict):
+    CATEGORY_COMBOS_RESOURCE = 'categoryCombos/{}'
+    CATEGORY_OPTION_COMBOS_RESOURCE = 'categoryOptionCombos/{}'
+
+    def __init__(self, dhis2_connection):
+        super(CategoryCombosMap, self).__init__()
+        self.dhis2_connection = dhis2_connection
+
+    def __missing__(self, key):
+        result = self.__fetch_dhis2_category_combo_metadata(key)
+        if not result:
+            raise KeyError(key)
+        else:
+            self.__dict__[key] = result
+            return result
+
+    def __fetch_dhis2_category_combo_metadata(self, key):
+        result = {}
+        url = urljoin(self.dhis2_connection.api_url, self.CATEGORY_COMBOS_RESOURCE.format(key))
+        r = requests.get(url, cookies=self.dhis2_connection.create_auth_cookie())
+        self.dhis2_connection.response_validation("Failed to get category combos information", r)
+        try:
+            category_option_combos = r.json().get('categoryOptionCombos', [])
+            for option in category_option_combos:
+                url = urljoin(self.dhis2_connection.api_url, self.CATEGORY_OPTION_COMBOS_RESOURCE.format(option['id']))
+                r = requests.get(url, cookies=self.dhis2_connection.create_auth_cookie())
+                self.dhis2_connection.response_validation("Failed to get category option combos information", r)
+                result[option['id']] = r.json()['name']
+        except ValueError:
+            raise Dhis2ConnectionError("Failed to decode response for pivot table")
+        return result
 
 
 class Dhis2ConnectionError(Exception):
