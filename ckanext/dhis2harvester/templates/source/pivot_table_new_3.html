@@ -1,6 +1,4 @@
 {% import 'macros/form.html' as form %}
-{% resource 'dhis2harvester/tabs.js' %}
-{% resource 'dhis2harvester/toggle_box.js' %}
 
 <div class="pivot-table-new-3 {% if data.action != 'pivot_table_new_3' %}hidden{% endif %}">
 <h2>Configure Columns and Categories</h2>
@@ -90,7 +88,7 @@
                     )
                 }}
 
-                {% for category, values in data.column_config[target_type].categories.iteritems() %}
+                {% for category, values in h.iteritems(data.column_config[target_type].categories) %}
                   {% set category_options = [] %}
                   {% for value in values %}
                     {% do category_options.append({'value': value, 'text': value}) %}

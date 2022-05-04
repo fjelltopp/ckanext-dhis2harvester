@@ -1,5 +1,6 @@
 import logging
 import requests
+import six
 from ckan.lib import uploader
 
 from ckanext.harvest.harvesters import HarvesterBase
@@ -87,14 +88,14 @@ class PivotTablesHarvester(HarvesterBase):
         try:
             dhis2_connection.test_connection()
         except dhis2_api.Dhis2ConnectionError as e:
-            self._save_gather_error('Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
+            self._save_gather_error('Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e),
                                     harvest_job)
             return None
         area_id_map_url = config['area_id_map_url']
         area_id_map_owner = config['area_id_map_owner']
         today = datetime.now(pytz.utc)
         date_stamp = today.strftime("%Y/%m/%dT%H:%M%Z")
-        title_ = harvest_job.source.title.encode('utf-8')
+        title_ = six.text_type(harvest_job.source.title)
         output_dataset_name_prefix = '{} Output'.format(title_)
         period_conversion_type = config.get('period_conversion_type')
         for pt in config['column_values']:
@@ -130,7 +131,7 @@ class PivotTablesHarvester(HarvesterBase):
                     area_csv_str = self._area_id_map_harvest_object_data(area_id_map_url, area_id_map_owner)
                 except Exception as e:
                     self._save_gather_error('Failed to process area id csv resource: {}, {}'
-                                            .format(area_id_map_url, e.message), harvest_job)
+                                            .format(area_id_map_url, e), harvest_job)
                     return None
                 harvest_object_data['area_id_map_csv_str'] = area_csv_str
 
@@ -265,7 +266,7 @@ class PivotTablesHarvester(HarvesterBase):
                 for tc in c['target_column']:
                     _data_cols.add(tc)
                     pt_df.loc[i, tc] = _factor * row['Value']
-                for cat, cat_val in c['categories'].iteritems():
+                for cat, cat_val in six.iteritems(c['categories']):
                     _cat_cols.add(cat)
                     pt_df.loc[i, cat] = cat_val
             pt_df = pt_df.drop(_index_to_drop)
@@ -371,7 +372,7 @@ class PivotTablesHarvester(HarvesterBase):
 
         package_data = {
             "name": slugify(dataset_name),
-            "title": dataset_name,
+            "title": six.text_type(dataset_name),
             "type": "dataset-2",
             "tags": [{"name": tag} for tag in content.get('output_tags', [])],
             "state": "active",
@@ -395,7 +396,7 @@ class PivotTablesHarvester(HarvesterBase):
             package_data["id"] = str(uuid.uuid4())
             new_package = t.get_action('package_create')(context, package_data)
 
-        csv_stream = StringIO(csv_string.encode('ascii', 'replace'))
+        csv_stream = six.BytesIO(six.text_type(csv_string).encode(encoding='UTF-8'))
         csv_filename = "{}.csv".format(slugify(resource_name.replace('/', '').replace(':', '-')))
         resource = {
             "name": resource_name,
