@@ -1,4 +1,5 @@
 import json
+import six
 from six import StringIO
 import logging
 import requests
@@ -150,7 +151,7 @@ def __ui_state_machine(harvest_source=None):
     try:
         data, dhis2_conn_, form_stage = __data_initialization(edit_configuration=edit_configuration)
     except Dhis2ConnectionError as e:
-        h.flash_error('Failed to connect DHIS2: {}'.format(e.message))
+        h.flash_error('Failed to connect DHIS2: {}'.format(str(e)))
         return __dhis2_connection_stage(data, **kwargs)
 
     if "back" in form_stage:
@@ -355,7 +356,7 @@ def __dhis2_connection_stage(data, edit_configuration=False, harvest_source=None
         "edit_configuration": edit_configuration,
         "harvest_source": harvest_source
     }
-    if not data['dhis2_auth_token']:
+    if not data.get('dhis2_auth_token'):
         required_fields = [
             {'label': 'DHIS2 Password', 'name': 'dhis2_password'},
             {'label': 'DHIS2 Username', 'name': 'dhis2_username'},
@@ -477,7 +478,7 @@ def __data_initialization(edit_configuration=False):
                 columns_[c_id_]['operation'] = operations.SUBTRACT
 
         columns_list_ = []
-        for c_id, c_details in columns_.iteritems():
+        for c_id, c_details in six.iteritems(columns_):
             c_details['id'] = c_id
             columns_list_.append(c_details)
 
@@ -498,10 +499,10 @@ def __data_initialization(edit_configuration=False):
 
 def __get_pt_configs(data):
     # get column config template
-    from config.column_configs_template import TARGET_TYPES
+    from .config.column_configs_template import TARGET_TYPES
     data['column_config'] = TARGET_TYPES
     target_types_ = [{'text': type_d['name'], 'value': type_id}
-                     for type_id, type_d in TARGET_TYPES.iteritems()]
+                     for type_id, type_d in six.iteritems(TARGET_TYPES)]
     data['target_types'] = target_types_
 
 
