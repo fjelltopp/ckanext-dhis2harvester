@@ -433,14 +433,18 @@ def __data_initialization(edit_configuration=False):
 
     # pivot table columns
     pivot_table_columns_ = {}
+    pivot_table_indicators_ = {}
     pivot_table_with_indicators_ = {}
     for pt_id in pivot_table_ids:
         columns_ = dhis2_conn_.get_pivot_table_columns(pt_id)
         pivot_table_with_indicators_[pt_id] = any([c['type'] == 'indicator' for c in columns_])
+        indicators_ = [{'value': c['id'], 'text': c['name']} for c in columns_ if c['type'] == 'indicator']
         data_el_only_ = [c for c in columns_ if c['type'] == 'data_element']
         pt_columns_ = [{'value': de['id'], 'text': de['name']} for de in data_el_only_]
         pivot_table_columns_[pt_id] = pt_columns_
+        pivot_table_indicators_[pt_id] = indicators_
     data['pivot_table_columns'] = pivot_table_columns_
+    data['pivot_table_indicators'] = pivot_table_indicators_
     data['pivot_table_with_indicators'] = pivot_table_with_indicators_
     log.debug("Pivot table columns: " + str(pivot_table_columns_))
 
