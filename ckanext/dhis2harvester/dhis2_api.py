@@ -5,7 +5,7 @@ from base64 import b64encode
 import six
 from six.moves.urllib.parse import urljoin
 import requests
-from requests import ConnectionError
+from requests import RequestException
 from requests.exceptions import MissingSchema
 
 from ckanext.dhis2harvester import request_util
@@ -125,7 +125,7 @@ class Dhis2Connection(object):
             r = requests.get(test_url, cookies=cookies)
             self.response_validation("Failed to authenticate to DHIS2", r)
             return True
-        except ConnectionError:
+        except RequestException:
             msg_ = "Failed to connect to DHIS2 with provided credentials."
             log.debug(msg_)
             raise (Dhis2ConnectionError(msg_))
