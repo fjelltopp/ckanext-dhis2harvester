@@ -12,32 +12,56 @@ from ckanext.dhis2harvester import request_util
 
 log = logging.getLogger(__name__)
 
+API_CONFIG = {
+    37: {
+        "PIVOT_TABLES_RESOURCE": 'visualizations.json?type=PIVOT_TABLE&'
+                                 'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&'
+                                 'order=name:asc&paging=false',
+        "PIVOT_TABLES_KEY_NAME": "visualizations",
+        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?'
+                                     'dimension=dx:{data_elements}&'
+                                     'dimension=pe:{periods}&'
+                                     'dimension=co&'
+                                     'dimension=ou:{organisation_units}&'
+                                     'displayProperty=NAME&'
+                                     'hierarchyMeta=true&'
+                                     'outputIdScheme=UID',
+        "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
+        "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
+        "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
+    }
+}
+# Default DHIS2 api configuration working till /api/36
+DEFAULT_API_VERSION = 36
+DEFAULT_API_CONFIG = {
+    "PIVOT_TABLES_RESOURCE": "reportTables.json?"
+                             "fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&"
+                             "order=name:asc&paging=false",
+    "PIVOT_TABLES_KEY_NAME": "reportTables",
+    "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?'
+                                 'dimension=dx:{data_elements}&'
+                                 'dimension=pe:{periods}&'
+                                 'dimension=co&'
+                                 'dimension=ou:{organisation_units}&'
+                                 'displayProperty=NAME&'
+                                 'hierarchyMeta=true&'
+                                 'outputIdScheme=UID',
+    "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
+    "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
+    "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
+}
+
 
 class Dhis2Connection(object):
-    DEFAULT_API_VERSION = '26'
-    PIVOT_TABLES_RESOURCE = 'reportTables.json?' \
-                            'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&' \
-                            'order=name:asc&paging=false'
-    PIVOT_TABLES_KEY_NAME = "reportTables"
-    PIVOT_TABLES_CSV_RESOURCE = 'analytics.csv?' \
-                                'dimension=dx:{data_elements}&' \
-                                'dimension=pe:{periods}&' \
-                                'dimension=co&' \
-                                'dimension=ou:{organisation_units}&' \
-                                'displayProperty=NAME&' \
-                                'hierarchyMeta=true&' \
-                                'outputIdScheme=UID'
-    PIVOT_TABLE_KEYS = ["lastUpdated", "created", "id", "name"]
-    SECURITY_LOGIN_ACTION = 'dhis-web-commons-security/login.action'
-    ORG_UNIT_RESOURCE = "organisationUnits?paging=false&fields=id,name"
 
-    def __init__(self, url, username=None, password=None, auth_token=None, api_version=DEFAULT_API_VERSION):
+    def __init__(self, url, username=None, password=None, auth_token=None, api_version=None):
         self.url = self.__add_trailing_slash(url)
         self.api_version = api_version
         self.api_url = self.__api_url(self.url, self.api_version)
         self.username = username
         self.password = password
         self.auth_token = auth_token
+        self.__setup_api_config(self.api_version)
 
     def __str__(self):
         return "Dhis2Connection(api_url={self.api_url}, username={self.username})".format(self=self)
@@ -64,6 +88,18 @@ class Dhis2Connection(object):
             "Authorization": "Basic %s" % u_and_p_b64
         })
         return headers
+
+    def __setup_api_config(self, api_version=None):
+        if not api_version:
+            api_version = DEFAULT_API_VERSION
+        for version in reversed(sorted(API_CONFIG.keys())):
+            if version >= int(api_version):
+                config = API_CONFIG[version]
+                break
+        else:
+            config = DEFAULT_API_CONFIG
+        for key, value in config.items():
+            setattr(self, key, value)
 
     def create_auth_cookie(self):
         if not self.auth_token:
