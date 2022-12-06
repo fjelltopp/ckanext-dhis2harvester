@@ -12,34 +12,46 @@ from ckanext.dhis2harvester import request_util
 
 log = logging.getLogger(__name__)
 
+API_CONFIG = {
+    26: {
+        "PIVOT_TABLES_RESOURCE": "reportTables.json?" \
+                                 "fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&" \
+                                 "order=name:asc&paging=false",
+        "PIVOT_TABLES_KEY_NAME": "reportTables",
+        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?' \
+                                     'dimension=dx:{data_elements}&' \
+                                     'dimension=pe:{periods}&' \
+                                     'dimension=co&' \
+                                     'dimension=ou:{organisation_units}&' \
+                                     'displayProperty=NAME&' \
+                                     'hierarchyMeta=true&' \
+                                     'outputIdScheme=UID',
+        "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
+        "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
+        "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
+    },
+    28: {
+        "PIVOT_TABLES_RESOURCE": 'visualizations.json?type=PIVOT_TABLE&' \
+                                 'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&' \
+                                 'order=name:asc&paging=false',
+        "PIVOT_TABLES_KEY_NAME": "visualizations",
+        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?' \
+                                     'dimension=dx:{data_elements}&' \
+                                     'dimension=pe:{periods}&' \
+                                     'dimension=co&' \
+                                     'dimension=ou:{organisation_units}&' \
+                                     'displayProperty=NAME&' \
+                                     'hierarchyMeta=true&' \
+                                     'outputIdScheme=UID',
+        "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
+        "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
+        "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
+    }
+}
+
 
 class Dhis2Connection(object):
     DEFAULT_API_VERSION = '26'
-    API_CONFIG = {
-        26: {
-            "PIVOT_TABLES_RESOURCE": "reportTables.json?" \
-                                     "fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&" \
-                                     "order=name:asc&paging=false",
-            "PIVOT_TABLES_KEY_NAME": "reportTables",
-            "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?' \
-                                         'dimension=dx:{data_elements}&' \
-                                         'dimension=pe:{periods}&' \
-                                         'dimension=co&' \
-                                         'dimension=ou:{organisation_units}&' \
-                                         'displayProperty=NAME&' \
-                                         'hierarchyMeta=true&' \
-                                         'outputIdScheme=UID',
-            "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
-            "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
-            "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
-        },
-        28: {
-            "PIVOT_TABLES_RESOURCE": 'visualizations.json?type=PIVOT_TABLE&' \
-                                     'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&' \
-                                     'order=name:asc&paging=false',
-            "PIVOT_TABLES_KEY_NAME": "visualizations"
-        }
-    }
 
     def __init__(self, url, username=None, password=None, auth_token=None, api_version=None):
         if not api_version:
@@ -50,7 +62,7 @@ class Dhis2Connection(object):
         self.username = username
         self.password = password
         self.auth_token = auth_token
-        self.__setup_api_config()
+        self._setup_api_config()
 
     def __str__(self):
         return "Dhis2Connection(api_url={self.api_url}, username={self.username})".format(self=self)
@@ -80,9 +92,10 @@ class Dhis2Connection(object):
 
     def __setup_api_config(self):
         config = {}
-        for version in sorted(self.API_CONFIG.keys()):
+        for version in reversed(sorted(API_CONFIG.keys())):
             if version <= int(self.api_version):
-                config = {**config, **self.API_CONFIG[version]}
+                config = API_CONFIG[version]
+                break
         for key, value in config.items():
             setattr(self, key, value)
 
