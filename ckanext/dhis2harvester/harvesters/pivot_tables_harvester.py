@@ -123,6 +123,7 @@ class PivotTablesHarvester(HarvesterBase):
                 'pivot_table_column_config': pt['columns'],
                 'output_tags': pt_target_type.get("tags", []),
                 'pt_type': pt_type,
+                'output_columns': pt_target_type.get("columns", []),
                 'period_conversion_type': period_conversion_type,
                 'geo_location': config.get('geo_location')
             }
@@ -306,6 +307,7 @@ class PivotTablesHarvester(HarvesterBase):
             # create final columns output
             pt_df = pt_df[[_area_id_col, _area_name_col, _output_period_col] + list(_cat_cols) + list(_data_cols)]
             pt_df.sort_values(by=[_area_id_col, _output_period_col]).reset_index(drop=True)
+            add_missing_columns_from_target_table_config(pt_df, content['output_columns'])
         except Exception:
             exc_type, value, traceback = sys.exc_info()
             self._save_object_error('Failed to process DHIS2 pivot table: {} @ {}, {}:{}'
@@ -454,3 +456,10 @@ def get_csv_resource_source(resource_id, context):
         raise ResourceTypeError
     source = upload.get_path(resource[u'id'])
     return source
+
+
+def add_missing_columns_from_target_table_config(df, expected_columns):
+    for column in expected_columns:
+        if column not in list(df):
+            df[column] = ''
+    return df
