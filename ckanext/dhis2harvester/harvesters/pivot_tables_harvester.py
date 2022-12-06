@@ -463,4 +463,3 @@ def add_missing_columns_from_target_table_config(df, expected_columns):
         if column not in list(df):
             df[column] = ''
     return df
-
