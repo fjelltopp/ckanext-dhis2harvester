@@ -221,7 +221,7 @@ msgid ""
 "DHIS2 API version to be used. If empty the default version 36 will be "
 "used."
 msgstr ""
-"Versão API do DHIS2 a utilizar. Se estiver vazia, será utilizada a versão padrão 26."
+"Versão API do DHIS2 a utilizar. Se estiver vazia, será utilizada a versão padrão 36."
 
 #: ckanext/dhis2harvester/templates/source/dhis2_credentials.html:32
 msgid "DHIS2 Username"

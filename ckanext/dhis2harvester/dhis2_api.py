@@ -32,6 +32,7 @@ API_CONFIG = {
     }
 }
 # Default DHIS2 api configuration working till /api/36
+DEFAULT_API_VERSION = 36
 DEFAULT_API_CONFIG = {
     "PIVOT_TABLES_RESOURCE": "reportTables.json?"
                              "fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&"
@@ -60,7 +61,7 @@ class Dhis2Connection(object):
         self.username = username
         self.password = password
         self.auth_token = auth_token
-        self.__setup_api_config()
+        self.__setup_api_config(self.api_version)
 
     def __str__(self):
         return "Dhis2Connection(api_url={self.api_url}, username={self.username})".format(self=self)
@@ -88,9 +89,11 @@ class Dhis2Connection(object):
         })
         return headers
 
-    def __setup_api_config(self):
+    def __setup_api_config(self, api_version=None):
+        if not api_version:
+            api_version = DEFAULT_API_VERSION
         for version in reversed(sorted(API_CONFIG.keys())):
-            if version <= int(self.api_version):
+            if version >= int(api_version):
                 config = API_CONFIG[version]
                 break
         else:
