@@ -14,34 +14,34 @@ log = logging.getLogger(__name__)
 
 API_CONFIG = {
     26: {
-        "PIVOT_TABLES_RESOURCE": "reportTables.json?" \
-                                 "fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&" \
+        "PIVOT_TABLES_RESOURCE": "reportTables.json?"
+                                 "fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&"
                                  "order=name:asc&paging=false",
         "PIVOT_TABLES_KEY_NAME": "reportTables",
-        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?' \
-                                     'dimension=dx:{data_elements}&' \
-                                     'dimension=pe:{periods}&' \
-                                     'dimension=co&' \
-                                     'dimension=ou:{organisation_units}&' \
-                                     'displayProperty=NAME&' \
-                                     'hierarchyMeta=true&' \
+        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?'
+                                     'dimension=dx:{data_elements}&'
+                                     'dimension=pe:{periods}&'
+                                     'dimension=co&'
+                                     'dimension=ou:{organisation_units}&'
+                                     'displayProperty=NAME&'
+                                     'hierarchyMeta=true&'
                                      'outputIdScheme=UID',
         "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
         "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
         "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
     },
     28: {
-        "PIVOT_TABLES_RESOURCE": 'visualizations.json?type=PIVOT_TABLE&' \
-                                 'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&' \
+        "PIVOT_TABLES_RESOURCE": 'visualizations.json?type=PIVOT_TABLE&'
+                                 'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&'
                                  'order=name:asc&paging=false',
         "PIVOT_TABLES_KEY_NAME": "visualizations",
-        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?' \
-                                     'dimension=dx:{data_elements}&' \
-                                     'dimension=pe:{periods}&' \
-                                     'dimension=co&' \
-                                     'dimension=ou:{organisation_units}&' \
-                                     'displayProperty=NAME&' \
-                                     'hierarchyMeta=true&' \
+        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?'
+                                     'dimension=dx:{data_elements}&'
+                                     'dimension=pe:{periods}&'
+                                     'dimension=co&'
+                                     'dimension=ou:{organisation_units}&'
+                                     'displayProperty=NAME&'
+                                     'hierarchyMeta=true&'
                                      'outputIdScheme=UID',
         "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
         "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
@@ -62,7 +62,7 @@ class Dhis2Connection(object):
         self.username = username
         self.password = password
         self.auth_token = auth_token
-        self._setup_api_config()
+        self.__setup_api_config()
 
     def __str__(self):
         return "Dhis2Connection(api_url={self.api_url}, username={self.username})".format(self=self)
