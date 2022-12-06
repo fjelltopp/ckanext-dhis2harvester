@@ -15,8 +15,6 @@ from ckan import model
 from ckan.plugins import toolkit as t
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 from slugify import slugify
-from datetime import datetime
-import pytz
 import pandas as pd
 import uuid
 import json
@@ -93,8 +91,6 @@ class PivotTablesHarvester(HarvesterBase):
             return None
         area_id_map_url = config['area_id_map_url']
         area_id_map_owner = config['area_id_map_owner']
-        today = datetime.now(pytz.utc)
-        date_stamp = today.strftime("%Y/%m/%dT%H:%M%Z")
         title_ = six.text_type(harvest_job.source.title)
         output_dataset_name_prefix = '{} Output'.format(title_)
         period_conversion_type = config.get('period_conversion_type')
@@ -113,8 +109,7 @@ class PivotTablesHarvester(HarvesterBase):
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
                 'output_dataset_name': output_dataset_name,
-                'output_resource_name': '{} {} {} {}'.format(
-                    date_stamp,
+                'output_resource_name': '{} {} {}'.format(
                     country_name,
                     pt_target_type['shortName'],
                     pt_config['name']
