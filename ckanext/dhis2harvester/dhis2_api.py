@@ -5,8 +5,7 @@ from base64 import b64encode
 import six
 from six.moves.urllib.parse import urljoin
 import requests
-from requests import RequestException
-from requests.exceptions import MissingSchema
+from requests.exceptions import MissingSchema, RequestException
 
 from ckanext.dhis2harvester import request_util
 
@@ -26,6 +25,13 @@ API_CONFIG = {
                                      'displayProperty=NAME&'
                                      'hierarchyMeta=true&'
                                      'outputIdScheme=UID',
+        "PIVOT_TABLES_CSV_INDICATOR_RESOURCE": 'analytics.csv?'
+                                               'dimension=dx:{indicators}&'
+                                               'dimension=pe:{periods}&'
+                                               'dimension=ou:{organisation_units}&'
+                                               'displayProperty=NAME&'
+                                               'hierarchyMeta=true&'
+                                               'outputIdScheme=UID',
         "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
         "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
         "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
@@ -42,6 +48,13 @@ DEFAULT_API_CONFIG = {
                                  'dimension=dx:{data_elements}&'
                                  'dimension=pe:{periods}&'
                                  'dimension=co&'
+                                 'dimension=ou:{organisation_units}&'
+                                 'displayProperty=NAME&'
+                                 'hierarchyMeta=true&'
+                                 'outputIdScheme=UID',
+    "PIVOT_TABLES_CSV_INDICATOR_RESOURCE": 'analytics.csv?'
+                                 'dimension=dx:{indicators}&'
+                                 'dimension=pe:{periods}&'
                                  'dimension=ou:{organisation_units}&'
                                  'displayProperty=NAME&'
                                  'hierarchyMeta=true&'
@@ -253,6 +266,12 @@ class Dhis2Connection(object):
         ous = ";".join(ou_levels)
         ps = ";".join(periods)
         return self.PIVOT_TABLES_CSV_RESOURCE.format(data_elements=des, periods=ps, organisation_units=ous)
+
+    def get_pivot_table_csv_indicators_resource(self, indicators, ou_levels, periods):
+        inds = ";".join(indicators)
+        ous = ";".join(ou_levels)
+        ps = ";".join(periods)
+        return self.PIVOT_TABLES_CSV_INDICATOR_RESOURCE.format(indicators=inds, periods=ps, organisation_units=ous)
 
     def get_organisation_unit_name_id_map(self):
         ou_url_ = urljoin(self.api_url, self.ORG_UNIT_RESOURCE)
