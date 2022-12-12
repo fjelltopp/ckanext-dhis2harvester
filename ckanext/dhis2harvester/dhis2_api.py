@@ -208,6 +208,10 @@ class Dhis2Connection(object):
         de_r = requests.get(de_url_, cookies=self.create_auth_cookie())
         data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in
                               de_r.json()["dataElements"]}
+        # indicators metadata
+        indicators_url_ = urljoin(self.api_url, "metadata?indicators:fields=id,name")
+        indicators_r = requests.get(indicators_url_, cookies=self.create_auth_cookie())
+        indicators_ids_to_name_map = {indicator['id']: indicator['name'] for indicator in indicators_r.json()["indicators"]}
 
         def get_data_elements_config(d_id_, data_elements_map=None):
             if data_elements_map is None:
@@ -231,7 +235,7 @@ class Dhis2Connection(object):
                 result.append({
                     'id': column['indicator']['id'],
                     'type': 'indicator',
-                    'name': 'indicator_{}'.format(column['indicator']['id'])
+                    'name': indicators_ids_to_name_map[column['indicator']['id']]
                 })
             elif column["dataDimensionItemType"] == 'DATA_ELEMENT':
                 d_id_ = column['dataElement']['id']

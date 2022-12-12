@@ -46,13 +46,6 @@
     </div>
     {% if data.pivot_table_columns %}
       {% if data.pivot_table_with_indicators[pivot_table.id] %}
-        <div class="error-explanation alert alert-error">
-          <span><strong>ADR supports only pivot tables with DHIS2 data elements.</strong>
-            Selected pivot table contains one or more DHIS2 indicators in its configuration.
-            This data will not be visible here.
-            Please update the configuration in DHIS2.
-          </span>
-        </div>
         {% for column in data.pivot_table_indicators[pivot_table.id] %}
           {% set column_data_search = pivot_table_column_values|selectattr("id", "equalto", column["value"])|list %}
           {% set column_data = column_data_search|first if column_data_search else None %}
