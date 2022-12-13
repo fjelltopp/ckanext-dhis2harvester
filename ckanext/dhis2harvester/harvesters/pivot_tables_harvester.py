@@ -99,15 +99,19 @@ class PivotTablesHarvester(HarvesterBase):
             pt_type = {x['id']: x for x in config['selected_pivot_tables']}[pt_id]['type']
             pt_target_type = PT_TARGET_TYPES[pt_type]
             pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
-            data_elements = [c['id'].split('-')[0] for c in pt['columns']]
+            data_elements = [c['id'].split('-')[0] for c in pt['columns'] if '-' in c['id']]
+            indicators = [c['id'] for c in pt['columns'] if '-' not in c['id']]
             csv_resource_name = dhis2_connection.get_pivot_table_csv_resource(
                 data_elements, pt_config['ou_levels'], pt_config['periods'])
+            csv_indicator_resource_name = dhis2_connection.get_pivot_table_csv_indicators_resource(
+                indicators, pt_config['ou_levels'], pt_config['periods'])
             output_dataset_name = "{} {}".format(output_dataset_name_prefix, pt_target_type['shortName'])
             harvest_object_data = {
                 'dhis2_url': config['dhis2_url'],
                 'dhis2_api_version': config['dhis2_api_version'],
                 'dhis2_auth_token': dhis2_connection.get_auth_token(),
                 'dhis2_api_full_resource': csv_resource_name,
+                'dhis2_api_full_indicator_resource': csv_indicator_resource_name,
                 'output_dataset_name': output_dataset_name,
                 'output_resource_name': '{} {} {}'.format(
                     country_name,
@@ -189,6 +193,7 @@ class PivotTablesHarvester(HarvesterBase):
                 harvest_object, 'Fetch')
             return None
         dhis2_api_full_resource = content['dhis2_api_full_resource']
+        dhis2_api_full_indicator_resource = content['dhis2_api_full_indicator_resource']
         pivot_table_column_config = content['pivot_table_column_config']
         try:
             pt_csv = dhis2_connection.get_api_resource(dhis2_api_full_resource)
@@ -197,10 +202,23 @@ class PivotTablesHarvester(HarvesterBase):
                                           .format(dhis2_api_full_resource, dhis2_connection, e.message),
                                           harvest_object, 'Fetch')
             return None
+        try:
+            pt_indicator_csv = dhis2_connection.get_api_resource(dhis2_api_full_indicator_resource)
+        except dhis2_api.Dhis2ConnectionError as e:
+            self._save_object_error_error('Unable to get dhis2 data: {}: {}: {}'
+                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
+                                          harvest_object, 'Fetch')
+            return None
         csv_stream = StringIO(pt_csv.text)
+        csv_indicator_stream = StringIO(pt_indicator_csv.text)
         try:
             pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
-
+            pt_indicator_df = pd.read_csv(csv_indicator_stream, sep=",", encoding='utf-8')
+            _category_column = 'Category option combo'
+            _data_element_column = 'Data'
+            # indicators have no category compinations, using 'indicator' as cc value
+            pt_indicator_df[_category_column] = 'indicator'
+            pt_df = pd.concat([pt_df, pt_indicator_df])
             try:
                 ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
             except dhis2_api.Dhis2ConnectionError as e:
@@ -236,17 +254,22 @@ class PivotTablesHarvester(HarvesterBase):
                 target_column_ = cc['target_column']
                 if not isinstance(target_column_, list):
                     target_column_ = [target_column_]
-                categories_map[cc['id']] = {
+                # making indicators mapping compatible with "de-cc" concatinations
+                if '-' in cc['id']:
+                    category_key = cc['id']
+                else:
+                    category_key = f"{cc['id']}-indicator"
+                categories_map[category_key] = {
                     "target_column": target_column_,
                     "categories": cc['categories'],
                     "operation": cc.get('operation', operations.ADD)
                 }
-            _category_column = 'Category option combo'
-            _data_element_column = 'Data'
 
             pt_df['de_cat'] = pt_df[_data_element_column] + "-" + pt_df[_category_column]
             # drop disabled categories
             pt_df = pt_df[~pt_df['de_cat'].isin(disabled_categories)]
+            # drop disabled indicators (no category column)
+            pt_df = pt_df[~pt_df[_data_element_column].isin(disabled_categories)]
             # map categories
             _cat_cols = set()
             _data_cols = set()
