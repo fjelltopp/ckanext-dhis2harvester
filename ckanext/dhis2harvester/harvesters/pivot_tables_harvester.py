@@ -235,7 +235,6 @@ class PivotTablesHarvester(HarvesterBase):
             _period_convert_type = content.get('period_conversion_type')
             _period_col = 'Period'
             _output_period_col = dhis2_periods.period_column_name(_pt_type)
-            pt_df[_period_col] = pt_df[_period_col].astype(str)
             pt_df[_period_col] = pt_df[_period_col].map(dhis2_periods.period_convert_function(_period_convert_type))
             if dhis2_periods.should_map_into_calendar_quarter(_pt_type):
                 pt_df[_output_period_col] = \

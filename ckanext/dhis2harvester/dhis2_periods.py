@@ -99,7 +99,10 @@ def _validate_input(dhis2_period_string):
 
 def _stringify(dhis2_period_string):
     try:
-        dhis2_period_string = str(dhis2_period_string)
+        if type(dhis2_period_string) == float:
+            dhis2_period_string = str(int(dhis2_period_string))
+        else:
+            dhis2_period_string = str(dhis2_period_string)
     except TypeError:
         raise ValueError("Unsupported type of period string: {}".format(type(dhis2_period_string)))
     return dhis2_period_string
