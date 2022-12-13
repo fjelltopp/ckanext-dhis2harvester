@@ -5,8 +5,7 @@ from base64 import b64encode
 import six
 from six.moves.urllib.parse import urljoin
 import requests
-from requests import ConnectionError
-from requests.exceptions import MissingSchema
+from requests.exceptions import MissingSchema, RequestException
 
 from ckanext.dhis2harvester import request_util
 
@@ -26,6 +25,13 @@ API_CONFIG = {
                                      'displayProperty=NAME&'
                                      'hierarchyMeta=true&'
                                      'outputIdScheme=UID',
+        "PIVOT_TABLES_CSV_INDICATOR_RESOURCE": 'analytics.csv?'
+                                               'dimension=dx:{indicators}&'
+                                               'dimension=pe:{periods}&'
+                                               'dimension=ou:{organisation_units}&'
+                                               'displayProperty=NAME&'
+                                               'hierarchyMeta=true&'
+                                               'outputIdScheme=UID',
         "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
         "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
         "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
@@ -42,6 +48,13 @@ DEFAULT_API_CONFIG = {
                                  'dimension=dx:{data_elements}&'
                                  'dimension=pe:{periods}&'
                                  'dimension=co&'
+                                 'dimension=ou:{organisation_units}&'
+                                 'displayProperty=NAME&'
+                                 'hierarchyMeta=true&'
+                                 'outputIdScheme=UID',
+    "PIVOT_TABLES_CSV_INDICATOR_RESOURCE": 'analytics.csv?'
+                                 'dimension=dx:{indicators}&'
+                                 'dimension=pe:{periods}&'
                                  'dimension=ou:{organisation_units}&'
                                  'displayProperty=NAME&'
                                  'hierarchyMeta=true&'
@@ -93,7 +106,7 @@ class Dhis2Connection(object):
         if not api_version:
             api_version = DEFAULT_API_VERSION
         for version in reversed(sorted(API_CONFIG.keys())):
-            if version >= int(api_version):
+            if int(api_version) >= version:
                 config = API_CONFIG[version]
                 break
         else:
@@ -125,7 +138,7 @@ class Dhis2Connection(object):
             r = requests.get(test_url, cookies=cookies)
             self.response_validation("Failed to authenticate to DHIS2", r)
             return True
-        except ConnectionError:
+        except RequestException:
             msg_ = "Failed to connect to DHIS2 with provided credentials."
             log.debug(msg_)
             raise (Dhis2ConnectionError(msg_))
@@ -195,6 +208,10 @@ class Dhis2Connection(object):
         de_r = requests.get(de_url_, cookies=self.create_auth_cookie())
         data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in
                               de_r.json()["dataElements"]}
+        # indicators metadata
+        indicators_url_ = urljoin(self.api_url, "metadata?indicators:fields=id,name")
+        indicators_r = requests.get(indicators_url_, cookies=self.create_auth_cookie())
+        indicators_ids_to_name_map = {indicator['id']: indicator['name'] for indicator in indicators_r.json()["indicators"]}
 
         def get_data_elements_config(d_id_, data_elements_map=None):
             if data_elements_map is None:
@@ -218,7 +235,7 @@ class Dhis2Connection(object):
                 result.append({
                     'id': column['indicator']['id'],
                     'type': 'indicator',
-                    'name': 'indicator_{}'.format(column['indicator']['id'])
+                    'name': indicators_ids_to_name_map[column['indicator']['id']]
                 })
             elif column["dataDimensionItemType"] == 'DATA_ELEMENT':
                 d_id_ = column['dataElement']['id']
@@ -253,6 +270,12 @@ class Dhis2Connection(object):
         ous = ";".join(ou_levels)
         ps = ";".join(periods)
         return self.PIVOT_TABLES_CSV_RESOURCE.format(data_elements=des, periods=ps, organisation_units=ous)
+
+    def get_pivot_table_csv_indicators_resource(self, indicators, ou_levels, periods):
+        inds = ";".join(indicators)
+        ous = ";".join(ou_levels)
+        ps = ";".join(periods)
+        return self.PIVOT_TABLES_CSV_INDICATOR_RESOURCE.format(indicators=inds, periods=ps, organisation_units=ous)
 
     def get_organisation_unit_name_id_map(self):
         ou_url_ = urljoin(self.api_url, self.ORG_UNIT_RESOURCE)
