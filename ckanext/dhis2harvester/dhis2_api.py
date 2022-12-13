@@ -106,7 +106,7 @@ class Dhis2Connection(object):
         if not api_version:
             api_version = DEFAULT_API_VERSION
         for version in reversed(sorted(API_CONFIG.keys())):
-            if version >= int(api_version):
+            if int(api_version) >= version:
                 config = API_CONFIG[version]
                 break
         else:
