@@ -33,7 +33,9 @@ TARGET_TYPES = OrderedDict([
         "shortName": "ART",
         "columns": [
             "art_current",
-            "art_new"
+            "art_new",
+            "vl_tested_12mos",
+            "vl_suppressed_12mos"
         ],
         "categories": {
             "sex": [
