@@ -204,10 +204,12 @@ class Dhis2Connection(object):
             options = {option['id']: category_option_combos_map[option['id']] for option in category_options}
             category_combos_map[c_id] = options
         # data elements metadata
-        de_url_ = urljoin(self.api_url, "metadata?dataElements:fields=id,name,categoryCombo")
+        de_url_ = urljoin(self.api_url, "metadata?dataElements:fields=id,name,categoryCombo,dataSetElements")
         de_r = requests.get(de_url_, cookies=self.create_auth_cookie())
-        data_elements_meta = {d['id']: {'name': d['name'], 'category_combo': d['categoryCombo']['id']} for d in
-                              de_r.json()["dataElements"]}
+        data_elements_meta = {d['id']: {
+            'name': d['name'],
+            'category_combos': _extract_de_category_combos(d)
+            } for d in de_r.json()["dataElements"]}
         # indicators metadata
         indicators_url_ = urljoin(self.api_url, "metadata?indicators:fields=id,name")
         indicators_r = requests.get(indicators_url_, cookies=self.create_auth_cookie())
@@ -217,10 +219,13 @@ class Dhis2Connection(object):
             if data_elements_map is None:
                 data_elements_map = {}
             if d_id_ not in data_elements_map:
-                d_name_ = data_elements_meta[d_id_]['name']
+                de_metadata_ = data_elements_meta[d_id_]
+                d_name_ = de_metadata_['name']
                 data_element_category_options_ = []
-                cc_id_ = data_elements_meta[d_id_]['category_combo']
-                category_options_ = category_combos_map[cc_id_]
+                cc_ids_ = de_metadata_['category_combos']
+                category_options_ = dict()
+                for cc_id in cc_ids_:
+                    category_options_.update(category_combos_map[cc_id])
                 for co_id, co_name in six.iteritems(category_options_):
                     data_element_category_options_.append({
                         "id": "-".join([d_id_, co_id]),
@@ -290,6 +295,13 @@ class Dhis2Connection(object):
         url_ = urljoin(self.api_url, api_resource)
         response = requests.get(url_, cookies=self.create_auth_cookie())
         return response
+
+
+def _extract_de_category_combos(data_element_metadata):
+    category_combos = {ele.get('categoryCombo', {}).get('id') for ele in data_element_metadata['dataSetElements']}
+    category_combos.add(data_element_metadata['categoryCombo']['id'])
+    category_combos.discard(None)
+    return list(category_combos)
 
 
 class CategoryCombosMap(dict):
