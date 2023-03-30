@@ -192,28 +192,47 @@ class PivotTablesHarvester(HarvesterBase):
                 'Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
                 harvest_object, 'Fetch')
             return None
-        dhis2_api_full_resource = content['dhis2_api_full_resource']
-        dhis2_api_full_indicator_resource = content['dhis2_api_full_indicator_resource']
+        dhis2_api_full_resource = content.get('dhis2_api_full_resource')
+        dhis2_api_full_indicator_resource = content.get('dhis2_api_full_indicator_resource')
         pivot_table_column_config = content['pivot_table_column_config']
         try:
-            pt_csv = dhis2_connection.get_api_resource(dhis2_api_full_resource)
+            if dhis2_api_full_resource is not None:
+                pt_csv = dhis2_connection.get_api_resource(dhis2_api_full_resource)
+                csv_stream = StringIO(pt_csv.text)
+                pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
+            else:
+                pt_df = pd.DataFrame()
+        except dhis2_api.Dhis2ConnectionError as e:
+            self._save_object_error_error('Unable to get dhis2 data elements: {}: {}: {}'
+                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
+                                          harvest_object, 'Fetch')
+            return None
+        except Exception as e:
+            log.exception("Failed to parse data element resources for pivot table.")
+            self._save_object_error_error('Unable to get dhis2 data elements: {}: {}: {}'
+                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
+                                          harvest_object, 'Fetch')
+            return None
+
+        try:
+            if dhis2_api_full_indicator_resource is not None:
+                pt_indicator_csv = dhis2_connection.get_api_resource(dhis2_api_full_indicator_resource)
+                csv_indicator_stream = StringIO(pt_indicator_csv.text)
+                pt_indicator_df = pd.read_csv(csv_indicator_stream, sep=",", encoding='utf-8')
+            else:
+                pt_indicator_df = pd.DataFrame()
         except dhis2_api.Dhis2ConnectionError as e:
             self._save_object_error_error('Unable to get dhis2 data: {}: {}: {}'
                                           .format(dhis2_api_full_resource, dhis2_connection, e.message),
                                           harvest_object, 'Fetch')
             return None
-        try:
-            pt_indicator_csv = dhis2_connection.get_api_resource(dhis2_api_full_indicator_resource)
-        except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error_error('Unable to get dhis2 data: {}: {}: {}'
+        except Exception as e:
+            log.exception("Failed to parse indicator resources for pivot table.")
+            self._save_object_error_error('Unable to get dhis2 data elements: {}: {}: {}'
                                           .format(dhis2_api_full_resource, dhis2_connection, e.message),
                                           harvest_object, 'Fetch')
             return None
-        csv_stream = StringIO(pt_csv.text)
-        csv_indicator_stream = StringIO(pt_indicator_csv.text)
         try:
-            pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
-            pt_indicator_df = pd.read_csv(csv_indicator_stream, sep=",", encoding='utf-8')
             _category_column = 'Category option combo'
             _data_element_column = 'Data'
             # indicators have no category compinations, using 'indicator' as cc value
