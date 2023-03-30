@@ -271,12 +271,16 @@ class Dhis2Connection(object):
         }
 
     def get_pivot_table_csv_resource(self, data_elements, ou_levels, periods):
+        if len(data_elements) == 0:
+            return None
         des = ";".join(data_elements)
         ous = ";".join(ou_levels)
         ps = ";".join(periods)
         return self.PIVOT_TABLES_CSV_RESOURCE.format(data_elements=des, periods=ps, organisation_units=ous)
 
     def get_pivot_table_csv_indicators_resource(self, indicators, ou_levels, periods):
+        if len(indicators) == 0:
+            return None
         inds = ";".join(indicators)
         ous = ";".join(ou_levels)
         ps = ";".join(periods)
