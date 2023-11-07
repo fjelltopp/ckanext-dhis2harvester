@@ -141,7 +141,7 @@ def test_period_column_name(pivot_table_type, expected):
     ('201301', '202009'),
     ('201302', '202010'),
     ('201004', '201712'),
-    ('2015NovQ2', '2022Q4'), # Ethiopia uses financial quarters (year starts in month 11.)
+    ('2015NovQ2', '2022Q4'),  # Ethiopia uses financial quarters (year starts in month 11.)
     ('2015NovQ3', '2023Q1'),
     ('2015NovQ4', '2023Q2'),
     ('2016NovQ1', '2023Q3')
