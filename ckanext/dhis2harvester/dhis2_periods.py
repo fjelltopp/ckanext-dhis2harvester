@@ -50,8 +50,18 @@ def year_from_dhis2_period_string(dhis2_period_string):
         raise ValueError("Unsupported period string {}".format(dhis2_period_string))
 
 
+def _financial_quarter_to_calendar_quarter(ethiopian_period_string):
+    # reqex to matching ethopian financial quarters (year starting in Nov): 2015NovQ2 2015NovQ3 2015NovQ4
+    financial_quarter_re = r"^[1-2]\d\d\dNovQ[1-4]$"
+    financial_quarter_m = re.search(financial_quarter_re, ethiopian_period_string)
+    if financial_quarter_m:
+        ethiopian_period_string = ethiopian_period_string.replace("Nov", "")
+    return ethiopian_period_string
+
+
 def from_ethiopian_data_to_georgian_date(ethiopian_period_string):
     ethiopian_period_string = _stringify(ethiopian_period_string)
+    ethiopian_period_string = _financial_quarter_to_calendar_quarter(ethiopian_period_string)
     year = int(year_from_dhis2_period_string(ethiopian_period_string))
 
     is_year, is_quarter, is_month = _validate_input(ethiopian_period_string)
