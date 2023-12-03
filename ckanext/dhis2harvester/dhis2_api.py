@@ -13,9 +13,11 @@ log = logging.getLogger(__name__)
 
 API_CONFIG = {
     37: {
+        # ADR does not support chunking in DHIS2 metadata fetch, some DHIS2 have >8000 pivot tables
+        # as a workaround we fetch pivot tables with names matching UNAIDS or ONUSIDA
         "PIVOT_TABLES_RESOURCE": 'visualizations.json?type=PIVOT_TABLE&'
                                  'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&'
-                                 'order=name:asc&paging=false',
+                                 'rootJunction=OR&filter=name:like:UNAIDS&filter=name:like:ONUSIDA&pageSize=200',
         "PIVOT_TABLES_KEY_NAME": "visualizations",
         "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?'
                                      'dimension=dx:{data_elements}&'
