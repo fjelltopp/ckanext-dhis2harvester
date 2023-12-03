@@ -109,7 +109,7 @@ def _validate_input(dhis2_period_string):
 
 def _stringify(dhis2_period_string):
     try:
-        if type(dhis2_period_string) == float:
+        if isinstance(dhis2_period_string, float):
             dhis2_period_string = str(int(dhis2_period_string))
         else:
             dhis2_period_string = str(dhis2_period_string)
