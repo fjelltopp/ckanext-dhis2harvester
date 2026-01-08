@@ -15,16 +15,29 @@ jobs:
           flake8 . --count --max-line-length=127 --show-source --statistics
 
   test:
-    name: CKAN 2.11
+    name: CKAN ${{ matrix.ckan-version }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ckan-version: "2.10"
+            ckan-image: "ckan-dev:2.10-py3.10"
+            postgres-version: "2.10"
+            solr-version: "2.10"
+          - ckan-version: "2.11"
+            ckan-image: "ckan-dev:2.11-py3.10"
+            postgres-version: "2.11"
+            solr-version: "2.11-solr9"
+
     container:
-      image: ckan/ckan-dev:2.11-py3.10
+      image: ckan/${{ matrix.ckan-image }}
       options: --user root
     services:
       solr:
-        image: ckan/ckan-solr:2.11-solr9
+        image: ckan/ckan-solr:${{ matrix.solr-version }}
       postgres:
-        image: ckan/ckan-postgres-dev:2.11
+        image: ckan/ckan-postgres-dev:${{ matrix.postgres-version }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
