@@ -89,7 +89,7 @@ def pivot_tables_refresh(harvest_source_id):
     data = request.form.to_dict()
     # Both view and submit are POST requests due to ckan-harvest flow
     # if data is empty display the form
-    if data:
+    if data and data.get('dhis2_url'):
         dhis2_conn_ = __get_dhis_conn(request.form)
         errors = _validate_dhis2_connection(dhis2_conn_)
         if errors:
@@ -115,7 +115,7 @@ def pivot_tables_refresh(harvest_source_id):
             log.error("An error occurred: {}".format(str(e)))
             raise e
         _flash_source_refresh_success()
-        return h.redirect_to('harvest_admin', id=harvester_name)
+        return h.redirect_to('harvester.admin', id=harvester_name)
     else:
         data = {}
         (dhis2_url, dhis2_api_version, dhis2_auth_token) = __get_dhis2_connection_details_from_harvest_source(
@@ -124,7 +124,7 @@ def pivot_tables_refresh(harvest_source_id):
             try:
                 harvest_utils.create_job(harvest_source_id)
                 _flash_source_refresh_success()
-                return h.redirect_to('harvest_admin', id=harvester_name)
+                return h.redirect_to('harvester.admin', id=harvester_name)
             except ValidationError as e:
                 log.error("An error occurred: {}".format(str(e)))
         data['dhis2_url'] = dhis2_url
@@ -244,7 +244,7 @@ def __save_harvest_source(data):
         raise e
     log.info("Harvest source {} created".format(harvester_name))
 
-    return h.redirect_to('harvest_admin', id=harvester_name)
+    return h.redirect_to('harvester.admin', id=harvester_name)
 
 
 def __update_harvest_source(data):
@@ -254,7 +254,7 @@ def __update_harvest_source(data):
     except ValidationError as e:
         log.error("An error occurred: {}".format(str(e.error_dict)))
         raise e
-    return h.redirect_to('harvest_admin', id=harvester_name)
+    return h.redirect_to('harvester.admin', id=harvester_name)
 
 
 def __save_or_update_harvest_source(data, harvest_source=None):
