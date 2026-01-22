@@ -169,6 +169,12 @@ class Dhis2Connection(object):
     def get_pivot_tables(self):
         url_ = urljoin(self.api_url, self.PIVOT_TABLES_RESOURCE)
         r = requests.get(url_, cookies=self.create_auth_cookie())
+        # If 404, try newer API config (reportTables removed in DHIS2 >= 2.37)
+        if r.status_code == 404 and self.PIVOT_TABLES_KEY_NAME == "reportTables":
+            log.info("reportTables endpoint not found, trying visualizations endpoint")
+            self.__setup_api_config(37)
+            url_ = urljoin(self.api_url, self.PIVOT_TABLES_RESOURCE)
+            r = requests.get(url_, cookies=self.create_auth_cookie())
         self.response_validation("Failed to get pivot tables information", r)
         try:
             pivot_tables = r.json().get(self.PIVOT_TABLES_KEY_NAME)
@@ -182,6 +188,12 @@ class Dhis2Connection(object):
     def _get_pivot_table_meta(self, pivot_table_id):
         url_ = urljoin(self.api_url, "{}/{}".format(self.PIVOT_TABLES_KEY_NAME, pivot_table_id))
         r = requests.get(url_, cookies=self.create_auth_cookie())
+        # If 404, try newer API config (reportTables removed in DHIS2 >= 2.37)
+        if r.status_code == 404 and self.PIVOT_TABLES_KEY_NAME == "reportTables":
+            log.info("reportTables endpoint not found for pivot table %s, trying visualizations endpoint", pivot_table_id)
+            self.__setup_api_config(37)
+            url_ = urljoin(self.api_url, "{}/{}".format(self.PIVOT_TABLES_KEY_NAME, pivot_table_id))
+            r = requests.get(url_, cookies=self.create_auth_cookie())
         self.response_validation("Failed to get pivot table information for pivot table {}".format(pivot_table_id), r)
         try:
             pivot_table_meta = r.json()
