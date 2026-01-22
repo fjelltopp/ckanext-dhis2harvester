@@ -1,15 +1,26 @@
-{% if not h.organizations_available('create_dataset')
-        and not h.check_config_permission('ckan.auth.create_unowned_dataset') %}
+{% extends "source/pivot_table_base.html" %}
+{% import 'macros/form.html' as form %}
 
-    {% include "package/snippets/cannot_create_package.html" %}
+{% set can_create = h.organizations_available('create_dataset') or h.check_config_permission('ckan.auth.create_unowned_dataset') %}
 
+{% block form_content %}
+{% if not can_create %}
+  <section class="module">
+    <div class="module-content">
+      {% if h.check_access('organization_create') %}
+        <div class="alert alert-warning">{{ _('Before you can create a DHIS2 source you need to create an organization.') }}</div>
+        <a class='btn btn-primary' href="{{ h.url_for('organization.new') }}">
+          {{ _('Create a new organization') }}
+        </a>
+      {% else %}
+        <div class="alert alert-danger">
+          <p>{{ _('There are no organizations to which you can assign this DHIS2 source.') }}</p>
+          <p>{{ _('Ask a system administrator to create an organization before you can continue.') }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
 {% else %}
-  {% extends "source/pivot_table_base.html" %}
-  {% import 'macros/form.html' as form %}
-
-
-  {% block form_content %}
-
   <form id="source-new" class="dhis2-source-new form-horizontal dataset-form {{ h.bootstrap_version() }}" method="post">
 
     {% set stage_2_denied = not data.dhis2_auth_token %}
@@ -17,10 +28,10 @@
     {% set stage_4_denied = not data.dhis2_auth_token or not data.selected_pivot_tables or not data.column_values %}
 
     <div class="formnav-stages row">
-      <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_1' %}btn-primary{% endif %}" type="submit" name="action" value="back.pivot_table_new_1">{{_('DHIS2 Connection')}} <i class="fa fa-angle-right"></i></button>
-      <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_2' %}btn-primary{% endif %}" {% if stage_2_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_2">{{_('Pivot Tables')}} <i class="fa fa-angle-right"></i></button>
-      <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_3' %}btn-primary{% endif %}" {% if stage_3_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_3">{{_('Column Configuration')}} <i class="fa fa-angle-right"></i></button>
-      <button class="col-xs-12 col-md-6 col-lg-3 btn btn-default formnav-stage-link {% if data.action == 'pivot_table_new_4' %}btn-primary{% endif %}" {% if stage_4_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_4">{{_('DHIS2 Source Details')}}</button>
+      <button class="col-12 col-md-6 col-lg-3 btn formnav-stage-link {% if data.action == 'pivot_table_new_1' %}btn-primary{% else %}btn-light{% endif %}" type="submit" name="action" value="back.pivot_table_new_1">{{_('DHIS2 Connection')}} <i class="fa fa-angle-right"></i></button>
+      <button class="col-12 col-md-6 col-lg-3 btn formnav-stage-link {% if data.action == 'pivot_table_new_2' %}btn-primary{% else %}btn-light{% endif %}" {% if stage_2_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_2">{{_('Pivot Tables')}} <i class="fa fa-angle-right"></i></button>
+      <button class="col-12 col-md-6 col-lg-3 btn formnav-stage-link {% if data.action == 'pivot_table_new_3' %}btn-primary{% else %}btn-light{% endif %}" {% if stage_3_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_3">{{_('Column Configuration')}} <i class="fa fa-angle-right"></i></button>
+      <button class="col-12 col-md-6 col-lg-3 btn formnav-stage-link {% if data.action == 'pivot_table_new_4' %}btn-primary{% else %}btn-light{% endif %}" {% if stage_4_denied %} disabled {% endif %} type="submit" name="action" value="back.pivot_table_new_4">{{_('DHIS2 Source Details')}}</button>
     </div>
 
     {% block errors %}{{ form.errors(error_summary) }}{% endblock %}
@@ -53,18 +64,17 @@
           {% set locale_delete = h.dump_json({'content': _('This will flag the source as deleted but keep all its datasets and previous jobs. Are you sure you want to delete this harvest source?')}) %}
           {% set locale_clear = h.dump_json({'content': _('Warning: Apart from deleting this source, this command will remove all its datasets, as well as all previous job reports. Are you sure you want to continue?')}) %}
           <div class="dropdown btn-group">
-            <a href="#" class="btn btn-danger dropdown-toggle" data-toggle="dropdown">
+            <a href="#" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown">
               {{ _('Delete') }}
-              <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
               <li>
-                <a href="{% url_for 'harvest_delete', id=harvest_source.name %}" data-module="confirm-action" data-module-i18n="{{ locale_delete }}">
+                <a class="dropdown-item" href="{% url_for 'harvest.delete', id=harvest_source.name %}" data-module="confirm-action" data-module-i18n="{{ locale_delete }}">
                   {{ _('Delete source') }}
                 </a>
               </li>
               <li>
-                <a href="{% url_for 'harvest_delete', id=harvest_source.name %}?clear=True" data-module="confirm-action" data-module-i18n="{{ locale_clear }}">
+                <a class="dropdown-item" href="{% url_for 'harvest.delete', id=harvest_source.name %}?clear=True" data-module="confirm-action" data-module-i18n="{{ locale_clear }}">
                   {{ _('Delete and clear source') }}
                 </a>
               </li>
@@ -80,5 +90,5 @@
       <div class="throbber-message">{{_('Talking to DHIS2')}}</div>
     </div>
   </div>
-  {% endblock %}
-{% endif  %}
+{% endif %}
+{% endblock %}
