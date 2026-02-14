@@ -1,6 +1,5 @@
 import json
-import six
-from six import StringIO
+from io import StringIO
 import logging
 import requests
 import pandas as pd
@@ -271,7 +270,7 @@ def __save_or_update_harvest_source(data, harvest_source=None):
             else:
                 data['area_id_map_owner'] = current_user.name
         except Exception as e:
-            errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), e.message]}
+            errors = {"area_id_map_url": [_("Failed to download the area id map csv file."), str(e)]}
             return __summary_stage(data, errors, harvest_source=harvest_source)
         try:
             csv_stream = StringIO(area_csv.text)
@@ -286,8 +285,8 @@ def __save_or_update_harvest_source(data, harvest_source=None):
         else:
             return __save_harvest_source(data)
     except Exception as e:
-        log.exception(e.message)
-        h.flash_error('Error while saving the harvest source: {}'.format(e.message))
+        log.exception(str(e))
+        h.flash_error('Error while saving the harvest source: {}'.format(str(e)))
         return __summary_stage(data, harvest_source=harvest_source)
 
 
@@ -482,7 +481,7 @@ def __data_initialization(edit_configuration=False):
                 columns_[c_id_]['operation'] = operations.SUBTRACT
 
         columns_list_ = []
-        for c_id, c_details in six.iteritems(columns_):
+        for c_id, c_details in columns_.items():
             c_details['id'] = c_id
             columns_list_.append(c_details)
 
@@ -506,7 +505,7 @@ def __get_pt_configs(data):
     from .config.column_configs_template import TARGET_TYPES
     data['column_config'] = TARGET_TYPES
     target_types_ = [{'text': type_d['name'], 'value': type_id}
-                     for type_id, type_d in six.iteritems(TARGET_TYPES)]
+                     for type_id, type_d in TARGET_TYPES.items()]
     data['target_types'] = target_types_
 
 

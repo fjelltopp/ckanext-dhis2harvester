@@ -2,8 +2,7 @@ import json
 import logging
 from base64 import b64encode
 
-import six
-from six.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
 import requests
 from requests.exceptions import MissingSchema, RequestException
 
@@ -96,7 +95,7 @@ class Dhis2Connection(object):
     def __create_dhis2_headers(self, headers=None):
         if headers is None:
             headers = {}
-        u_and_p = b"%s:%s" % (self.username, self.password)
+        u_and_p = "{}:{}".format(self.username, self.password).encode()
         u_and_p_b64 = b64encode(u_and_p).decode("ascii")
         headers.update({
             "Content-Type": "application/json",
@@ -145,8 +144,8 @@ class Dhis2Connection(object):
             log.debug(msg_)
             raise (Dhis2ConnectionError(msg_))
         except MissingSchema as ms:
-            log.debug(ms.message)
-            raise (Dhis2ConnectionError(ms.message))
+            log.debug(str(ms))
+            raise (Dhis2ConnectionError(str(ms)))
 
     def get_details(self):
         return self.url, self.api_version, self.get_auth_token()
@@ -182,7 +181,7 @@ class Dhis2Connection(object):
             raise Dhis2ConnectionError("Failed to decode response for pivot table")
         result = []
         for table in pivot_tables:
-            result.append({k: v for k, v in six.iteritems(table) if k in self.PIVOT_TABLE_KEYS})
+            result.append({k: v for k, v in table.items() if k in self.PIVOT_TABLE_KEYS})
         return result
 
     def _get_pivot_table_meta(self, pivot_table_id):
@@ -240,7 +239,7 @@ class Dhis2Connection(object):
                 category_options_ = dict()
                 for cc_id in cc_ids_:
                     category_options_.update(category_combos_map[cc_id])
-                for co_id, co_name in six.iteritems(category_options_):
+                for co_id, co_name in category_options_.items():
                     data_element_category_options_.append({
                         "id": "-".join([d_id_, co_id]),
                         "name": " / ".join([d_name_, co_name])

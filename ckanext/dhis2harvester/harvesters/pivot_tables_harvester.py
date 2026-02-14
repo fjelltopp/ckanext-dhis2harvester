@@ -1,6 +1,6 @@
 import logging
 import requests
-import six
+from io import StringIO, BytesIO
 from ckan.lib import uploader
 
 from ckanext.harvest.harvesters import HarvesterBase
@@ -20,8 +20,6 @@ import uuid
 import json
 
 import sys
-
-from six import StringIO
 log = logging.getLogger(__name__)
 
 
@@ -91,14 +89,20 @@ class PivotTablesHarvester(HarvesterBase):
             return None
         area_id_map_url = config['area_id_map_url']
         area_id_map_owner = config['area_id_map_owner']
-        title_ = six.text_type(harvest_job.source.title)
+        title_ = str(harvest_job.source.title)
         output_dataset_name_prefix = '{} Output'.format(title_)
         period_conversion_type = config.get('period_conversion_type')
         for pt in config['column_values']:
             pt_id = pt['id']
             pt_type = {x['id']: x for x in config['selected_pivot_tables']}[pt_id]['type']
             pt_target_type = PT_TARGET_TYPES[pt_type]
-            pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
+            try:
+                pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
+            except dhis2_api.Dhis2ConnectionError as e:
+                self._save_gather_error(
+                    'Failed to get pivot table configuration for {}: {}'.format(pt_id, e),
+                    harvest_job)
+                continue
             data_elements = [c['id'].split('-')[0] for c in pt['columns'] if '-' in c['id']]
             indicators = [c['id'] for c in pt['columns'] if '-' not in c['id']]
             csv_resource_name = dhis2_connection.get_pivot_table_csv_resource(
@@ -188,8 +192,8 @@ class PivotTablesHarvester(HarvesterBase):
         try:
             dhis2_connection.test_connection()
         except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error_error(
-                'Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e.message),
+            self._save_object_error(
+                'Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e),
                 harvest_object, 'Fetch')
             return None
         dhis2_api_full_resource = content.get('dhis2_api_full_resource')
@@ -203,15 +207,15 @@ class PivotTablesHarvester(HarvesterBase):
             else:
                 pt_df = pd.DataFrame()
         except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error_error('Unable to get dhis2 data elements: {}: {}: {}'
-                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
-                                          harvest_object, 'Fetch')
+            self._save_object_error('Unable to get dhis2 data elements: {}: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+                                    harvest_object, 'Fetch')
             return None
         except Exception as e:
             log.exception("Failed to parse data element resources for pivot table.")
-            self._save_object_error_error('Unable to get dhis2 data elements: {}: {}: {}'
-                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
-                                          harvest_object, 'Fetch')
+            self._save_object_error('Unable to get dhis2 data elements: {}: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+                                    harvest_object, 'Fetch')
             return None
 
         try:
@@ -222,15 +226,15 @@ class PivotTablesHarvester(HarvesterBase):
             else:
                 pt_indicator_df = pd.DataFrame()
         except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error_error('Unable to get dhis2 data: {}: {}: {}'
-                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
-                                          harvest_object, 'Fetch')
+            self._save_object_error('Unable to get dhis2 data: {}: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+                                    harvest_object, 'Fetch')
             return None
         except Exception as e:
             log.exception("Failed to parse indicator resources for pivot table.")
-            self._save_object_error_error('Unable to get dhis2 data elements: {}: {}: {}'
-                                          .format(dhis2_api_full_resource, dhis2_connection, e.message),
-                                          harvest_object, 'Fetch')
+            self._save_object_error('Unable to get dhis2 data elements: {}: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+                                    harvest_object, 'Fetch')
             return None
         try:
             _category_column = 'Category option combo'
@@ -241,7 +245,7 @@ class PivotTablesHarvester(HarvesterBase):
             try:
                 ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
             except dhis2_api.Dhis2ConnectionError as e:
-                self._save_object_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e.message),
+                self._save_object_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e),
                                         harvest_object, 'Fetch')
                 return None
             _org_unit_col = 'Organisation unit'
@@ -303,7 +307,7 @@ class PivotTablesHarvester(HarvesterBase):
                 for tc in c['target_column']:
                     _data_cols.add(tc)
                     pt_df.loc[i, tc] = _factor * row['Value']
-                for cat, cat_val in six.iteritems(c['categories']):
+                for cat, cat_val in c['categories'].items():
                     _cat_cols.add(cat)
                     pt_df.loc[i, cat] = cat_val
             pt_df = pt_df.drop(_index_to_drop)
@@ -410,7 +414,7 @@ class PivotTablesHarvester(HarvesterBase):
 
         package_data = {
             "name": slugify(dataset_name),
-            "title": six.text_type(dataset_name),
+            "title": str(dataset_name),
             "type": "dataset-2",
             "tags": [{"name": tag} for tag in content.get('output_tags', [])],
             "state": "active",
@@ -434,7 +438,7 @@ class PivotTablesHarvester(HarvesterBase):
             package_data["id"] = str(uuid.uuid4())
             new_package = t.get_action('package_create')(context, package_data)
 
-        csv_stream = six.BytesIO(six.text_type(csv_string).encode(encoding='UTF-8'))
+        csv_stream = BytesIO(csv_string.encode(encoding='UTF-8'))
         csv_filename = "{}.csv".format(slugify(resource_name.replace('/', '').replace(':', '-')))
         resource = {
             "name": resource_name,
