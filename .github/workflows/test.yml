@@ -58,7 +58,7 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install -r dev-requirements.txt
-        pip install -e git+https://github.com/fjelltopp/ckanext-harvest.git@toavina/update-python#egg=ckanext-harvest
+        pip install -e git+https://github.com/fjelltopp/ckanext-harvest.git@1c1ebb335379eff02db417352db37e1e28e2aa87#egg=ckanext-harvest
         pip install -r /srv/app/src/ckanext-harvest/requirements.txt
         pip install -e .
         # Replace default path to CKAN core config file with the one on the container

@@ -98,9 +98,10 @@ class PivotTablesHarvester(HarvesterBase):
             pt_target_type = PT_TARGET_TYPES[pt_type]
             try:
                 pt_config = dhis2_connection.get_pivot_table_configuration(pt_id)
-            except dhis2_api.Dhis2ConnectionError as e:
+            except dhis2_api.Dhis2ConnectionError:
+                log.exception("Failed to get pivot table configuration for %s", pt_id)
                 self._save_gather_error(
-                    'Failed to get pivot table configuration for {}: {}'.format(pt_id, e),
+                    'Failed to get pivot table configuration for {}'.format(pt_id),
                     harvest_job)
                 continue
             data_elements = [c['id'].split('-')[0] for c in pt['columns'] if '-' in c['id']]
@@ -191,9 +192,10 @@ class PivotTablesHarvester(HarvesterBase):
         dhis2_connection = self._get_dhis2_connection(content)
         try:
             dhis2_connection.test_connection()
-        except dhis2_api.Dhis2ConnectionError as e:
+        except dhis2_api.Dhis2ConnectionError:
+            log.exception("Unable to get connection to dhis2: %s", dhis2_connection)
             self._save_object_error(
-                'Unable to get connection to dhis2: {}: {}'.format(dhis2_connection, e),
+                'Unable to get connection to dhis2: {}'.format(dhis2_connection),
                 harvest_object, 'Fetch')
             return None
         dhis2_api_full_resource = content.get('dhis2_api_full_resource')
@@ -206,15 +208,16 @@ class PivotTablesHarvester(HarvesterBase):
                 pt_df = pd.read_csv(csv_stream, sep=",", encoding='utf-8')
             else:
                 pt_df = pd.DataFrame()
-        except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error('Unable to get dhis2 data elements: {}: {}: {}'
-                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+        except dhis2_api.Dhis2ConnectionError:
+            log.exception("Unable to get dhis2 data elements: %s: %s", dhis2_api_full_resource, dhis2_connection)
+            self._save_object_error('Unable to get dhis2 data elements: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection),
                                     harvest_object, 'Fetch')
             return None
-        except Exception as e:
+        except Exception:
             log.exception("Failed to parse data element resources for pivot table.")
-            self._save_object_error('Unable to get dhis2 data elements: {}: {}: {}'
-                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+            self._save_object_error('Unable to get dhis2 data elements: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection),
                                     harvest_object, 'Fetch')
             return None
 
@@ -225,15 +228,16 @@ class PivotTablesHarvester(HarvesterBase):
                 pt_indicator_df = pd.read_csv(csv_indicator_stream, sep=",", encoding='utf-8')
             else:
                 pt_indicator_df = pd.DataFrame()
-        except dhis2_api.Dhis2ConnectionError as e:
-            self._save_object_error('Unable to get dhis2 data: {}: {}: {}'
-                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+        except dhis2_api.Dhis2ConnectionError:
+            log.exception("Unable to get dhis2 data: %s: %s", dhis2_api_full_resource, dhis2_connection)
+            self._save_object_error('Unable to get dhis2 data: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection),
                                     harvest_object, 'Fetch')
             return None
-        except Exception as e:
+        except Exception:
             log.exception("Failed to parse indicator resources for pivot table.")
-            self._save_object_error('Unable to get dhis2 data elements: {}: {}: {}'
-                                    .format(dhis2_api_full_resource, dhis2_connection, e),
+            self._save_object_error('Unable to get dhis2 data elements: {}: {}'
+                                    .format(dhis2_api_full_resource, dhis2_connection),
                                     harvest_object, 'Fetch')
             return None
         try:
@@ -244,8 +248,9 @@ class PivotTablesHarvester(HarvesterBase):
             pt_df = pd.concat([pt_df, pt_indicator_df])
             try:
                 ou_id_name_map = dhis2_connection.get_organisation_unit_name_id_map()
-            except dhis2_api.Dhis2ConnectionError as e:
-                self._save_object_error('Unable to get dhis2 org unit data: {}: {}'.format(dhis2_connection, e),
+            except dhis2_api.Dhis2ConnectionError:
+                log.exception("Unable to get dhis2 org unit data: %s", dhis2_connection)
+                self._save_object_error('Unable to get dhis2 org unit data: {}'.format(dhis2_connection),
                                         harvest_object, 'Fetch')
                 return None
             _org_unit_col = 'Organisation unit'

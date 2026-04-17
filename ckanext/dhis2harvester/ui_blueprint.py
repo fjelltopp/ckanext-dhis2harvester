@@ -284,9 +284,9 @@ def __save_or_update_harvest_source(data, harvest_source=None):
             return __update_harvest_source(data)
         else:
             return __save_harvest_source(data)
-    except Exception as e:
-        log.exception(str(e))
-        h.flash_error('Error while saving the harvest source: {}'.format(str(e)))
+    except Exception:
+        log.exception("Error while saving the harvest source")
+        h.flash_error(_('Error while saving the harvest source.'))
         return __summary_stage(data, harvest_source=harvest_source)
 
 
