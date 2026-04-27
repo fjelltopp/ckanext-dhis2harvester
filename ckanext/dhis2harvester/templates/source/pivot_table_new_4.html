@@ -4,7 +4,7 @@
 {{ form.input('title', id='field-title', label=_('Title'), placeholder=_('eg. A descriptive title'), value=data.title, error=errors.title, classes=['control-full'], attrs={'data-module': 'slug-preview-target', 'class': 'form-control'}) }}
 
 {% set prefix = 'harvest' %}
-{% set domain = h.url_for('harvest_read', id='', qualified=true) %}
+{% set domain = h.url_for('harvest.read', id='', qualified=true) %}
 {% set domain = domain|replace("http://", "")|replace("https://", "") %}
 {% set attrs = {'data-module': 'slug-preview-slug', 'data-module-prefix': domain, 'data-module-placeholder': '<harvest-source>'} %}
 
@@ -61,6 +61,6 @@
 
 <input type="hidden" name="source_type" value="dhis2_pivot_table" >
 <div class="form-nav">
-  <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_3">{{_("Previous")}}</button>
+  <button class="btn btn-secondary" type="submit" name="action" value="back.pivot_table_new_3">{{_("Previous")}}</button>
 </div>
 </div>

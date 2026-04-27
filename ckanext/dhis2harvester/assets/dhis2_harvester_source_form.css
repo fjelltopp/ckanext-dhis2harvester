@@ -1,3 +1,8 @@
+/* Bootstrap 5 compatibility - .hidden class was removed in BS5 */
+.hidden {
+  display: none !important;
+}
+
 /* Fixing bug with jsoneditor not wrapping h3 title with <label> for
     type:array, format:table
 */

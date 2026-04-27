@@ -1,10 +1,8 @@
-import six
-
 from ckan.plugins import toolkit
 
 
 def iteritems(dictionary):
-    return six.iteritems(dictionary)
+    return dictionary.items()
 
 
 def organization_select_options(action):

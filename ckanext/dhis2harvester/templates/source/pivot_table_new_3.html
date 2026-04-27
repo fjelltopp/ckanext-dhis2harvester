@@ -22,18 +22,18 @@
   <div class="pivot-table-config {% if loop.index > 1 %}hidden{% endif %}" tab_page="{{pivot_table.id}}">
     <div class="header">
       <div class="element row">
-        <span class="label col-xs-12 col-sm-3">{{ _('Source DHIS2 pivot table') }}:</span>
-        <div class="col-xs-12 col-sm-9">
+        <span class="label col-12 col-sm-3">{{ _('Source DHIS2 pivot table') }}:</span>
+        <div class="col-12 col-sm-9">
           <span class="value">{{pivot_table.text}}</span><br />
           <span class="small">({{_('DHIS2 ID:')}} {{pivot_table.id}})</span>
         </div>
       </div>
       <div class="element row">
-        <span class="label col-xs-12 col-sm-3">{{ _('ADR Mapping Type') }}:</span>
-        <span class="value col-xs-12 col-sm-9">{{target_type_name}}</span>
+        <span class="label col-12 col-sm-3">{{ _('ADR Mapping Type') }}:</span>
+        <span class="value col-12 col-sm-9">{{target_type_name}}</span>
       </div>
       <div class="element row">
-        <span class="col-xs-12">
+        <span class="col-12">
           {{  _('The pivot table <strong>{pivot_table_name}</strong>, with ID: <strong>{pivot_table_id}</strong>
           in your DHIS2 system will be used to populate the <strong>{table_type_name}</strong> ADR table.')
           .format(
@@ -76,7 +76,7 @@
                     options=column_options,
                     selected=column_data.target_column if column_data else column_options[0],
                     error=errors.pivot_table_id,
-                    classes=['control-medium', 'col-xs-12', 'col-md-4']
+                    classes=['control-medium', 'col-12', 'col-md-4']
                     )
                       }}
 
@@ -92,14 +92,14 @@
                       options=category_options,
                       selected=column_data.categories[category] if column_data else category_options[0].value,
                       error=errors.pivot_table_id,
-                      classes=['control-medium', 'col-xs-12', 'col-md-4']
+                      classes=['control-medium', 'col-12', 'col-md-4']
                       )
                         }}
                   {% endfor %}
                 {% endif %}
               </div>
               <div class="row">
-                <div class="col-xs-12">
+                <div class="col-12">
                   {{ form.checkbox(
                         'negative;{};{}'.format(pivot_table.id, column.value),
                         label=_('Negative value'),
@@ -143,7 +143,7 @@
                     options=column_options,
                     selected=column_data.target_column if column_data else column_options[0],
                     error=errors.pivot_table_id,
-                    classes=['control-medium', 'col-xs-12', 'col-md-4']
+                    classes=['control-medium', 'col-12', 'col-md-4']
                     )
                 }}
 
@@ -159,14 +159,14 @@
                       options=category_options,
                       selected=column_data.categories[category] if column_data else category_options[0].value,
                       error=errors.pivot_table_id,
-                      classes=['control-medium', 'col-xs-12', 'col-md-4']
+                      classes=['control-medium', 'col-12', 'col-md-4']
                       )
                   }}
                 {% endfor %}
               {% endif %}
             </div>
             <div class="row">
-              <div class="col-xs-12">
+              <div class="col-12">
                 {{ form.checkbox(
                         'negative;{};{}'.format(pivot_table.id, column.value),
                         label=_('Negative value'),
@@ -184,7 +184,7 @@
 {% endfor %}
 
   <div class="form-nav">
-    <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
-    <button class="btn btn-default" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
+    <button class="btn btn-secondary" type="submit" name="action" value="back.pivot_table_new_2">{{_("Previous")}}</button>
+    <button class="btn btn-secondary" type="submit" name="action" value="pivot_table_new_3">{{_("Next")}}</button>
   </div>
 </div>

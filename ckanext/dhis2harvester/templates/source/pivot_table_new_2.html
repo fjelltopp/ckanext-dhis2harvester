@@ -12,7 +12,7 @@
         options=data.pivot_tables,
         selected=pivot_table.id,
         error=errors.pivot_table_id,
-        classes=['pivot-table-selector', 'control-medium', 'no-label', 'col-xs-12', 'col-md-7'],
+        classes=['pivot-table-selector', 'control-medium', 'no-label', 'col-12', 'col-md-7'],
         attrs={
           "data-module": "autocomplete"
         }
@@ -24,11 +24,11 @@
         options=data.target_types,
         selected=pivot_table.type,
         error=errors.pivot_table_id,
-        classes=['control-medium', 'no-label', 'col-xs-10', 'col-md-4']
+        classes=['control-medium', 'no-label', 'col-10', 'col-md-4']
         )
     }}
 
-    <div class="delete-btn form-group control-medium col-xs-2 col-md-1">
+    <div class="delete-btn form-group control-medium col-2 col-md-1">
       <button class="btn btn-primary" disabled
               data-module='pivot_table_delete'
               data-module-source=".pivot-table-new-2 .row.pivot-table"
@@ -45,7 +45,7 @@
         id='pivot_table_id',
         options=data.pivot_tables,
         error=errors.pivot_table_id,
-        classes=['pivot-table-selector', 'control-medium', 'no-label', 'col-xs-12', 'col-md-7'],
+        classes=['pivot-table-selector', 'control-medium', 'no-label', 'col-12', 'col-md-7'],
         attrs={
           "data-module": "autocomplete"
         }
@@ -56,11 +56,11 @@
         id='pivot_table_target_type',
         options=data.target_types,
         error=errors.pivot_table_id,
-        classes=['control-medium', 'no-label', 'col-xs-10', 'col-md-4']
+        classes=['control-medium', 'no-label', 'col-10', 'col-md-4']
         )
               }}
 
-      <div class="delete-btn form-group control-medium col-xs-2 col-md-1">
+      <div class="delete-btn form-group control-medium col-2 col-md-1">
         <button class="btn btn-primary" disabled
                 data-module='pivot_table_delete'
                 data-module-source=".pivot-table-new-2 .row.pivot-table"
@@ -73,7 +73,7 @@
 </div>
 
 <div  class="row">
-  <div class="add-btn form-group control-medium col-xs-2 col-md-1">
+  <div class="add-btn form-group control-medium col-2 col-md-1">
     <button class="btn btn-success"
             data-module="pivot_table_add"
             data-module-source=".pivot-table-new-2 .row.pivot-table"
@@ -86,7 +86,7 @@
 </div>
 
 <div class="form-nav">
-  <button class="btn btn-default" type="submit" name="action" value="back.pivot_table_new_1">{{_("Previous")}}</button>
-  <button class="btn btn-default" type="submit" name="action" value="pivot_table_new_2">{{_("Next")}}</button>
+  <button class="btn btn-secondary" type="submit" name="action" value="back.pivot_table_new_1">{{_("Previous")}}</button>
+  <button class="btn btn-secondary" type="submit" name="action" value="pivot_table_new_2">{{_("Next")}}</button>
 </div>
 </div>
