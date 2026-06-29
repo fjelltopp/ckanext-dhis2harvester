@@ -11,6 +11,32 @@ from ckanext.dhis2harvester import request_util
 log = logging.getLogger(__name__)
 
 API_CONFIG = {
+    40: {
+        # ADR does not support chunking in DHIS2 metadata fetch, some DHIS2 have >8000 pivot tables
+        # as a workaround we fetch pivot tables with names matching UNAIDS or ONUSIDA
+        "PIVOT_TABLES_RESOURCE": 'visualizations?type=PIVOT_TABLE&'
+                                 'fields=id,displayName~rename(name),created,lastUpdated,access,title,description,user&'
+                                 'rootJunction=OR&filter=name:like:UNAIDS&filter=name:like:ONUSIDA&pageSize=200',
+        "PIVOT_TABLES_KEY_NAME": "visualizations",
+        "PIVOT_TABLES_CSV_RESOURCE": 'analytics.csv?'
+                                     'dimension=dx:{data_elements}&'
+                                     'dimension=pe:{periods}&'
+                                     'dimension=co&'
+                                     'dimension=ou:{organisation_units}&'
+                                     'displayProperty=NAME&'
+                                     'hierarchyMeta=true&'
+                                     'outputIdScheme=UID',
+        "PIVOT_TABLES_CSV_INDICATOR_RESOURCE": 'analytics.csv?'
+                                               'dimension=dx:{indicators}&'
+                                               'dimension=pe:{periods}&'
+                                               'dimension=ou:{organisation_units}&'
+                                               'displayProperty=NAME&'
+                                               'hierarchyMeta=true&'
+                                               'outputIdScheme=UID',
+        "PIVOT_TABLE_KEYS": ["lastUpdated", "created", "id", "name"],
+        "SECURITY_LOGIN_ACTION": 'dhis-web-commons-security/login.action',
+        "ORG_UNIT_RESOURCE": "organisationUnits?paging=false&fields=id,name"
+    },
     37: {
         # ADR does not support chunking in DHIS2 metadata fetch, some DHIS2 have >8000 pivot tables
         # as a workaround we fetch pivot tables with names matching UNAIDS or ONUSIDA
@@ -106,7 +132,7 @@ class Dhis2Connection(object):
     def __setup_api_config(self, api_version=None):
         if not api_version:
             api_version = DEFAULT_API_VERSION
-        for version in reversed(sorted(API_CONFIG.keys())):
+        for version in sorted(API_CONFIG.keys(), reverse=True):
             if int(api_version) >= version:
                 config = API_CONFIG[version]
                 break
